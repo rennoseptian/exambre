@@ -277,23 +277,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- EXPORT/IMPORT MODAL -->
-<div class="modal-overlay" id="backup-modal">
+<!-- CLOUD SYNC MODAL -->
+<div class="modal-overlay" id="sync-modal">
   <div class="modal" style="max-width:460px">
-    <button class="modal-close" onclick="document.getElementById('backup-modal').classList.remove('on')"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-database" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>Backup & Restore Data</h3>
-    <p class="sub">Ekspor data ke file JSON untuk backup, atau impor dari file backup sebelumnya</p>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
-      <button class="btn btn-g" onclick="exportData()" style="justify-content:center;padding:12px"><i class="ti ti-download"></i> Ekspor / Download Backup JSON</button>
-      <div style="text-align:center;font-size:12px;color:var(--text3)">— atau —</div>
-      <label style="display:flex;flex-direction:column;gap:6px">
-        <span style="font-size:12px;color:var(--text2);font-weight:600">Impor dari file backup:</span>
-        <div class="img-dropzone-sm" style="padding:14px">
-          <input type="file" accept=".json" onchange="importData(this.files[0])">
-          <p><i class="ti ti-file-upload" style="font-size:16px;display:block;margin-bottom:4px"></i>Pilih file .json backup</p>
-        </div>
-      </label>
-    </div>
+    <button class="modal-close" onclick="document.getElementById('sync-modal').classList.remove('on')"><i class="ti ti-x"></i></button>
+    <h3><i class="ti ti-cloud" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>Sinkronisasi Cloud</h3>
+    <p class="sub">Data tersimpan otomatis secara online — nggak perlu backup manual lagi</p>
+    <div id="sync-content"></div>
   </div>
 </div>
 
@@ -303,11 +293,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <h1><i class="ti ti-book-2" style="color:var(--accent)"></i> Buku Kesalahan CPNS</h1>
       <p>Edit soal · Paste URL gambar · Kategori & Bab custom · Cetak 2 kolom</p>
     </div>
-    <span class="savi" id="savi"><i class="ti ti-check"></i> Tersimpan</span>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+      <span class="savi" id="savi"><i class="ti ti-check"></i> Tersimpan</span>
+      <span class="savi on" id="cloud-status" style="cursor:pointer" onclick="openSyncModal()"><i class="ti ti-cloud-off"></i> Cloud belum disambung</span>
+    </div>
   </div>
   <div class="nav nopr">
     <button class="ntab on" onclick="goSec('list',this)">Daftar Soal</button>
     <button class="ntab" onclick="goSec('review',this)">Mode Review<span class="due-badge" id="due-badge">0</span></button>
+    <button class="ntab" onclick="goSec('stats',this)">Statistik</button>
   </div>
 
   <div id="sec-list" class="sec on">
@@ -326,7 +320,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
       <div class="tbr">
         <button class="btn btn-s" onclick="openSettings()"><i class="ti ti-settings"></i> Kategori</button>
-        <button class="btn btn-s" onclick="document.getElementById('backup-modal').classList.add('on')"><i class="ti ti-database"></i> Backup</button>
+        <button class="btn btn-s" onclick="openSyncModal()"><i class="ti ti-cloud"></i> Cloud Sync</button>
         <button class="btn btn-s" onclick="openHeadingModal()"><i class="ti ti-heading"></i> Judul</button>
         <button class="btn btn-s" onclick="window.print()"><i class="ti ti-printer"></i> Cetak</button>
         <button class="btn btn-p" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>
@@ -411,8 +405,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div id="sec-review" class="sec nopr"><div id="rev-content"></div></div>
+
+  <div id="sec-stats" class="sec nopr"><div id="stats-content"></div></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script>
 const SK='cpns-wb-v6';
 const LETTERS=['A','B','C','D','E'];
@@ -441,7 +440,7 @@ function loadData(){
       cats=d.cats||JSON.parse(JSON.stringify(INIT_CATS));
       heading=d.heading||{title:'Buku Kesalahan CPNS',name:''};
       if(!qs.length)qs=defaultQ();
-      qs.forEach(q=>{if(!q.srs)q.srs={due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0};});
+      qs.forEach(q=>ensureSrs(q));
       Object.keys(cats).forEach(k=>{if(!cats[k].name)cats[k].name=k;});
     }else{qs=defaultQ();nid=10;cats=JSON.parse(JSON.stringify(INIT_CATS));}
   }catch(e){qs=defaultQ();nid=10;cats=JSON.parse(JSON.stringify(INIT_CATS));}
@@ -450,6 +449,7 @@ function loadData(){
 function persist(){
   try{localStorage.setItem(SK,JSON.stringify({qs,nid,cats,heading}));showSavi();}
   catch(e){showToast('⚠️ Penyimpanan penuh! Hapus beberapa gambar besar.','warn');}
+  scheduleCloudSave();
 }
 function showSavi(){const s=document.getElementById('savi');s.classList.add('on');setTimeout(()=>s.classList.remove('on'),2500);}
 
@@ -461,10 +461,17 @@ function showSavi(){const s=document.getElementById('savi');s.classList.add('on'
      yang sedang berjalan supaya langsung dilatih ulang.
    - "Dikuasai" sekarang berarti sudah lolos 3x rep berturut-turut (bukan cuma sekali benar). */
 const DAY_MS=86400000;
-function ensureSrs(q){if(!q.srs)q.srs={due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0};return q.srs;}
+function ensureSrs(q){
+  if(!q.srs)q.srs={due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0,totalAttempts:0,totalCorrect:0};
+  if(q.srs.totalAttempts===undefined)q.srs.totalAttempts=0;
+  if(q.srs.totalCorrect===undefined)q.srs.totalCorrect=0;
+  return q.srs;
+}
 function srsUpdate(q,correct){
   const s=ensureSrs(q);
+  s.totalAttempts+=1;
   if(correct){
+    s.totalCorrect+=1;
     s.reps+=1;
     if(s.reps===1)s.interval=1;
     else if(s.reps===2)s.interval=6;
@@ -503,31 +510,243 @@ function showToast(msg,type='',dur=3000){
   setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},dur);
 }
 
-/* ── EXPORT / IMPORT ── */
-function exportData(){
-  const blob=new Blob([JSON.stringify({qs,nid,cats,heading},null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`cpns-backup-${new Date().toISOString().slice(0,10)}.json`;
-  a.click();URL.revokeObjectURL(a.href);
-  showToast('✅ Backup berhasil diunduh!','ok');
+/* ── CLOUD SYNC (Firebase) ──
+   Ganti backup JSON manual. Soal disimpan satu-per-satu sebagai dokumen Firestore
+   (biar gak kena limit ukuran 1MB/dokumen), dan semua gambar diupload ke Firebase
+   Storage (bukan base64 lagi) — ini sekaligus mengatasi localStorage yang gampang penuh.
+   "Kode Sync" dipakai untuk menyambungkan data yang sama di device lain. */
+let fbApp=null,fbDb=null,fbStorage=null,fbReady=false,syncCode=null;
+let cloudSaveTimer=null,cloudBusy=false,pendingDeletes=[];
+
+function getFbConfig(){try{return JSON.parse(localStorage.getItem('cpns-fb-config')||'null');}catch(e){return null;}}
+function setFbConfig(cfg){localStorage.setItem('cpns-fb-config',JSON.stringify(cfg));}
+function clearFbConfig(){localStorage.removeItem('cpns-fb-config');}
+function getSyncCode(){
+  let c=localStorage.getItem('cpns-sync-code');
+  if(!c){c=genSyncCode();localStorage.setItem('cpns-sync-code',c);}
+  return c;
 }
-function importData(file){
-  if(!file)return;
-  if(!confirm('Impor ini akan MENGGANTI semua data saat ini. Lanjutkan?'))return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const d=JSON.parse(e.target.result);
-      if(!d.qs)throw new Error('Format tidak valid');
-      qs=d.qs;nid=d.nid||10;cats=d.cats||JSON.parse(JSON.stringify(INIT_CATS));
-      heading=d.heading||{title:'Buku Kesalahan CPNS',name:''};
-      persist();buildCatTabs();populateCatSelects();updateBabFilter();render();
-      document.getElementById('backup-modal').classList.remove('on');
-      showToast(`✅ ${qs.length} soal berhasil diimpor!`,'ok');
-    }catch(err){showToast('❌ File tidak valid atau rusak.','warn');}
+function genSyncCode(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  let s='';for(let i=0;i<16;i++)s+=ch[Math.floor(Math.random()*ch.length)];
+  return s;
+}
+function setCloudStatus(state,extra){
+  const el=document.getElementById('cloud-status');if(!el)return;
+  const map={
+    off:{icon:'cloud-off',txt:'Cloud belum disambung'},
+    connecting:{icon:'loader-2',txt:'Menyambungkan...'},
+    syncing:{icon:'cloud-upload',txt:'Menyimpan ke cloud...'},
+    synced:{icon:'cloud-check',txt:'Tersinkron'},
+    error:{icon:'cloud-exclamation',txt:'Gagal sinkron (cek koneksi)'}
   };
-  r.readAsText(file);
+  const m=map[state]||map.off;
+  el.innerHTML=`<i class="ti ti-${m.icon}"></i> ${extra||m.txt}`;
+}
+
+async function initCloud(){
+  const cfg=getFbConfig();
+  if(!cfg){setCloudStatus('off');return;}
+  try{
+    setCloudStatus('connecting');
+    fbApp=(firebase.apps&&firebase.apps.length)?firebase.apps[0]:firebase.initializeApp(cfg);
+    fbDb=firebase.firestore();
+    fbStorage=firebase.storage();
+    syncCode=getSyncCode();
+    fbReady=true;
+    await cloudLoad();
+    setCloudStatus('synced');
+  }catch(e){
+    console.error('Firebase init gagal:',e);
+    fbReady=false;
+    setCloudStatus('error');
+  }
+}
+
+async function cloudLoad(){
+  if(!fbReady)return;
+  const mainRef=fbDb.collection('syncs').doc(syncCode);
+  const mainSnap=await mainRef.get();
+  if(mainSnap.exists){
+    const data=mainSnap.data();
+    if(data.cats)cats=data.cats;
+    if(data.heading)heading=data.heading;
+    if(data.nid)nid=data.nid;
+    const qsnap=await mainRef.collection('questions').get();
+    if(!qsnap.empty){
+      qs=qsnap.docs.map(d=>d.data());
+      qs.forEach(q=>ensureSrs(q));
+    }
+  }else{
+    await cloudSaveNow();
+  }
+  localStorage.setItem(SK,JSON.stringify({qs,nid,cats,heading}));
+  buildCatTabs();populateCatSelects();updateBabFilter();render();
+}
+
+function scheduleCloudSave(){
+  if(!fbReady)return;
+  clearTimeout(cloudSaveTimer);
+  setCloudStatus('syncing');
+  cloudSaveTimer=setTimeout(cloudSaveNow,1500);
+}
+
+async function cloudSaveNow(){
+  if(!fbReady||cloudBusy)return;
+  cloudBusy=true;
+  setCloudStatus('syncing');
+  try{
+    for(const q of qs)await migrateQuestionImages(q);
+    localStorage.setItem(SK,JSON.stringify({qs,nid,cats,heading}));
+    const mainRef=fbDb.collection('syncs').doc(syncCode);
+    const docs=[{ref:mainRef,data:JSON.parse(JSON.stringify({cats,heading,nid,updatedAt:Date.now()}))}];
+    qs.forEach(q=>docs.push({ref:mainRef.collection('questions').doc(String(q.id)),data:JSON.parse(JSON.stringify(q))}));
+    await commitInChunks(docs);
+    if(pendingDeletes.length){
+      const delRefs=pendingDeletes.map(id=>mainRef.collection('questions').doc(String(id)));
+      await commitDeletesInChunks(delRefs);
+      pendingDeletes=[];
+    }
+    setCloudStatus('synced');
+  }catch(e){
+    console.error('Cloud save gagal:',e);
+    setCloudStatus('error');
+  }
+  cloudBusy=false;
+}
+async function commitInChunks(docs,size=450){
+  for(let i=0;i<docs.length;i+=size){
+    const batch=fbDb.batch();
+    docs.slice(i,i+size).forEach(({ref,data})=>batch.set(ref,data));
+    await batch.commit();
+  }
+}
+async function commitDeletesInChunks(refs,size=450){
+  for(let i=0;i<refs.length;i+=size){
+    const batch=fbDb.batch();
+    refs.slice(i,i+size).forEach(ref=>batch.delete(ref));
+    await batch.commit();
+  }
+}
+
+/* migrasi gambar base64 → Firebase Storage, jalan otomatis tiap sync */
+async function migrateImageToStorage(src){
+  if(!src||!src.startsWith('data:'))return src;
+  if(!fbReady)return src;
+  try{
+    const path=`syncs/${syncCode}/img/${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+    const ref=fbStorage.ref(path);
+    await ref.putString(src,'data_url');
+    return await ref.getDownloadURL();
+  }catch(e){console.error('Upload gambar gagal:',e);return src;}
+}
+async function migrateHtmlImages(html){
+  if(!html||!html.includes('data:image'))return html;
+  const re=/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g;
+  const found=[...new Set(html.match(re)||[])];
+  let out=html;
+  for(const b64 of found){
+    const url=await migrateImageToStorage(b64);
+    out=out.split(b64).join(url);
+  }
+  return out;
+}
+async function migrateQuestionImages(q){
+  for(const key of['qimgs','eimgs']){
+    if(!q[key])continue;
+    for(let i=0;i<q[key].length;i++){
+      let item=q[key][i];
+      if(typeof item==='string')item={src:item,width:120};
+      item.src=await migrateImageToStorage(item.src);
+      q[key][i]=item;
+    }
+  }
+  if(q.optImgs){for(const l of Object.keys(q.optImgs))q.optImgs[l]=await migrateImageToStorage(q.optImgs[l]);}
+  if(q.opts){for(let i=0;i<q.opts.length;i++)q.opts[i]=await migrateHtmlImages(q.opts[i]);}
+  if(q.expHtml)q.expHtml=await migrateHtmlImages(q.expHtml);
+}
+
+/* ── SYNC MODAL UI ── */
+function openSyncModal(){renderSyncModal();document.getElementById('sync-modal').classList.add('on');}
+function renderSyncModal(){
+  const el=document.getElementById('sync-content');if(!el)return;
+  const cfg=getFbConfig();
+  if(!cfg){
+    el.innerHTML=`
+      <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Biar soal & gambar kamu otomatis tersimpan online dan gak ilang walau ganti HP/browser, sambungkan ke project Firebase gratis kamu sendiri. Tempel konfigurasi Firebase di bawah (dari Firebase Console → Project Settings → Your apps):</p>
+      <div class="field"><label>Firebase Config</label><textarea id="fb-config-input" rows="6" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"..."}' style="font-family:monospace;font-size:11px"></textarea></div>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button class="btn btn-p" onclick="connectFirebase()"><i class="ti ti-plug-connected"></i> Sambungkan</button>
+      </div>`;
+    return;
+  }
+  el.innerHTML=`
+    <div class="field"><label>Kode Sync Kamu</label>
+      <div style="display:flex;gap:8px">
+        <input id="sync-code-display" value="${syncCode||''}" readonly style="font-family:monospace;letter-spacing:.5px">
+        <button class="btn btn-s" onclick="copySyncCode()"><i class="ti ti-copy"></i></button>
+      </div>
+      <div class="opt-ce-hint" style="margin-top:4px">Catat kode ini. Masukkan kode yang sama di HP/browser lain biar datanya nyambung jadi satu.</div>
+    </div>
+    <div class="btn-row" style="justify-content:flex-start;margin-top:0">
+      <button class="btn btn-s" onclick="forceSyncNow()"><i class="ti ti-refresh"></i> Sync Sekarang</button>
+    </div>
+    <div style="border-top:0.5px solid var(--border);margin:16px 0;padding-top:14px">
+      <div class="field"><label>Pakai data dari device lain?</label>
+        <div style="display:flex;gap:8px">
+          <input id="other-sync-code" placeholder="Tempel kode sync dari device lain">
+          <button class="btn btn-s" onclick="switchSyncCode()">Ganti</button>
+        </div>
+        <div class="opt-ce-hint" style="margin-top:4px">⚠️ Ini akan mengganti semua soal di HP ini dengan data dari kode tersebut.</div>
+      </div>
+    </div>
+    <div style="text-align:right"><button class="btn btn-warn" style="font-size:12px" onclick="disconnectCloud()">Putuskan Cloud Sync</button></div>`;
+}
+async function connectFirebase(){
+  const raw=document.getElementById('fb-config-input').value.trim();
+  if(!raw){showToast('Tempel config Firebase dulu','warn');return;}
+  let cfg;
+  try{cfg=JSON.parse(raw);}
+  catch(e){
+    try{cfg=Function('"use strict";return ('+raw+')')();}
+    catch(e2){showToast('❌ Format config tidak valid','warn');return;}
+  }
+  if(!cfg.apiKey||!cfg.projectId){showToast('❌ Config tidak lengkap (butuh apiKey & projectId)','warn');return;}
+  setFbConfig(cfg);
+  showToast('Menyambungkan ke cloud...','');
+  await initCloud();
+  renderSyncModal();
+  if(fbReady)showToast('✅ Cloud Sync aktif!','ok');
+}
+function copySyncCode(){
+  const inp=document.getElementById('sync-code-display');if(!inp)return;
+  inp.select();document.execCommand('copy');
+  showToast('Kode sync disalin','ok');
+}
+async function forceSyncNow(){
+  if(!fbReady){showToast('Cloud belum disambung','warn');return;}
+  showToast('Menyinkronkan...','');
+  await cloudSaveNow();
+  showToast('✅ Sinkron selesai','ok');
+}
+async function switchSyncCode(){
+  const inp=document.getElementById('other-sync-code');if(!inp)return;
+  const code=inp.value.trim();
+  if(!code){showToast('Masukkan kode sync dulu','warn');return;}
+  if(!confirm('Ini akan mengganti semua data di HP ini dengan data dari kode tersebut. Lanjutkan?'))return;
+  localStorage.setItem('cpns-sync-code',code);
+  syncCode=code;
+  showToast('Memuat data...','');
+  await cloudLoad();
+  renderSyncModal();
+  showToast('✅ Data berhasil dimuat','ok');
+}
+function disconnectCloud(){
+  if(!confirm('Putuskan Cloud Sync? Data di HP ini tetap aman, tapi gak akan tersimpan online lagi sampai disambungkan ulang.'))return;
+  clearFbConfig();fbReady=false;fbApp=null;fbDb=null;fbStorage=null;
+  setCloudStatus('off');
+  document.getElementById('sync-modal').classList.remove('on');
+  showToast('Cloud Sync diputuskan','ok');
 }
 
 /* ── IMAGE COMPRESSION ── */
@@ -603,7 +822,7 @@ function goSec(id,btn){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.getElementById('sec-'+id).classList.add('on');btn.classList.add('on');
-  if(id==='review')startReview();else render();
+  if(id==='review')startReview();else if(id==='stats')renderStatsPage();else render();
 }
 // FIX BUG #2: reset curBab saat ganti kategori
 function fCat(c,btn){
@@ -1058,12 +1277,16 @@ function delQ(id){
   const q=qs.find(x=>x.id===id);if(!q)return;
   if(!confirm('Hapus soal ini?'))return;
   lastDeleted={...q,opts:[...(q.opts||[])],qimgs:[...(q.qimgs||[])],eimgs:[...(q.eimgs||[])]};
-  qs=qs.filter(q=>q.id!==id);persist();render();
+  qs=qs.filter(q=>q.id!==id);
+  pendingDeletes.push(id);
+  persist();render();
   showToast('Soal dihapus. <a onclick="undoDel()">Undo</a>','warn',4000);
 }
 function undoDel(){
   if(!lastDeleted)return;
-  qs.push(lastDeleted);lastDeleted=null;
+  qs.push(lastDeleted);
+  pendingDeletes=pendingDeletes.filter(id=>id!==lastDeleted.id);
+  lastDeleted=null;
   qs.sort((a,b)=>a.id-b.id);persist();render();
   showToast('✅ Soal dipulihkan!','ok');
 }
@@ -1201,6 +1424,72 @@ function ansRev(qid,chosen,btn){
 }
 function nextRev(){revIdx++;renderRev();}
 
+/* ── STATISTIK PER KATEGORI ── */
+function renderStatsPage(){
+  const el=document.getElementById('stats-content');if(!el)return;
+  if(!qs.length){el.innerHTML='<div class="empty"><i class="ti ti-chart-bar"></i><p>Belum ada soal untuk dianalisis.<br>Tambahkan soal dulu di tab Daftar Soal.</p></div>';return;}
+
+  const totalAll=qs.length;
+  const masteredAll=qs.filter(q=>q.mastered).length;
+  const dueAll=srsDueQs().length;
+  const attAll=qs.reduce((s,q)=>s+ensureSrs(q).totalAttempts,0);
+  const corAll=qs.reduce((s,q)=>s+ensureSrs(q).totalCorrect,0);
+  const accAll=attAll?Math.round(corAll/attAll*100):null;
+
+  let html=`<div class="stats" style="margin-bottom:16px">
+    <div class="scard"><div class="snum">${totalAll}</div><div class="slbl">Total Soal</div></div>
+    <div class="scard"><div class="snum" style="color:var(--green800)">${masteredAll}</div><div class="slbl">Dikuasai</div></div>
+    <div class="scard"><div class="snum" style="color:var(--accent)">${dueAll}</div><div class="slbl">Jatuh Tempo</div></div>
+    <div class="scard"><div class="snum">${accAll===null?'—':accAll+'%'}</div><div class="slbl">Akurasi</div></div>
+  </div>`;
+
+  const rows=getCatKeys().map(k=>{
+    const catQs=qs.filter(q=>q.cat===k);
+    const total=catQs.length;
+    if(!total)return null;
+    const mastered=catQs.filter(q=>q.mastered).length;
+    const due=catQs.filter(q=>ensureSrs(q).due<=Date.now()).length;
+    const att=catQs.reduce((s,q)=>s+ensureSrs(q).totalAttempts,0);
+    const cor=catQs.reduce((s,q)=>s+ensureSrs(q).totalCorrect,0);
+    const acc=att?Math.round(cor/att*100):null;
+    const pct=total?Math.round(mastered/total*100):0;
+    return{k,total,mastered,due,acc,pct,att};
+  }).filter(Boolean);
+
+  const weakCandidates=rows.filter(r=>r.att>=3&&r.acc!==null).sort((a,b)=>a.acc-b.acc);
+  const weakest=weakCandidates[0];
+  if(weakest){
+    const c=cats[weakest.k];
+    html+=`<div class="panel" style="border-color:#F09595;background:var(--red50);padding:14px 16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <i class="ti ti-alert-triangle" style="color:var(--red800);font-size:17px"></i>
+        <span style="font-weight:700;color:var(--red800);font-size:13px">Perlu Fokus: ${c.name||weakest.k}</span>
+      </div>
+      <p style="font-size:12px;color:var(--red800);opacity:.85;line-height:1.5">Akurasi cuma <b>${weakest.acc}%</b> dari ${weakest.att}x latihan — paling lemah dibanding kategori lain. Coba fokus latihan di sini dulu.</p>
+    </div>`;
+  }
+
+  html+=rows.map(r=>{
+    const c=cats[r.k];
+    const accLabel=r.acc===null?'Belum direview':r.acc+'%';
+    const accColor=r.acc===null?'var(--text3)':r.acc>=80?'var(--green800)':r.acc>=50?'var(--amber800)':'var(--red800)';
+    return`<div class="panel" style="padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="badge" style="${catBadgeStyle(r.k)};font-size:12px">${c.name||r.k}</span>
+        <span style="font-size:11px;color:var(--text2)">${r.total} soal</span>
+      </div>
+      <div class="prog" style="margin-bottom:10px"><div class="progf" style="width:${r.pct}%"></div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center">
+        <div><div style="font-size:16px;font-weight:700">${r.mastered}/${r.total}</div><div style="font-size:10px;color:var(--text2)">Dikuasai</div></div>
+        <div><div style="font-size:16px;font-weight:700;${r.due>0?'color:var(--accent)':''}">${r.due}</div><div style="font-size:10px;color:var(--text2)">Jatuh Tempo</div></div>
+        <div><div style="font-size:16px;font-weight:700;color:${accColor}">${accLabel}</div><div style="font-size:10px;color:var(--text2)">Akurasi</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=html;
+}
+
 function bindPasteArea(){
   const pa=document.getElementById('paste-ta');if(!pa||pa._bound)return;pa._bound=true;
   pa.addEventListener('input',()=>{clearTimeout(pa._pt);pa._pt=setTimeout(runParseFromRich,400);});
@@ -1208,7 +1497,7 @@ function bindPasteArea(){
   pa.addEventListener('click',e=>{if(e.target.tagName==='IMG')openLB(e.target.src);});
 }
 
-document.addEventListener('DOMContentLoaded',loadData);
+document.addEventListener('DOMContentLoaded',()=>{loadData();initCloud();});
 </script>
 </body>
 </html>
