@@ -705,10 +705,13 @@ function renderSyncModal(){
 async function connectFirebase(){
   const raw=document.getElementById('fb-config-input').value.trim();
   if(!raw){showToast('Tempel config Firebase dulu','warn');return;}
+  const start=raw.indexOf('{'),end=raw.lastIndexOf('}');
+  if(start===-1||end===-1||end<start){showToast('❌ Format config tidak valid','warn');return;}
+  const objText=raw.slice(start,end+1);
   let cfg;
-  try{cfg=JSON.parse(raw);}
+  try{cfg=JSON.parse(objText);}
   catch(e){
-    try{cfg=Function('"use strict";return ('+raw+')')();}
+    try{cfg=Function('"use strict";return ('+objText+')')();}
     catch(e2){showToast('❌ Format config tidak valid','warn');return;}
   }
   if(!cfg.apiKey||!cfg.projectId){showToast('❌ Config tidak lengkap (butuh apiKey & projectId)','warn');return;}
