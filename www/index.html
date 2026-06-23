@@ -7,7 +7,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Buku Kesalahan CPNS</title>
+<link rel="icon" type="image/png" sizes="32x32" href="./assets/icon/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./assets/icon/icon-192.png">
+<link rel="apple-touch-icon" href="./assets/icon/icon-192.png">
+<title>Exambre</title>
 <link rel="stylesheet" href="./assets/icons/tabler-icons.min.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css'">
 <style>
 @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/inter-400.woff2') format('woff2')}
@@ -283,27 +286,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .rcard{padding:14px 14px}
   .ropt{padding:9px 11px;font-size:12.5px}
 }
-@media print{
-  body{background:#fff;font-size:11pt}
-  .nopr{display:none!important}
-  .app{max-width:100%;padding:0}
-  .ph{display:block!important}
-  .ph-title{font-size:16pt;font-weight:700;margin-bottom:3px}
-  .ph-sub{font-size:9pt;color:#555;margin-bottom:10px}
-  .ph-divider{border:none;border-top:2px solid #4F6CF7;margin-bottom:16px}
-  .qcard{border:0.5px solid #ccc;border-radius:4px;page-break-inside:avoid;margin-bottom:14px;padding:10px 12px;background:#fff}
-  .badge{font-size:9pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .qtext{font-size:10.5pt;margin-bottom:7px;font-weight:400}
-  .opts-list{display:grid;grid-template-columns:1fr 1fr;gap:3px 14px;margin-bottom:8px}
-  .opt-item{font-size:9.5pt;padding:3px 6px;border:0.5px solid #ddd;background:#f9f9f9;border-radius:3px}
-  .opt-item.ow{background:#fff0f0!important;border-color:#f09595!important;color:#a32d2d!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .opt-item.oc{background:#f0fff4!important;border-color:#97c459!important;color:#3b6d11!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .exp-block{background:#f5f5f5!important;border-left:2px solid #4F6CF7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:7px 10px;font-size:9.5pt}
-  .img-scale-row,.opt-img-scale-wrap .img-scale-row{display:none!important}
-  .nav,.cats,.toolbar,.filter-row,.stats,.prog,.panel,.qacts,.inline-edit,.toast-wrap,.badge-toast{display:none!important}
-  #sec-list{display:block!important}
-}
-.ph{display:none}
 </style>
 </head>
 <body>
@@ -328,21 +310,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </div>
 
-<!-- HEADING MODAL -->
-<div class="modal-overlay" id="heading-modal">
-  <div class="modal" style="max-width:460px">
-    <button class="modal-close" onclick="closeHeadingModal()"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-heading" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>Edit Judul Cetak</h3>
-    <p class="sub">Judul dan info yang muncul saat mencetak / simpan PDF</p>
-    <div class="field"><label>Judul utama</label><input id="h-title" placeholder="Judul utama"></div>
-    <div class="field"><label>Nama / Catatan (opsional)</label><input id="h-name" placeholder="Nama, tanggal tryout, dll."></div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
-      <button class="btn btn-s" onclick="closeHeadingModal()">Batal</button>
-      <button class="btn btn-p" onclick="saveHeading()"><i class="ti ti-check"></i> Simpan</button>
-    </div>
-  </div>
-</div>
-
 <!-- CLOUD SYNC MODAL -->
 <div class="modal-overlay" id="sync-modal">
   <div class="modal" style="max-width:460px">
@@ -356,8 +323,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div class="app">
   <div class="header nopr">
     <div>
-      <h1><i class="ti ti-book-2" style="color:var(--accent)"></i> Buku Kesalahan CPNS</h1>
-      <p>Edit soal · Paste URL gambar · Kategori & Bab custom · Cetak 2 kolom</p>
+      <h1><i class="ti ti-book-2" style="color:var(--accent)"></i> Exambre</h1>
+      <p>Bank soal & latihan pribadi · Kategori & Bab custom · Mode review terjadwal</p>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
       <div class="gami-row" id="gami-row"></div>
@@ -372,11 +339,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 
   <div id="sec-list" class="sec on">
-    <div class="ph" id="print-header">
-      <div class="ph-title" id="ph-title">Buku Kesalahan CPNS</div>
-      <div class="ph-sub" id="ph-sub"></div>
-      <hr class="ph-divider">
-    </div>
     <div class="stats nopr" id="stats"></div>
     <div class="prog nopr"><div class="progf" id="progf" style="width:0%"></div></div>
     <div class="cats nopr" id="cat-tabs"></div>
@@ -388,8 +350,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       <div class="tbr">
         <button class="btn btn-s" onclick="openSettings()"><i class="ti ti-settings"></i> Kategori</button>
         <button class="btn btn-s" onclick="openSyncModal()"><i class="ti ti-cloud"></i> Cloud Sync</button>
-        <button class="btn btn-s" onclick="openHeadingModal()"><i class="ti ti-heading"></i> Judul</button>
-        <button class="btn btn-s" onclick="doPrint()"><i class="ti ti-printer"></i> Cetak / PDF</button>
         <button class="btn btn-p" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>
       </div>
     </div>
@@ -483,13 +443,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 const SK='cpns-wb-v6';
 const LETTERS=['A','B','C','D','E'];
 
-const INIT_CATS={
-  TIU:{name:'TIU',color:'#EAF1FE',textColor:'#3552CC',babs:['Verbal','Penalaran Logis','Penalaran Analitis','Penalaran Figural','Deret Angka','Kemampuan Berhitung','Perbandingan Kuantitatif']},
-  TWK:{name:'TWK',color:'#E4F6EE',textColor:'#1A7A52',babs:['Nasionalisme','Integritas','Bela Negara','Pilar Negara','Bahasa Indonesia','Sistem Tata Negara','Sejarah Nasional']},
-  TKP:{name:'TKP',color:'#FEF2E2',textColor:'#B45A00',babs:['Pelayanan Publik','Profesionalisme','Jejaring Kerja','Antiradikalisme','Sosial Budaya','TIK','Orientasi Pelayanan']},
-  TBI:{name:'TBI',color:'#F2EDFE',textColor:'#6B3FD4',babs:['Reading Comprehension','Grammar & Structure','Vocabulary','Listening','Writing']},
-  TPA:{name:'TPA',color:'#FDEDE8',textColor:'#C24A2E',babs:['Verbal Analogi','Penalaran Deduktif','Penalaran Induktif','Kemampuan Kuantitatif','Pemahaman Bacaan']}
-};
+const INIT_CATS={};
 /* Migrasi otomatis: kalau kategori masih pakai warna versi sebelumnya (pastel lama ATAU solid cerah ala-gim, belum dikustomisasi user), turunkan jadi palet netral-profesional saat ini */
 const OLD_CAT_COLORS_V1={TIU:'#E6F1FB',TWK:'#E1F5EE',TKP:'#FAEEDA',TBI:'#EEEDFE',TPA:'#FAECE7'};
 const OLD_CAT_COLORS_V2={TIU:'#1CB0F6',TWK:'#00C2A8',TKP:'#FF9600',TBI:'#CE82FF',TPA:'#FF6F59'};
@@ -519,7 +473,7 @@ function migrateCatColors(){
 }
 
 let qs=[],nid=10,curCat='ALL',curSt='all',curBab='all',searchQ='';
-let cats={},heading={title:'Buku Kesalahan CPNS',name:''};
+let cats={},heading={title:'Exambre',name:''};
 let revList=[],revIdx=0,revDone=false;
 let imgAreas={};
 let lastDeleted=null;
@@ -607,7 +561,7 @@ function loadData(){
       const d=JSON.parse(raw);
       qs=d.qs||[];nid=d.nid||10;
       cats=d.cats||JSON.parse(JSON.stringify(INIT_CATS));
-      heading=d.heading||{title:'Buku Kesalahan CPNS',name:''};
+      heading=d.heading||{title:'Exambre',name:''};
       gami=d.gami||{streak:0,lastActive:null,xp:0,badges:[]};
       if(!qs.length)qs=defaultQ();
       qs.forEach(q=>ensureSrs(q));
@@ -679,16 +633,6 @@ function showToast(msg,type='',dur=3000){
   w.appendChild(t);
   setTimeout(()=>t.classList.add('on'),10);
   setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},dur);
-}
-function doPrint(){
-  const seen=localStorage.getItem('cpns-print-hint-seen');
-  if(!seen){
-    showToast('Tips: di dialog cetak, pilih printer "Simpan sebagai PDF" untuk download PDF','',4500);
-    localStorage.setItem('cpns-print-hint-seen','1');
-    setTimeout(()=>window.print(),600);
-  }else{
-    window.print();
-  }
 }
 
 /* ── CLOUD SYNC (Firebase) ──
@@ -958,12 +902,7 @@ function imgToBase64(file){return compressImg(file);}
 
 /* ── DEFAULT DATA ── */
 function defaultQ(){
-  const t=Date.now()-1;
-  return[
-    {id:1,cat:'TIU',bab:'Penalaran Logis',q:'Jika x² − 5x + 6 = 0, maka nilai x adalah...',opts:['1 dan 6','2 dan 3','−2 dan −3','−1 dan 6','Tidak ada'],optImgs:{},wrong:'A',correct:'B',expHtml:'<b>B</b> — Faktorkan: (x−2)(x−3)=0 → x=2 atau x=3.',qimgs:[],eimgs:[],mastered:false,srs:{due:t,interval:0,ease:2.5,reps:0,lapses:0}},
-    {id:2,cat:'TWK',bab:'Bela Negara',q:'Pancasila sebagai dasar negara tercantum dalam Pembukaan UUD 1945 alinea ke...',opts:['Pertama','Kedua','Ketiga','Keempat','Kelima'],optImgs:{},wrong:'C',correct:'D',expHtml:'<b>D</b> — Rumusan Pancasila terdapat pada alinea keempat Pembukaan UUD 1945.',qimgs:[],eimgs:[],mastered:false,srs:{due:t,interval:0,ease:2.5,reps:0,lapses:0}},
-    {id:3,cat:'TKP',bab:'Profesionalisme',q:'Ketika rekan kerja melakukan kesalahan fatal, sikap paling tepat adalah...',opts:['Lapor langsung ke atasan','Abaikan karena bukan urusan Anda','Bantu selesaikan dan beri masukan konstruktif','Sebar informasi ke rekan lain','Diam dan tunggu instruksi'],optImgs:{},wrong:'A',correct:'C',expHtml:'<b>C</b> — TKP mengutamakan kolaborasi dan penyelesaian masalah secara konstruktif.',qimgs:[],eimgs:[],mastered:false,srs:{due:t,interval:0,ease:2.5,reps:0,lapses:0}}
-  ];
+  return[];
 }
 
 /* ── CATEGORY ── */
@@ -1313,6 +1252,11 @@ function saveEdit(id){
 
 /* ── PANEL ── */
 function togglePanel(){
+  if(getCatKeys().length===0){
+    showToast('Tambahkan kategori dulu sebelum menambah soal','warn',3500);
+    openSettings();
+    return;
+  }
   const p=document.getElementById('add-panel'),isOpen=p.style.display!=='none';
   p.style.display=isOpen?'none':'block';
   if(!isOpen){
@@ -1507,23 +1451,9 @@ function scaleStoredEimg(qid,idx,val){
 }
 function rmStoredEimg(qid,idx){const q=qs.find(x=>x.id===qid);if(!q)return;q.eimgs.splice(idx,1);persist();render();}
 
-/* ── PRINT ── */
-window.addEventListener('beforeprint',()=>{
-  const now=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('ph-title').textContent=heading.title||'Buku Kesalahan CPNS';
-  document.getElementById('ph-sub').textContent=(heading.name?heading.name+' — ':'')+`Dicetak: ${now} · ${getFiltered().length} soal`;
-  document.querySelectorAll('.qtext').forEach(el=>{el.textContent=el.textContent.replace(/^(\s*[A-E]\s*){2,}/,'').trim();});
-  document.querySelectorAll('.opts-list').forEach(el=>{if(el.querySelector('img'))el.classList.add('has-images');});
-});
-
 /* ── LIGHTBOX ── */
 function openLB(src){document.getElementById('lb-img').src=src;document.getElementById('lightbox').classList.add('on');}
 function closeLB(){document.getElementById('lightbox').classList.remove('on');}
-
-/* ── HEADING ── */
-function openHeadingModal(){document.getElementById('h-title').value=heading.title||'';document.getElementById('h-name').value=heading.name||'';document.getElementById('heading-modal').classList.add('on');}
-function closeHeadingModal(){document.getElementById('heading-modal').classList.remove('on');}
-function saveHeading(){heading.title=document.getElementById('h-title').value.trim()||'Buku Kesalahan CPNS';heading.name=document.getElementById('h-name').value.trim();persist();closeHeadingModal();}
 
 /* ── SETTINGS ── */
 function openSettings(){renderSettingsContent();document.getElementById('settings-modal').classList.add('on');}
@@ -1706,14 +1636,6 @@ function bindPasteArea(){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{loadData();initCloud();});
-
-function doPrint(){
-  if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){
-    alert('Cetak/PDF cuma jalan lewat browser (Chrome), tidak bisa di app ini.');
-    return;
-  }
-  window.print();
-}
 </script>
 </body>
-</html>
+      </html>
