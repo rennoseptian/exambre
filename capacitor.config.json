@@ -1,6 +1,6 @@
 {
-  "appId": "com.cpnsbook.app",
-  "appName": "Buku CPNS",
+  "appId": "com.exambre.app",
+  "appName": "Exambre",
   "webDir": "www",
   "server": {
     "androidScheme": "https"
