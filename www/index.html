@@ -11,6 +11,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon/icon-192.png">
 <link rel="apple-touch-icon" href="./assets/icon/icon-192.png">
 <title>Exambre</title>
+<script>(function(){try{var t=localStorage.getItem('exambre-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <link rel="stylesheet" href="./assets/icons/tabler-icons.min.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css'">
 <style>
 @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/inter-400.woff2') format('woff2')}
@@ -27,10 +28,14 @@
   --shadow-md:0 2px 6px rgba(15,15,20,.07),0 1px 2px rgba(15,15,20,.05);
   --shadow-lg:0 12px 28px rgba(15,15,20,.12),0 2px 6px rgba(15,15,20,.06);
   --ease:cubic-bezier(.4,0,.2,1);--dur-1:120ms;--dur-2:200ms;}
-@media(prefers-color-scheme:dark){:root{--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
   --shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-card:0 1px 2px rgba(0,0,0,.3);
   --shadow-md:0 2px 8px rgba(0,0,0,.36),0 1px 2px rgba(0,0,0,.3);
   --shadow-lg:0 14px 32px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3);}}
+:root[data-theme="dark"]{--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-card:0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:0 2px 8px rgba(0,0,0,.36),0 1px 2px rgba(0,0,0,.3);
+  --shadow-lg:0 14px 32px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3);}
 *{-webkit-tap-highlight-color:transparent}
 button,.ctab,.ntab,.t2{-webkit-tap-highlight-color:transparent}
 button:focus-visible,.ctab:focus-visible,.ntab:focus-visible,.t2:focus-visible,.ibtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -43,6 +48,15 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .savi{font-size:var(--fs-xs);color:var(--success-ink);display:inline-flex;align-items:center;gap:4px;opacity:0;transform:translateY(-2px) scale(.96);transition:opacity var(--dur-2) var(--ease),transform var(--dur-2) var(--ease);padding-top:6px}
 .savi.on{opacity:1;transform:translateY(0) scale(1)}
 .gami-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.set-panel{margin-bottom:14px}
+.set-panel h4{font-size:13px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.set-panel .set-desc{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.theme-toggle{display:flex;gap:6px;background:var(--bg2);border-radius:var(--radius-pill);padding:3px}
+.theme-toggle button{flex:1;padding:7px 10px;border:none;background:transparent;border-radius:var(--radius-pill);font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.theme-toggle button.on{background:var(--bg);color:var(--text);box-shadow:var(--shadow-sm)}
+.data-actions{display:flex;gap:8px;flex-wrap:wrap}
+.cloud-status-row{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;margin-bottom:10px}
 .gpill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text2)}
 .gpill i{font-size:14px;color:var(--text3)}
 .gpill.streak.lit i{color:var(--gold)}
@@ -254,7 +268,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .cats{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;margin-bottom:12px}
   .ctab{flex-shrink:0}
   .toolbar{flex-direction:column;align-items:stretch;gap:8px}
-  .tbr{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .tbr{display:grid;grid-template-columns:1fr;gap:6px}
   .tbr .btn{min-width:0;justify-content:center;padding:9px 8px;font-size:12px}
   .search-wrap{max-width:100%;width:100%}
   .panel{padding:14px}
@@ -322,25 +336,16 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <div class="app">
   <div class="header nopr">
-    <div>
-      <h1><i class="ti ti-book-2" style="color:var(--accent)"></i> Exambre</h1>
-      <p>Bank soal & latihan pribadi · Kategori & Bab custom · Mode review terjadwal</p>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-      <div class="gami-row" id="gami-row"></div>
-      <span class="savi" id="savi"><i class="ti ti-check"></i> Tersimpan</span>
-      <span class="savi on" id="cloud-status" style="cursor:pointer" onclick="openSyncModal()"><i class="ti ti-cloud-off"></i> Cloud belum disambung</span>
-    </div>
+    <h1><i class="ti ti-book-2" style="color:var(--accent)"></i> Exambre</h1>
   </div>
   <div class="nav nopr" role="tablist">
-    <button class="ntab on" role="tab" aria-selected="true" onclick="goSec('list',this)">Daftar Soal</button>
-    <button class="ntab" role="tab" aria-selected="false" onclick="goSec('review',this)">Mode Review<span class="due-badge" id="due-badge">0</span></button>
+    <button class="ntab on" role="tab" aria-selected="true" onclick="goSec('list',this)">Soal</button>
+    <button class="ntab" role="tab" aria-selected="false" onclick="goSec('review',this)">Review<span class="due-badge" id="due-badge">0</span></button>
     <button class="ntab" role="tab" aria-selected="false" onclick="goSec('stats',this)">Statistik</button>
+    <button class="ntab" role="tab" aria-selected="false" onclick="goSec('lainnya',this)">Lainnya</button>
   </div>
 
   <div id="sec-list" class="sec on">
-    <div class="stats nopr" id="stats"></div>
-    <div class="prog nopr"><div class="progf" id="progf" style="width:0%"></div></div>
     <div class="cats nopr" id="cat-tabs"></div>
     <div class="toolbar nopr">
       <div class="search-wrap">
@@ -348,8 +353,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <input class="search-inp" placeholder="Cari soal..." oninput="fSearch(this.value)">
       </div>
       <div class="tbr">
-        <button class="btn btn-s" onclick="openSettings()"><i class="ti ti-settings"></i> Kategori</button>
-        <button class="btn btn-s" onclick="openSyncModal()"><i class="ti ti-cloud"></i> Cloud Sync</button>
         <button class="btn btn-p" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>
       </div>
     </div>
@@ -434,6 +437,38 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div id="sec-review" class="sec nopr"><div id="rev-content"></div></div>
 
   <div id="sec-stats" class="sec nopr"><div id="stats-content"></div></div>
+
+  <div id="sec-lainnya" class="sec nopr">
+    <div class="panel set-panel">
+      <h4><i class="ti ti-category" style="color:var(--accent)"></i> Kategori & Bab</h4>
+      <p class="set-desc">Kelola kategori, nama, warna, dan sub-bab soal kamu.</p>
+      <button class="btn btn-s" onclick="openSettings()"><i class="ti ti-settings"></i> Kelola Kategori</button>
+    </div>
+    <div class="panel set-panel">
+      <h4><i class="ti ti-cloud" style="color:var(--accent)"></i> Cloud Sync</h4>
+      <p class="set-desc">Sinkronkan soal antar perangkat secara otomatis.</p>
+      <div class="cloud-status-row" id="cloud-status"><i class="ti ti-cloud-off"></i> Cloud belum disambung</div>
+      <button class="btn btn-s" onclick="openSyncModal()"><i class="ti ti-cloud"></i> Atur Cloud Sync</button>
+    </div>
+    <div class="panel set-panel">
+      <h4><i class="ti ti-sun-moon" style="color:var(--accent)"></i> Tema</h4>
+      <p class="set-desc">Pilih tampilan terang, gelap, atau ikuti pengaturan HP.</p>
+      <div class="theme-toggle" id="theme-toggle">
+        <button data-th="auto" onclick="applyTheme('auto')"><i class="ti ti-device-mobile"></i> Otomatis</button>
+        <button data-th="light" onclick="applyTheme('light')"><i class="ti ti-sun"></i> Terang</button>
+        <button data-th="dark" onclick="applyTheme('dark')"><i class="ti ti-moon"></i> Gelap</button>
+      </div>
+    </div>
+    <div class="panel set-panel">
+      <h4><i class="ti ti-database-export" style="color:var(--accent)"></i> Data</h4>
+      <p class="set-desc">Backup semua soal & progress ke file, atau pulihkan dari file backup.</p>
+      <div class="data-actions">
+        <button class="btn btn-s" onclick="exportData()"><i class="ti ti-download"></i> Export Data</button>
+        <button class="btn btn-s" onclick="document.getElementById('import-file').click()"><i class="ti ti-upload"></i> Import Data</button>
+        <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importDataFile(this)">
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
@@ -951,7 +986,61 @@ function goSec(id,btn){
   const target=document.getElementById('sec-'+id);
   target.classList.add('on');btn.classList.add('on');btn.setAttribute('aria-selected','true');
   target.style.animation='none';requestAnimationFrame(()=>{target.style.animation='secIn var(--dur-2) var(--ease)';});
-  if(id==='review')startReview();else if(id==='stats')renderStatsPage();else render();
+  if(id==='review')startReview();else if(id==='stats')renderStatsPage();else if(id==='lainnya')renderLainnya();else render();
+}
+
+/* ── TAB LAINNYA: tema, export/import ── */
+function renderLainnya(){
+  const cur=localStorage.getItem('exambre-theme')||'auto';
+  document.querySelectorAll('#theme-toggle button').forEach(b=>{
+    b.classList.toggle('on', b.dataset.th===cur);
+  });
+}
+function applyTheme(theme){
+  if(theme==='light'||theme==='dark'){
+    document.documentElement.setAttribute('data-theme',theme);
+    localStorage.setItem('exambre-theme',theme);
+  }else{
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('exambre-theme','auto');
+  }
+  renderLainnya();
+}
+function exportData(){
+  try{
+    const payload={app:'Exambre',version:1,exportedAt:new Date().toISOString(),qs,nid,cats,heading,gami};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`exambre-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    showToast('Data berhasil diexport','ok');
+  }catch(e){showToast('Gagal export data','warn');}
+}
+function importDataFile(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    let data;
+    try{data=JSON.parse(e.target.result);}catch(err){showToast('File bukan format JSON yang valid','warn');input.value='';return;}
+    if(!data||!Array.isArray(data.qs)){showToast('File tidak dikenali sebagai backup Exambre','warn');input.value='';return;}
+    if(!confirm(`Import ${data.qs.length} soal? Ini akan MENGGANTI semua data yang ada sekarang di app ini.`)){input.value='';return;}
+    qs=data.qs;
+    nid=data.nid||(qs.reduce((m,q)=>Math.max(m,q.id||0),0)+1);
+    cats=data.cats||{};
+    heading=data.heading||heading;
+    gami=data.gami||gami;
+    qs.forEach(q=>ensureSrs(q));
+    ensureGami();migrateCatColors();
+    persist();
+    buildCatTabs();populateCatSelects();updateBabFilter();render();renderGami();
+    showToast('Import berhasil','ok');
+    input.value='';
+  };
+  reader.onerror=()=>{showToast('Gagal membaca file','warn');input.value='';};
+  reader.readAsText(file);
 }
 // FIX BUG #2: reset curBab saat ganti kategori
 function fCat(c,btn){
@@ -1099,13 +1188,6 @@ function liveOptScale(key,qid,letter,val){
 
 /* ── RENDER ── */
 function render(){
-  const tot=qs.length,mas=qs.filter(q=>q.mastered).length,wr=tot-mas,pct=tot?Math.round(mas/tot*100):0;
-  document.getElementById('stats').innerHTML=`
-    <div class="scard"><div class="snum">${tot}</div><div class="slbl">Total Soal</div></div>
-    <div class="scard"><div class="snum" style="color:var(--danger)">${wr}</div><div class="slbl">Belum Dikuasai</div></div>
-    <div class="scard"><div class="snum" style="color:var(--success)">${mas}</div><div class="slbl">Dikuasai</div></div>
-    <div class="scard"><div class="snum" style="color:var(--accent)">${pct}%</div><div class="slbl">Progress</div></div>`;
-  document.getElementById('progf').style.width=pct+'%';
   buildCatTabs();updateBabFilter();updateDueBadge();renderGami();checkBadges();
   const list=getFiltered(),el=document.getElementById('qlist');
   if(!list.length){
@@ -1638,4 +1720,4 @@ function bindPasteArea(){
 document.addEventListener('DOMContentLoaded',()=>{loadData();initCloud();});
 </script>
 </body>
-      </html>
+</html>
