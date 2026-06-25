@@ -21,27 +21,27 @@
 @font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('./assets/fonts/inter-700.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:800;font-display:swap;src:url('./assets/fonts/inter-800.woff2') format('woff2')}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#ffffff;--bg2:#f7f7f8;--bg3:#f2f2f4;--text:#16171b;--text2:#6b6d76;--text3:#75777f;--border:rgba(15,15,20,0.08);--border2:rgba(15,15,20,0.13);--radius:8px;--radius-lg:12px;--radius-pill:999px;--accent:#4F62E0;--accent-dark:#3949B8;--accent-ink:#3949B8;--success:#1D9E75;--success-dark:#16805e;--success-ink:#177055;--danger:#D6433D;--danger-dark:#b8332e;--danger-ink:#a8332e;--gold:#B45A00;--gold-dark:#8f4700;--gold-ink:#8f4700;--blue50:#EAF1FE;--blue800:#3552CC;--teal50:#E4F6EE;--teal800:#1A7A52;--amber50:#FEF2E2;--amber800:#B45A00;--purple50:#F2EDFE;--purple800:#6B3FD4;--coral50:#FDEDE8;--coral800:#C24A2E;--green50:#E9F7F0;--green800:#177055;--red50:#FBEAE9;--red800:#A8332E;
+:root{--bg:#ffffff;--bg2:#f7f7f8;--bg3:#f2f2f4;--text:#16171b;--text2:#6b6d76;--text3:#75777f;--border:rgba(15,15,20,0.08);--border2:rgba(15,15,20,0.13);--radius:8px;--radius-lg:12px;--radius-pill:999px;--accent:#4F62E0;--accent-dark:#3949B8;--accent-ink:#3949B8;--success:#1D9E75;--success-dark:#16805e;--success-ink:#177055;--danger:#D6433D;--danger-dark:#b8332e;--danger-ink:#a8332e;--gold:#B45A00;--gold-dark:#8f4700;--gold-ink:#8f4700;--note:#7C3AED;--note-dark:#6326D9;--note-ink:#5B21B6;--blue50:#EAF1FE;--blue800:#3552CC;--teal50:#E4F6EE;--teal800:#1A7A52;--amber50:#FEF2E2;--amber800:#B45A00;--purple50:#F2EDFE;--purple800:#6B3FD4;--coral50:#FDEDE8;--coral800:#C24A2E;--green50:#E9F7F0;--green800:#177055;--red50:#FBEAE9;--red800:#A8332E;
   --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;
   --fs-xs:12px;--fs-sm:13px;--fs-base:14px;--fs-md:16px;--fs-lg:20px;--fs-xl:24px;
   --shadow-sm:0 1px 2px rgba(15,15,20,.05);--shadow-card:0 1px 2px rgba(15,15,20,.05);
   --shadow-md:0 2px 6px rgba(15,15,20,.07),0 1px 2px rgba(15,15,20,.05);
   --shadow-lg:0 12px 28px rgba(15,15,20,.12),0 2px 6px rgba(15,15,20,.06);
   --ease:cubic-bezier(.4,0,.2,1);--dur-1:120ms;--dur-2:200ms;}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--note:#a78bfa;--note-dark:#7C3AED;--note-ink:#c4b5fd;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
   --shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-card:0 1px 2px rgba(0,0,0,.3);
   --shadow-md:0 2px 8px rgba(0,0,0,.36),0 1px 2px rgba(0,0,0,.3);
   --shadow-lg:0 14px 32px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3);}}
-:root[data-theme="dark"]{--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
+:root[data-theme="dark"]{--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--note:#a78bfa;--note-dark:#7C3AED;--note-ink:#c4b5fd;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
   --shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-card:0 1px 2px rgba(0,0,0,.3);
   --shadow-md:0 2px 8px rgba(0,0,0,.36),0 1px 2px rgba(0,0,0,.3);
   --shadow-lg:0 14px 32px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3);}
 *{-webkit-tap-highlight-color:transparent}
-button,.ctab,.ntab,.t2{-webkit-tap-highlight-color:transparent}
-button:focus-visible,.ctab:focus-visible,.ntab:focus-visible,.t2:focus-visible,.ibtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button,.ctab,.bnav-item,.t2{-webkit-tap-highlight-color:transparent}
+button:focus-visible,.ctab:focus-visible,.bnav-item:focus-visible,.t2:focus-visible,.ibtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:14px;min-height:100vh;-webkit-font-smoothing:antialiased}
-.numfont,.snum,.header h1,.due-badge,.t2,.ntab,.btn,.modal h3,.bM,.streak-pill b,.xp-pill b,.lvl-pill b{font-family:'Inter',sans-serif}
-.app{max-width:860px;margin:0 auto;padding:var(--sp-5) var(--sp-4) 100px}
+.numfont,.snum,.header h1,.due-badge,.t2,.bnav-item,.btn,.modal h3,.bM,.streak-pill b,.xp-pill b,.lvl-pill b{font-family:'Inter',sans-serif}
+.app{max-width:860px;margin:0 auto;padding:var(--sp-5) var(--sp-4) calc(90px + env(safe-area-inset-bottom,0px))}
 .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--sp-4);gap:var(--sp-2)}
 .header h1{font-size:var(--fs-lg);font-weight:700;display:flex;align-items:center;gap:8px;letter-spacing:-.2px;line-height:1.3}
 .header p{font-size:var(--fs-xs);color:var(--text2);margin-top:4px;line-height:1.5}
@@ -61,11 +61,16 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .gpill i{font-size:14px;color:var(--text3)}
 .gpill.streak.lit i{color:var(--gold)}
 .gpill b{font-weight:700;color:var(--text)}
-.nav{display:flex;border-bottom:1px solid var(--border2);margin-bottom:20px}
-.ntab{padding:9px 18px;font-size:13px;cursor:pointer;border:none;border-bottom:2px solid transparent;color:var(--text2);background:transparent;font-family:inherit;margin-bottom:-1px;transition:color .15s}
-.ntab.on{color:var(--text);border-bottom-color:var(--accent);font-weight:600}
-.ntab:hover:not(.on){color:var(--text)}
-.due-badge{background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:6px;font-weight:700;display:none}
+.bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--border2);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:500;box-shadow:0 -2px 10px rgba(15,15,20,.04)}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:inherit;font-size:10px;font-weight:600;padding:6px 2px;position:relative;transition:color var(--dur-1) var(--ease)}
+.bnav-item i{font-size:20px}
+.bnav-item.on{color:var(--accent)}
+.bnav-item:active{transform:scale(.94)}
+.bnav-badge{position:absolute;top:2px;right:22%;background:var(--accent);color:#fff;font-size:9px;font-weight:700;border-radius:50%;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.scroll-fab-wrap{position:fixed;right:14px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:400;display:flex;flex-direction:column;gap:8px}
+.scroll-fab{width:42px;height:42px;border-radius:50%;background:var(--bg);border:1px solid var(--border2);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;font-size:18px;transition:opacity var(--dur-2) var(--ease),transform var(--dur-1) var(--ease);opacity:0;pointer-events:none;transform:translateY(6px)}
+.scroll-fab.show{opacity:1;pointer-events:all;transform:translateY(0)}
+.scroll-fab:active{transform:scale(.92)}
 .sec{display:none}.sec.on{display:block}
 @keyframes secIn{0%{opacity:0;transform:translateY(3px)}100%{opacity:1;transform:translateY(0)}}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-2);margin-bottom:var(--sp-3)}
@@ -88,6 +93,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .btn-s{background:var(--bg);border-color:var(--border2);color:var(--text2);position:relative}.btn-s:hover{background:var(--bg2);color:var(--text)}
 .btn-warn{background:var(--bg);border-color:var(--border2);color:var(--danger-ink);position:relative}.btn-warn:hover{background:var(--red50);border-color:var(--danger)}
 .btn-g{background:var(--bg);border-color:var(--border2);color:var(--success-ink);position:relative}.btn-g:hover{background:var(--green50);border-color:var(--success)}
+.btn-note{background:var(--note);color:#fff;border-color:var(--note);position:relative}.btn-note:hover{background:var(--note-dark)}
+.btn-sm{padding:6px 12px;font-size:12px}
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap}
 .tbr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .search-wrap{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-pill);padding:5px 12px;flex:1;min-width:160px;max-width:260px;transition:border-color .15s}
@@ -214,6 +221,42 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:8888;align-items:center;justify-content:center}
 .modal-overlay.on{display:flex}
 .modal{background:var(--bg);border-radius:var(--radius-lg);padding:24px;max-width:680px;width:calc(100% - 32px);max-height:88vh;overflow-y:auto;position:relative;box-shadow:var(--shadow-lg)}
+/* Catatan */
+.note-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all var(--dur-2) var(--ease)}
+.note-card:hover{box-shadow:var(--shadow-md);border-color:var(--border2)}
+.note-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.note-card-title{font-size:14px;font-weight:700}
+.note-card-preview{font-size:12.5px;color:var(--text2);line-height:1.5;max-height:3.2em;overflow:hidden}
+.note-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.note-cat-badge{font-size:11px;padding:2px 8px;border-radius:var(--radius-pill);font-weight:600;border:1px solid}
+.note-date{font-size:10.5px;color:var(--text3)}
+.note-editor-overlay{display:none;position:fixed;inset:0;background:var(--bg3);z-index:9000;flex-direction:column}
+.note-editor-overlay.on{display:flex}
+.note-editor-header{background:var(--bg);border-bottom:1px solid var(--border2);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.note-editor-title-inp{flex:1;font-size:16px;font-weight:600;border:none;background:transparent;color:var(--text);font-family:inherit;outline:none;min-width:0}
+.note-editor-title-inp::placeholder{color:var(--text3)}
+.note-editor-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;max-width:860px;width:100%;margin:0 auto;box-sizing:border-box}
+.note-editor-meta-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.note-cat-sel{font-size:12px;padding:5px 10px;border:1px solid var(--border2);border-radius:var(--radius-pill);background:var(--bg);color:var(--text);font-family:inherit;cursor:pointer}
+.note-cat-sel:focus{outline:none;border-color:var(--note)}
+.note-rte-area{border:1px solid var(--border2);border-radius:0 0 var(--radius) var(--radius);padding:12px 14px;min-height:240px;flex:1;outline:none;font-size:14px;line-height:1.75;background:var(--bg);color:var(--text)}
+.note-rte-area:focus{border-color:var(--note)}
+.note-rte-area:empty::before{content:attr(data-ph);color:var(--text3);pointer-events:none}
+.note-rte-area b,.note-rte-area strong{font-weight:700}
+.note-rte-area ul,.note-rte-area ol{padding-left:22px;margin:6px 0}
+.note-rte-area li{margin-bottom:3px}
+.note-rte-area h2{font-size:16px;font-weight:700;margin:8px 0 4px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.note-rte-area h3{font-size:14px;font-weight:700;margin:6px 0 3px;color:var(--note-ink)}
+.note-rte-area blockquote{border-left:3px solid var(--note);padding:6px 12px;margin:6px 0;background:var(--purple50);border-radius:0 var(--radius) var(--radius) 0;font-style:italic;color:var(--text2)}
+.note-rte-area code{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:monospace;font-size:12px;color:var(--note-ink)}
+.note-rte-area img{max-width:100%;border-radius:var(--radius);border:1px solid var(--border);display:block;margin:6px 0;cursor:pointer}
+.note-rte-area table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.note-rte-area table td,.note-rte-area table th{border:1px solid var(--border2);padding:6px 10px;text-align:left}
+.note-rte-area table th{background:var(--bg2);font-weight:600}
+.note-cats-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.note-cat-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border)}
+.note-cat-item-name{flex:1;font-size:13px;font-weight:500}
+.note-cat-color-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.1)}
 .modal h3{font-size:16px;font-weight:700;margin-bottom:4px}
 .modal .sub{font-size:12px;color:var(--text2);margin-bottom:18px}
 .modal-close{position:absolute;top:14px;right:14px;background:transparent;border:none;cursor:pointer;font-size:18px;color:var(--text2)}
@@ -236,7 +279,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .empty i{font-size:44px;display:block;margin-bottom:14px;opacity:.3;color:var(--text3)}
 .empty p{font-size:13px;line-height:1.6;max-width:320px;margin:0 auto}
 /* Toast */
-.toast-wrap{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:9990;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.toast-wrap{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:9990;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 .toast{background:var(--text);color:var(--bg);padding:9px 18px;border-radius:var(--radius-pill);font-size:13px;opacity:0;transform:translateY(6px);transition:all .2s;white-space:nowrap;pointer-events:all;box-shadow:0 4px 16px rgba(0,0,0,.2)}
 .toast.on{opacity:1;transform:translateY(0)}
 .toast.warn{background:var(--danger);color:#fff}
@@ -258,12 +301,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 /* Mobile */
 @media(max-width:640px){
   body{font-size:14px}
-  .app{padding:14px 12px 110px}
+  .app{padding:14px 12px calc(86px + env(safe-area-inset-bottom,0px))}
   .header{flex-direction:column;gap:8px}
   .header h1{font-size:18px}
-  .gami-row{justify-content:flex-start;width:100%}
-  .nav{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
-  .ntab{padding:9px 14px;flex-shrink:0}
+  .bnav-item{font-size:9.5px}
+  .bnav-item i{font-size:19px}
   .stats{grid-template-columns:repeat(2,1fr);gap:8px}
   .scard{padding:10px 8px}.snum{font-size:19px}.slbl{font-size:10px}
   .cats{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;margin-bottom:12px}
@@ -291,7 +333,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 @media(max-width:380px){
   .stats{grid-template-columns:repeat(2,1fr)}
   .tbr .btn{font-size:11px;padding:8px 4px}
-  .app{padding:12px 10px 110px}
+  .app{padding:12px 10px calc(82px + env(safe-area-inset-bottom,0px))}
   .header h1{font-size:16px}
   .scard{padding:9px 6px}.snum{font-size:17px}.slbl{font-size:9.5px}
   .gami-row{gap:10px}
@@ -335,15 +377,66 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </div>
 
+<!-- NOTE EDITOR OVERLAY -->
+<div class="note-editor-overlay" id="note-editor-overlay">
+  <div class="note-editor-header">
+    <button class="ibtn" onclick="closeNoteEditor(false)"><i class="ti ti-arrow-left"></i></button>
+    <input class="note-editor-title-inp" id="note-editor-title" placeholder="Judul catatan..." maxlength="120">
+    <button class="btn btn-note btn-sm" onclick="saveNote()"><i class="ti ti-device-floppy"></i> Simpan</button>
+    <button class="ibtn del" onclick="deleteCurrentNote()" id="note-del-btn" style="display:none"><i class="ti ti-trash"></i></button>
+  </div>
+  <div class="note-editor-body">
+    <div class="note-editor-meta-row">
+      <label style="font-size:12px;color:var(--text2);font-weight:600">Kategori:</label>
+      <select class="note-cat-sel" id="note-editor-cat"></select>
+      <span style="font-size:11px;color:var(--text3)" id="note-editor-date"></span>
+    </div>
+    <div>
+      <div class="rte-toolbar" style="border-color:var(--note)">
+        <button class="rte-btn" onclick="noteCmd('bold')"><b>B</b></button>
+        <button class="rte-btn" onclick="noteCmd('italic')"><i>I</i></button>
+        <button class="rte-btn" onclick="noteCmd('underline')"><u>U</u></button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="noteCmd('formatBlock','h2')" style="font-size:11px;font-weight:700">H2</button>
+        <button class="rte-btn" onclick="noteCmd('formatBlock','h3')" style="font-size:10px;font-weight:700">H3</button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="noteCmd('insertUnorderedList')"><i class="ti ti-list"></i></button>
+        <button class="rte-btn" onclick="noteCmd('insertOrderedList')"><i class="ti ti-list-numbers"></i></button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="noteCmd('formatBlock','blockquote')" style="font-family:serif">&ldquo;</button>
+        <button class="rte-btn" onclick="insertNoteCode()"><i class="ti ti-code"></i></button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="insertNoteTable()"><i class="ti ti-table"></i></button>
+        <button class="rte-btn" onclick="noteCmd('insertHorizontalRule')"><i class="ti ti-minus"></i></button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="noteCmd('removeFormat')"><i class="ti ti-clear-formatting"></i></button>
+      </div>
+      <div class="note-rte-area" id="note-rte-area" contenteditable="true" spellcheck="false" data-ph="Mulai menulis catatan..."></div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE CAT MODAL -->
+<div class="modal-overlay" id="note-cat-modal">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="closeNoteCatModal()"><i class="ti ti-x"></i></button>
+    <h3><i class="ti ti-tag" style="color:var(--note);font-size:16px"></i> Kategori Catatan</h3>
+    <p class="sub">Buat dan kelola kategori untuk mengorganisir catatan</p>
+    <div id="note-cats-content"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <input id="new-note-cat-inp" placeholder="Nama kategori baru..."
+        style="flex:1;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;background:var(--bg);color:var(--text);font-family:inherit"
+        onkeydown="if(event.key==='Enter')addNoteCat()">
+      <input type="color" id="new-note-cat-color" value="#7C3AED"
+        style="width:36px;height:36px;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;padding:2px">
+      <button class="btn btn-note btn-sm" onclick="addNoteCat()"><i class="ti ti-plus"></i> Tambah</button>
+    </div>
+  </div>
+</div>
+
 <div class="app">
   <div class="header nopr">
     <h1><i class="ti ti-book-2" style="color:var(--accent)"></i> Exambre</h1>
-  </div>
-  <div class="nav nopr" role="tablist">
-    <button class="ntab on" role="tab" aria-selected="true" onclick="goSec('list',this)">Soal</button>
-    <button class="ntab" role="tab" aria-selected="false" onclick="goSec('review',this)">Review<span class="due-badge" id="due-badge">0</span></button>
-    <button class="ntab" role="tab" aria-selected="false" onclick="goSec('stats',this)">Statistik</button>
-    <button class="ntab" role="tab" aria-selected="false" onclick="goSec('lainnya',this)">Lainnya</button>
   </div>
 
   <div id="sec-list" class="sec on">
@@ -437,6 +530,21 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
   <div id="sec-review" class="sec nopr"><div id="rev-content"></div></div>
 
+  <div id="sec-catatan" class="sec nopr">
+    <div class="toolbar nopr">
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input class="search-inp" placeholder="Cari catatan..." oninput="fNoteSearch(this.value)">
+      </div>
+      <div class="tbr">
+        <button class="btn btn-s" onclick="openNoteCatModal()"><i class="ti ti-tag"></i> Kategori</button>
+        <button class="btn btn-note" onclick="openNoteEditor(null)"><i class="ti ti-plus"></i> Catatan Baru</button>
+      </div>
+    </div>
+    <div class="cats nopr" id="note-cat-tabs"></div>
+    <div id="note-list"></div>
+  </div>
+
   <div id="sec-stats" class="sec nopr"><div id="stats-content"></div></div>
 
   <div id="sec-lainnya" class="sec nopr">
@@ -469,7 +577,43 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
         <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importDataFile(this)">
       </div>
     </div>
+    <div class="panel set-panel">
+      <h4><i class="ti ti-arrow-autofit-up" style="color:var(--accent)"></i> Tombol Navigasi Cepat</h4>
+      <p class="set-desc">Tombol melayang untuk lompat ke atas/bawah halaman dengan cepat.</p>
+      <div class="theme-toggle" id="scrollfab-toggle">
+        <button data-v="on" onclick="setScrollFabPref('on')"><i class="ti ti-check"></i> Aktif</button>
+        <button data-v="off" onclick="setScrollFabPref('off')"><i class="ti ti-x"></i> Nonaktif</button>
+      </div>
+    </div>
+    <div class="panel set-panel">
+      <h4><i class="ti ti-alert-triangle" style="color:var(--danger)"></i> Reset Total Data</h4>
+      <p class="set-desc">Hapus SEMUA soal, kategori, catatan, dan progress dari perangkat ini. Tidak bisa dibatalkan — export dulu kalau perlu backup.</p>
+      <button class="btn btn-warn" onclick="clearAllData()"><i class="ti ti-trash"></i> Hapus Semua Data</button>
+    </div>
   </div>
+</div>
+
+<nav class="bottom-nav nopr" role="tablist">
+  <button class="bnav-item on" role="tab" aria-selected="true" onclick="goSec('list',this)">
+    <i class="ti ti-books"></i><span>Soal</span>
+  </button>
+  <button class="bnav-item" role="tab" aria-selected="false" onclick="goSec('review',this)">
+    <i class="ti ti-brain"></i><span>Review</span><span class="bnav-badge" id="due-badge" style="display:none">0</span>
+  </button>
+  <button class="bnav-item" role="tab" aria-selected="false" onclick="goSec('catatan',this)">
+    <i class="ti ti-notebook"></i><span>Catatan</span>
+  </button>
+  <button class="bnav-item" role="tab" aria-selected="false" onclick="goSec('stats',this)">
+    <i class="ti ti-chart-bar"></i><span>Statistik</span>
+  </button>
+  <button class="bnav-item" role="tab" aria-selected="false" onclick="goSec('lainnya',this)">
+    <i class="ti ti-settings"></i><span>Lainnya</span>
+  </button>
+</nav>
+
+<div class="scroll-fab-wrap nopr" id="scroll-fab-wrap">
+  <button class="scroll-fab" id="scroll-fab-up" onclick="scrollToTop()" title="Ke atas"><i class="ti ti-arrow-up"></i></button>
+  <button class="scroll-fab" id="scroll-fab-down" onclick="scrollToBottom()" title="Ke bawah"><i class="ti ti-arrow-down"></i></button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
@@ -477,6 +621,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script>
 const SK='cpns-wb-v6';
+const NK='exambre-notes-v1';
 const LETTERS=['A','B','C','D','E'];
 
 const INIT_CATS={};
@@ -513,6 +658,7 @@ let cats={},heading={title:'Exambre',name:''};
 let revList=[],revIdx=0,revDone=false;
 let imgAreas={};
 let lastDeleted=null;
+let notes=[],noteCats=[],noteNid=1,curNoteCat='ALL',noteSearchQ='',curNoteId=null;
 let gami={streak:0,lastActive:null,xp:0,badges:[]};
 
 /* ── GAMIFIKASI: streak, XP, badge (ala Duolingo) ── */
@@ -604,8 +750,160 @@ function loadData(){
       Object.keys(cats).forEach(k=>{if(!cats[k].name)cats[k].name=k;});
     }else{qs=defaultQ();nid=10;cats=JSON.parse(JSON.stringify(INIT_CATS));gami={streak:0,lastActive:null,xp:0,badges:[]};}
   }catch(e){qs=defaultQ();nid=10;cats=JSON.parse(JSON.stringify(INIT_CATS));gami={streak:0,lastActive:null,xp:0,badges:[]};}
+  try{
+    const nr=localStorage.getItem(NK);
+    if(nr){const nd=JSON.parse(nr);notes=nd.notes||[];noteCats=nd.cats||[];noteNid=nd.nid||1;}
+    else{notes=[];noteCats=[];noteNid=1;}
+  }catch(e){notes=[];noteCats=[];noteNid=1;}
   ensureGami();migrateCatColors();
   buildCatTabs();populateCatSelects();buildManualOptRows();updateBabFilter();render();renderGami();
+}
+function persistNotes(){
+  try{localStorage.setItem(NK,JSON.stringify({notes,cats:noteCats,nid:noteNid}));}
+  catch(e){showToast('Gagal menyimpan catatan: '+(e&&e.message?e.message:'error'),'warn');}
+}
+
+/* ── CATATAN ── */
+function getNoteCatById(id){return noteCats.find(c=>c.id===id);}
+function buildNoteCatSelect(){
+  const sel=document.getElementById('note-editor-cat');if(!sel)return;
+  sel.innerHTML='<option value="">Tanpa kategori</option>'+noteCats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+function renderNoteCatTabs(){
+  const el=document.getElementById('note-cat-tabs');if(!el)return;
+  el.setAttribute('role','tablist');
+  const allCount=notes.length;
+  el.innerHTML=`<button class="ctab${curNoteCat==='ALL'?' on':''}" role="tab" aria-selected="${curNoteCat==='ALL'}" onclick="fNoteCat('ALL',this)">Semua <span style="opacity:.6;font-size:10px">${allCount}</span></button>`
+    +noteCats.map(c=>{
+      const cnt=notes.filter(n=>n.catId===c.id).length;
+      return`<button class="ctab${curNoteCat===c.id?' on':''}" role="tab" aria-selected="${curNoteCat===c.id}" onclick="fNoteCat('${c.id}',this)" style="${curNoteCat===c.id?'':'color:'+(c.textColor||autoTextColor(c.color))+';border-color:'+c.color}">${c.name} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
+    }).join('');
+}
+function fNoteCat(id,btn){curNoteCat=id;renderNoteCatTabs();renderNotes();}
+function fNoteSearch(v){noteSearchQ=v.toLowerCase();renderNotes();}
+function getFilteredNotes(){
+  return notes.filter(n=>{
+    if(curNoteCat!=='ALL'&&n.catId!==curNoteCat)return false;
+    if(noteSearchQ){
+      const hay=(n.title+' '+(n.bodyText||'')).toLowerCase();
+      if(!hay.includes(noteSearchQ))return false;
+    }
+    return true;
+  }).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+}
+function renderNotes(){
+  renderNoteCatTabs();
+  const el=document.getElementById('note-list');if(!el)return;
+  const list=getFilteredNotes();
+  if(!list.length){
+    el.innerHTML='<div class="empty"><i class="ti ti-notebook"></i><p>'+(noteSearchQ?`Catatan dengan kata "<b>${noteSearchQ}</b>" tidak ditemukan.`:'Belum ada catatan.<br>Tulis rumus, ringkasan, atau apa pun yang membantu belajar.')+'</p>'+(noteSearchQ?'':'<button class="btn btn-note" style="margin-top:16px" onclick="openNoteEditor(null)"><i class="ti ti-plus"></i> Catatan Baru</button>')+'</div>';
+    return;
+  }
+  el.innerHTML=list.map(n=>{
+    const cat=getNoteCatById(n.catId);
+    const catBadge=cat?`<span class="note-cat-badge" style="background:${cat.color}22;color:${cat.textColor||autoTextColor(cat.color)};border-color:${cat.color}55">${cat.name}</span>`:'';
+    const d=n.updatedAt?new Date(n.updatedAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
+    const preview=(n.bodyText||'').slice(0,140);
+    return`<div class="note-card" onclick="openNoteEditor(${n.id})">
+      <div class="note-card-header"><div class="note-card-title">${n.title||'(Tanpa judul)'}</div></div>
+      <div class="note-meta">${catBadge}<span class="note-date">${d}</span></div>
+      <div class="note-card-preview">${preview||'<i style="color:var(--text3)">Kosong</i>'}</div>
+    </div>`;
+  }).join('');
+}
+function openNoteEditor(id){
+  if(id===null&&noteCats.length===0){
+    showToast('Tambahkan kategori catatan dulu (opsional, tapi membantu mengorganisir)','',3000);
+  }
+  curNoteId=id;
+  buildNoteCatSelect();
+  const titleInp=document.getElementById('note-editor-title');
+  const area=document.getElementById('note-rte-area');
+  const catSel=document.getElementById('note-editor-cat');
+  const dateEl=document.getElementById('note-editor-date');
+  const delBtn=document.getElementById('note-del-btn');
+  if(id===null){
+    titleInp.value='';area.innerHTML='';catSel.value='';dateEl.textContent='';delBtn.style.display='none';
+  }else{
+    const n=notes.find(x=>x.id===id);if(!n)return;
+    titleInp.value=n.title||'';area.innerHTML=n.body||'';catSel.value=n.catId||'';
+    dateEl.textContent=n.updatedAt?'Diubah '+new Date(n.updatedAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
+    delBtn.style.display='flex';
+  }
+  document.getElementById('note-editor-overlay').classList.add('on');
+  setTimeout(()=>titleInp.focus(),100);
+}
+function closeNoteEditor(){
+  document.getElementById('note-editor-overlay').classList.remove('on');
+  curNoteId=null;
+}
+function saveNote(){
+  const title=document.getElementById('note-editor-title').value.trim();
+  const body=document.getElementById('note-rte-area').innerHTML;
+  const bodyText=document.getElementById('note-rte-area').textContent.trim();
+  const catId=document.getElementById('note-editor-cat').value;
+  if(!title&&!bodyText){showToast('Catatan masih kosong','warn');return;}
+  if(curNoteId===null){
+    notes.push({id:noteNid++,title:title||'(Tanpa judul)',body,bodyText,catId,createdAt:Date.now(),updatedAt:Date.now()});
+  }else{
+    const n=notes.find(x=>x.id===curNoteId);
+    if(n){n.title=title||'(Tanpa judul)';n.body=body;n.bodyText=bodyText;n.catId=catId;n.updatedAt=Date.now();}
+  }
+  persistNotes();
+  closeNoteEditor();
+  renderNotes();
+  showToast('Catatan disimpan','ok');
+}
+function deleteCurrentNote(){if(curNoteId!==null)deleteNote(curNoteId);}
+function deleteNote(id){
+  if(!confirm('Hapus catatan ini?'))return;
+  notes=notes.filter(n=>n.id!==id);
+  persistNotes();
+  closeNoteEditor();
+  renderNotes();
+  showToast('Catatan dihapus','ok');
+}
+function noteCmd(cmd,val){const el=document.getElementById('note-rte-area');if(el){el.focus();document.execCommand(cmd,false,val||null);}}
+function insertNoteCode(){
+  const sel=window.getSelection();const text=sel&&sel.toString()?sel.toString():'kode';
+  document.getElementById('note-rte-area').focus();
+  document.execCommand('insertHTML',false,'<code>'+text.replace(/</g,'&lt;')+'</code>&nbsp;');
+}
+function insertNoteTable(){
+  const html='<table><tr><th>Kolom 1</th><th>Kolom 2</th></tr><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td></tr></table><p><br></p>';
+  document.getElementById('note-rte-area').focus();
+  document.execCommand('insertHTML',false,html);
+}
+function openNoteCatModal(){renderNoteCatModalContent();document.getElementById('note-cat-modal').classList.add('on');}
+function closeNoteCatModal(){
+  document.getElementById('note-cat-modal').classList.remove('on');
+  persistNotes();buildNoteCatSelect();renderNotes();
+}
+function renderNoteCatModalContent(){
+  const el=document.getElementById('note-cats-content');if(!el)return;
+  if(!noteCats.length){el.innerHTML='<p style="font-size:12px;color:var(--text2);margin-bottom:8px">Belum ada kategori catatan.</p>';return;}
+  el.innerHTML='<div class="note-cats-list">'+noteCats.map(c=>`
+    <div class="note-cat-item">
+      <span class="note-cat-color-dot" style="background:${c.color}"></span>
+      <span class="note-cat-item-name">${c.name}</span>
+      <button class="ibtn del" style="width:26px;height:26px" onclick="removeNoteCat('${c.id}')"><i class="ti ti-trash" style="font-size:13px"></i></button>
+    </div>`).join('')+'</div>';
+}
+function addNoteCat(){
+  const inp=document.getElementById('new-note-cat-inp');
+  const colorInp=document.getElementById('new-note-cat-color');
+  const name=inp.value.trim();
+  if(!name){showToast('Nama kategori tidak boleh kosong','warn');return;}
+  const color=colorInp.value||'#7C3AED';
+  noteCats.push({id:'nc'+Date.now(),name,color,textColor:autoTextColor(color)});
+  inp.value='';
+  renderNoteCatModalContent();
+}
+function removeNoteCat(id){
+  if(!confirm('Hapus kategori ini? Catatan di dalamnya tidak akan terhapus, hanya kehilangan label kategori.'))return;
+  noteCats=noteCats.filter(c=>c.id!==id);
+  notes.forEach(n=>{if(n.catId===id)n.catId='';});
+  renderNoteCatModalContent();
 }
 function persist(){
   try{localStorage.setItem(SK,JSON.stringify({qs,nid,cats,heading,gami}));}
@@ -664,7 +962,7 @@ function srsNextDueLabel(){
 function updateDueBadge(){
   const b=document.getElementById('due-badge');if(!b)return;
   const n=srsDueQs().length;
-  if(n>0){b.textContent=n>99?'99+':n;b.style.display='inline-block';}else{b.style.display='none';}
+  if(n>0){b.textContent=n>99?'99+':n;b.style.display='flex';}else{b.style.display='none';}
 }
 
 /* ── TOAST ── */
@@ -990,11 +1288,12 @@ function populateAnswerSelects(wId,cId){
 /* ── NAV ── */
 function goSec(id,btn){
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
-  document.querySelectorAll('.ntab').forEach(t=>{t.classList.remove('on');t.setAttribute('aria-selected','false');});
+  document.querySelectorAll('.bnav-item').forEach(t=>{t.classList.remove('on');t.setAttribute('aria-selected','false');});
   const target=document.getElementById('sec-'+id);
   target.classList.add('on');btn.classList.add('on');btn.setAttribute('aria-selected','true');
   target.style.animation='none';requestAnimationFrame(()=>{target.style.animation='secIn var(--dur-2) var(--ease)';});
-  if(id==='review')startReview();else if(id==='stats')renderStatsPage();else if(id==='lainnya')renderLainnya();else render();
+  if(id==='review')startReview();else if(id==='stats')renderStatsPage();else if(id==='lainnya')renderLainnya();else if(id==='catatan')renderNotes();else render();
+  setTimeout(updateScrollFab,120);
 }
 
 /* ── TAB LAINNYA: tema, export/import ── */
@@ -1002,6 +1301,10 @@ function renderLainnya(){
   const cur=localStorage.getItem('exambre-theme')||'auto';
   document.querySelectorAll('#theme-toggle button').forEach(b=>{
     b.classList.toggle('on', b.dataset.th===cur);
+  });
+  const fabCur=localStorage.getItem('exambre-scrollfab')!=='off'?'on':'off';
+  document.querySelectorAll('#scrollfab-toggle button').forEach(b=>{
+    b.classList.toggle('on', b.dataset.v===fabCur);
   });
 }
 function applyTheme(theme){
@@ -1014,8 +1317,30 @@ function applyTheme(theme){
   }
   renderLainnya();
 }
+/* ── FLOATING SCROLL BUTTON ── */
+function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
+function scrollToBottom(){window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});}
+function setScrollFabPref(v){
+  localStorage.setItem('exambre-scrollfab',v);
+  renderLainnya();
+  updateScrollFab();
+}
+function updateScrollFab(){
+  const wrap=document.getElementById('scroll-fab-wrap');if(!wrap)return;
+  const enabled=localStorage.getItem('exambre-scrollfab')!=='off';
+  if(!enabled){wrap.style.display='none';return;}
+  wrap.style.display='flex';
+  const upBtn=document.getElementById('scroll-fab-up');
+  const downBtn=document.getElementById('scroll-fab-down');
+  const y=window.scrollY||window.pageYOffset;
+  const maxY=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+  upBtn.classList.toggle('show',y>200);
+  downBtn.classList.toggle('show',maxY>200&&y<maxY-200);
+}
+window.addEventListener('scroll',()=>{clearTimeout(window._sfabT);window._sfabT=setTimeout(updateScrollFab,50);},{passive:true});
+window.addEventListener('resize',()=>{clearTimeout(window._sfabT);window._sfabT=setTimeout(updateScrollFab,150);});
 async function exportData(){
-  const payload={app:'Exambre',version:1,exportedAt:new Date().toISOString(),qs,nid,cats,heading,gami};
+  const payload={app:'Exambre',version:1,exportedAt:new Date().toISOString(),qs,nid,cats,heading,gami,notes,noteCats,noteNid};
   const json=JSON.stringify(payload,null,2);
   const filename=`exambre-backup-${new Date().toISOString().slice(0,10)}.json`;
   const isNative=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
@@ -1068,6 +1393,7 @@ function importDataFile(input){
     gami=data.gami||gami;
     qs.forEach(q=>ensureSrs(q));
     ensureGami();migrateCatColors();
+    if(Array.isArray(data.notes)){notes=data.notes;noteCats=data.noteCats||[];noteNid=data.noteNid||(notes.reduce((m,n)=>Math.max(m,n.id||0),0)+1);persistNotes();}
     persist();
     buildCatTabs();populateCatSelects();updateBabFilter();render();renderGami();
     showToast('Import berhasil','ok');
@@ -1075,6 +1401,14 @@ function importDataFile(input){
   };
   reader.onerror=()=>{showToast('Gagal membaca file','warn');input.value='';};
   reader.readAsText(file);
+}
+function clearAllData(){
+  if(!confirm('Yakin ingin menghapus SEMUA data (soal, kategori, catatan, progress)? Tindakan ini tidak bisa dibatalkan.'))return;
+  if(!confirm('Konfirmasi sekali lagi: semua data akan hilang permanen dari perangkat ini. Lanjutkan?'))return;
+  try{localStorage.removeItem(SK);}catch(e){}
+  try{localStorage.removeItem(NK);}catch(e){}
+  showToast('Semua data dihapus. Memuat ulang...','ok');
+  setTimeout(()=>location.reload(),800);
 }
 // FIX BUG #2: reset curBab saat ganti kategori
 function fCat(c,btn){
@@ -1753,7 +2087,7 @@ function bindPasteArea(){
   pa.addEventListener('click',e=>{if(e.target.tagName==='IMG')openLB(e.target.src);});
 }
 
-document.addEventListener('DOMContentLoaded',()=>{loadData();initCloud();});
+document.addEventListener('DOMContentLoaded',()=>{loadData();initCloud();setTimeout(updateScrollFab,200);});
 </script>
 </body>
 </html>
