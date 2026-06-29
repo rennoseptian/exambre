@@ -2341,7 +2341,7 @@ function previewGeminiKey(val){
 function saveGeminiKey(){
   const val=(document.getElementById('gemini-key-inp').value||'').trim();
   if(!val){localStorage.removeItem('exambre_gemini_key');loadGeminiKey();showToast('API key dihapus','ok');return;}
-  if(!val.startsWith('AIza')){showToast('Format key tidak valid — key Gemini dimulai dengan "AIza"','warn',4000);return;}
+  if(val.length<20){showToast('API key terlalu pendek, pastikan menyalin key yang lengkap','warn',4000);return;}
   localStorage.setItem('exambre_gemini_key',val);loadGeminiKey();showToast('API key tersimpan','ok');
 }
 
