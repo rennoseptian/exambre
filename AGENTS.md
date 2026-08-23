@@ -73,7 +73,7 @@ Prinsip terbukti: SATU komponen per commit + user tes di browser dulu.
 3. ✅ Batch scan multi-soal (tombol Scan Halaman): preview ber-checkbox → impor massal.
 4. ✅ Tanya tutor per soal (tombol 💬 di kartu): chat bottom-sheet dengan konteks soal+opsi+kunci+jawaban user+pembahasan, riwayat dalam sesi.
 5. ✅ Variasi soal (ikon shuffle di kartu): 1 soal baru konsep sama/konteks beda → preview → simpan.
-6. Saran kategori/sub-bab otomatis saat import massal.
+6. ✅ Saran kategori/sub-bab otomatis (tombol ✨ di modal batch + form paste; boleh membuat kategori baru).
 7. Analisis pola kesalahan user + micro-lesson.
 Catatan desain AI layer: prompt scan/pembahasan sudah netral (bukan CPNS-specific);
 kunci storage `cpns-*` JANGAN diganti (kompatibilitas data lama).
