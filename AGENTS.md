@@ -1,85 +1,111 @@
 # AGENTS.md — Panduan untuk AI Agent (Exambre)
 
 ## Ringkasan Proyek
-Exambre = app Android (Capacitor 6) latihan soal CPNS dengan spaced repetition (SRS ala SM-2),
-mode simulasi ujian ber-timer, catatan rich-text, gamifikasi (streak/XP/badge), cloud sync Firebase,
-dan fitur AI Gemini (scan soal dari foto, generate pembahasan).
+Exambre = aplikasi **universal** untuk latihan soal apa pun (bukan spesifik CPNS) berbasis Android
+(Capacitor 6) + PWA. Fitur inti:
+- Spaced repetition (SRS ala SM-2 sederhana) dengan status "Dikuasai"
+- Simulasi ujian ber-timer (per-soal / total sesi) — terpisah total dari SRS
+- Catatan rich-text per kategori
+- Gamifikasi ringan (streak harian / XP / lencana)
+- Cloud sync opsional (Firebase Firestore + Storage)
+- 8 fitur AI opsional (lihat seksi "Lapisan AI")
+Seluruh string UI berbahasa Indonesia. Aplikasi single-page tanpa framework frontend.
 
-## Struktur
-- `www/index.html` — markup saja (~400 baris) + 1 inline `<style>` kecil di area paste
-  + theme-init script satu baris di <head> (jangan dipindah, anti-FOUC).
-- `www/assets/app.css` — seluruh stylesheet.
-- `www/assets/js/*.js` — 17 file classic-script BERURUTAN berbagi scope global
-  (bukan ES module; urutan load di index.html penting untuk const/let top-level):
+## Struktur & Arsitektur
+- `www/index.html` — HANYA markup + modal-modal. Dua pengecualian yang sengaja inline:
+  theme-init script satu baris di <head> (anti-FOUC, jangan dipindah) dan
+  satu `<style>` kecil untuk area paste-ta.
+- `www/assets/app.css` — seluruh stylesheet. Ada 3 blok palet yang HARUS sinkron jika mengubah token:
+  `:root` (light), `@media(prefers-color-scheme:dark) :root:not([data-theme=light])`,
+  `:root[data-theme="dark"]`.
+- `www/assets/js/*.js` — 17 file classic-script BERURUTAN yang berbagi scope global
+  (bukan ES module). URUTAN load di index.html penting untuk const/let top-level:
   01-state, 02-gamify-data, 03-notes, 04-srs-toast, 05-cloud, 06-media, 07-categories,
   08-theme-io, 09-image-inputs, 10-render-edit, 11-panel-forms, 12-card-actions,
-  13-review, 14-simulation, 15-stats, 16-ai, 17-main (listener DOMContentLoaded).
-- `www/manifest.json`, `www/assets/fonts|icons`
-- `capacitor.config.json` — appId com.exambre.app, webDir www
-- Tidak ada bundler/test framework. Verifikasi: node --check per file js.
+  13-review, 14-simulation, 15-stats, 16-ai, 17-main (hanya listener DOMContentLoaded).
+- `android/` — project native Capacitor (sudah di-commit; JANGAN jalankan `npx cap add android`
+  lagi karena platform sudah ada).
+- `.github/workflows/build-android-apk.yml` — CI membangun APK release otomatis pada tiap push ke main;
+  hasil di tab Actions → Artifacts.
+- Tidak ada bundler/linter/test framework resmi.
 
-## State Global Penting (jangan ubah nama sembarangan — dipakai lintas-fungsi & inline onclick)
-Sejak fase 3, semua state mutable tinggal di objek `Store` (dideklarasikan di `01-state.js`).
-Nama lama (`qs`, `cats`, `gami`, `simState`, dll.) adalah accessor window ke `Store` —
-tetap dipakai normal di seluruh kode. Daftar kuncinya:
-`qs, nid, cats, revList, revIdx, revMode('srs'|'sim'), simState, simHistory, notes, noteCats,
-gami, imgAreas, curCat, curSt, curBab, searchQ, fbReady, syncCode`
-Storage keys: `cpns-wb-v6` (data utama), `exambre-notes-v1`, `exambre_sim_history`,
-`exambre-theme`, `exambre_gemini_key`, `exambre_exam_date`, `cpns-fb-config`, `cpns-sync-code`.
+## State & Penyimpanan
+Sejak refactor fase 3, SEMUA state mutable tinggal di objek `Store` (dideklarasikan `01-state.js`).
+Nama-nama global lama (`qs`, `cats`, `gami`, `simState`, dst.) adalah accessor window ke `Store` —
+dipakai normal di seluruh kode termasuk inline onclick. Jangan ubah nama-nama ini:
+`qs, nid, cats, revList, revIdx, revMode('srs'|'sim'), simState, simTimerHandle,
+simSelectedCats, simHistory, notes, noteCats, noteNid, gami, imgAreas, curCat, curSt,
+curBab, searchQ, fbApp, fbDb, fbStorage, fbReady, syncCode, pendingDeletes`.
 
-## Konvensi Kode
+localStorage keys (JANGAN rename `cpns-*` demi kompatibilitas data pengguna lama):
+`cpns-wb-v6` (soal+progress utama) · `exambre-notes-v1` · `exambre_sim_history` ·
+`exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` (provider kustom) ·
+`exambre_exam_date` · `cpns-fb-config` · `cpns-sync-code`.
+
+## Lapisan AI (file `16-ai.js`)
+Dispatcher: `callAI(prompt, json?)` → provider kustom jika tersedia, else Gemini.
+`callAIChat(systemText, hist)` untuk chat multi-turn sungguhan (tutor).
+- Provider kustom: format OpenAI-compatible `/chat/completions`; config di Lainnya
+  (baseUrl+model+key, disimpan `exambre_custom_ai`). Scan foto TETAP Gemini (vision).
+- Mode JSON: kirim `json=true` → Gemini dapat `response_mime_type:'application/json'`,
+  OpenAI-compatible dapat `response_format:{type:'json_object'}`. Selalu gunakan untuk
+  fitur yang butuh JSON.
+- Parsing respons JSON WAJIB lewat `_extractJSON()` (toleran fence/basa-basi/koma nyasar),
+  bukan `JSON.parse` langsung.
+- Fitur aktif: scan soal tunggal (vision), batch scan halaman → preview checkbox,
+  generate pembahasan, buat soal dari catatan ✨, tutor chat 💬 per soal,
+  variasi soal 🔀, saran kategori/sub-bab (batch + paste, boleh bikin kategori baru via `_ensureCat`),
+  analisis pola kesalahan + micro-lesson (tab Statistik).
+- Prompt sudah netral jenis ujian (universal) — pertahankan.
+- Pelajaran penting: riwayat chat harus dikirim sebagai pesan multi-turn asli
+  (role user/assistant/model), BUKAN transkrip teks tempelan — model bisa "melanjutkan cerita".
+
+## Konvensi Kode & Verifikasi
 - Gaya JS kompak ala penulis asli (one-liner, template literal untuk render HTML string).
-- Semua string UI Bahasa Indonesia.
 - HTML dari user WAJIB lewat `sanitizeHtml()` sebelum dirender (ALLOWED_TAGS + SAFE_URL).
-- Class CSS = hook JS (mis. `.sec.on`, `.bnav-item.on`, `.ropt`, `.ctab`, `.t2`, `.modal.on`):
-  JANGAN rename class tanpa cek pemakaian di JS/render string.
-- Verifikasi syntax JS: `node --check` pada hasil ekstraksi antara marker `<script>`/`</script>`.
-- Commit hanya jika diminta. Push sudah ter-setup (credential store PAT, user rennoseptian).
+- Class CSS = hook JS/render-string (`.sec.on`, `.bnav-item.on`, `.ropt`, `.ctab`, `.t2`,
+  `.modal.on`, `.tbub`, `.batch-row`, dst.) — JANGAN rename tanpa cek pemakaiannya.
+- Verifikasi minimum setelah edit: `node --check www/assets/js/<file>.js`.
+- Commit hanya jika diminta. Remote push sudah siap (credential store PAT, user rennoseptian,
+  token punya scope repo+workflow).
 
-## Perbaikan Bug Terakhir (commit 4a058fc — jangan regresi)
-1. `loadSimHistory()` kini dipanggil di listener DOMContentLoaded.
-2. renderRev & renderSimQuestion: opsi A-E memakai indeks ASLI array (`map` dulu, skip kosong di dalam),
-   bukan filter-then-map (dulu label bergeser kalau ada slot opsi kosong). Tombol .ropt punya `data-l`.
-3. ansRev highlight memakai `b.dataset.l`, bukan LETTERS[i] dari indeks DOM.
-4. CSS var `--warn` TERDEFINISI di 3 blok palet (light, prefers-dark, data-theme=dark).
-5. Regex jawaban scan AI `/\b([A-E])\b/` — hati-hati byte kontrol 0x08 tak terlihat saat edit regex.
+## Daftar Anti-Regresi (bug yang pernah diperbaiki — JANGAN kambuh)
+1. `loadSimHistory()` dipanggil di DOMContentLoaded (riwayat simulasi hilang bila tidak).
+2. Opsi A–E dirender pakai indeks ASLI array (`map` dulu, skip kosong DI DALAM map);
+   filter-then-map membuat label bergeser bila ada opsi kosong. Tombol `.ropt` punya `data-l`;
+   highlight jawaban (`ansRev`) membaca `dataset.l`, bukan indeks DOM.
+3. CSS var `--warn` terdefinisi di KETIGA blok palet.
+4. Regex ekstraksi huruf `/\b([A-E])\b/` — hati-hati byte kontrol 0x08 tak terlihat saat edit regex.
+5. Timer simulasi: pindah tab men-clear interval; `openReviewTab()` wajib menyalakan ulang
+   `setInterval(simTick,1000)` saat sesi belum selesai.
+6. Chip kategori: background SOLID warna kategori (bukan transparan) supaya kontras teks
+   stabil lintas tema; gradien fade tepi `.cats-wrap::after` sudah dimatikan.
+7. Glow pil/chip aktif butuh ruang: kontainer scroll chip di mobile pakai padding dalam
+   vertikal+horizontal (kompensasi margin negatif); transisi box-shadow butuh zero-state shadow.
+8. Hover kartu diguard `@media(hover:hover)` agar tidak "nyangkut" di layar sentuh.
+9. `.badge-toast` idle = `visibility:hidden` (transform saja meninggalkan potongan pil terlihat).
+10. Lingkaran huruf opsi TANPA titik (`${l}` bukan `${l}.`) agar huruf terpusat sempurna.
+11. Tutor chat: multi-turn asli + maxOutputTokens 1024; fitur JSON lain 2048 + mode json native.
 
-## Riwayat Redesign UI (penting!)
-Commit 1c96fc5 = redesign Material-3 minimalis (CSS-swap besar) → BANYAK BUG → di-revert di 293b4ed.
-Pelajaran: jangan big-bang ganti stylesheet; verifikasi per-komponen; app tidak punya preview/test.
-Keinginan user (belum terealisasi): tampilan modern-minimalis ala Material You untuk Android.
+## Riwayat Keputusan Besar
+- Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →
+  fase 3 Store terpusat (f5a1712). Fase 4 (ES modules murni/bundler) OPSIONAL — hanya jika benar-benar dibutuhkan.
+- Redesign UI: percobaan big-bang CSS-swap (1c96fc5) GAGAL → di-revert (293b4ed) →
+  diulang INKREMENTAL per komponen dan BERHASIL (langkah 1-8: token radius, tombol pill tonal,
+  kartu borderless, bottom-nav floating + pil aktif glow, modal bottom-sheet mobile,
+  chip solid warna + search filled, tombol jawaban + state `.sel`, input filled, filter pill geser).
+  Prinsip terbukti WAJIB diikuti: SATU komponen per commit + user tes dulu sebelum lanjut.
+- Aplikasi dideklarasikan user sebagai UNIVERSAL (semua mata pelajaran/jenis ujian),
+  sehingga deskripsi & prompt tidak boleh spesifik CPNS.
 
-## Rencana Refactoring (disetujui user, kerjakan BERURUTAN)
-- Fase 1 ✅ (f27653e): CSS → assets/app.css, JS → assets/app.js
-- Fase 2 ✅ (3d949aa): app.js dipecah 17 file classic-script berurutan (assets/js/)
-- Fase 3 ✅ (f5a1712): state global terpusat di objek Store + accessor window
-- Fase 4 (opsional, BELUM): ES modules murni / bundler HANYA jika dibutuhkan
-
-## Redesign UI — STATUS
-Redesign inkremental per-komponen BERHASIL (setelah revert big-bang 293b4ed):
-langkah 1-8 selesai = token radius, tombol pill tonal, kartu borderless, bottom-nav
-floating + pil aktif (glow dua lapis), modal bottom-sheet mobile, chip kategori solid
-warna + search filled, tombol jawaban (+state .sel yang dulu hilang), input filled,
-filter pill geser. Fix lanjutan: clip glow di scroll-container chip (padding dalam),
-badge-toast idle visibility:hidden, hapus titik di lingkaran huruf opsi.
-Prinsip terbukti: SATU komponen per commit + user tes di browser dulu.
-
-## Roadmap Fitur AI (disetujui user — urutan eksekusi)
-1. ✅ Generate Soal dari Catatan (0fd37ad): tombol ✨ di kartu catatan → modal
-   jumlah/kategori → callGemini → JSON {questions:[...]} → validasi → masuk SRS.
-2. ✅ Custom provider AI (OpenAI-compatible): kolom opsional di Lainnya
-   (base URL + model + API key, format OpenAI-compatible /v1/chat/completions)
-   agar bisa pakai Groq/OpenRouter-free/Cerebras/Ollama-lokal; Gemini tetap default.
-3. ✅ Batch scan multi-soal (tombol Scan Halaman): preview ber-checkbox → impor massal.
-4. ✅ Tanya tutor per soal (tombol 💬 di kartu): chat bottom-sheet dengan konteks soal+opsi+kunci+jawaban user+pembahasan, riwayat dalam sesi.
-5. ✅ Variasi soal (ikon shuffle di kartu): 1 soal baru konsep sama/konteks beda → preview → simpan.
-6. ✅ Saran kategori/sub-bab otomatis (tombol ✨ di modal batch + form paste; boleh membuat kategori baru).
-7. ✅ Analisis pola kesalahan + micro-lesson (panel di tab Statistik, tombol Analisis Sekarang).
-
-STATUS ROADMAP AI: SEMUA 7 ITEM SELESAI. Pengembangan AI berikutnya = ide baru (mis. cloze cards, TTS, dsb).
-Catatan desain AI layer: prompt scan/pembahasan sudah netral (bukan CPNS-specific);
-kunci storage `cpns-*` JANGAN diganti (kompatibilitas data lama).
+## Cara Kerja dengan User
+- Bahasa komunikasi: Indonesia. User bukan programmer, tapi tester yang teliti —
+  ia akan melaporkan bug visual/fungsional dengan detail; verifikasi akar masalah sebelum patch.
+- Pola yang berhasil: jelaskan rencana singkat → eksekusi → verifikasi (syntax + logika) →
+  commit+push → minta user tes → baru lanjut langkah berikutnya.
+- README.md memiliki tabel "Peta Fitur → Berkas" untuk bantu identifikasi lokasi bug.
 
 ## Perintah
-- `npm run sync` / `npm run open` (Capacitor)
-- Tidak ada linter/formatter/test resmi — gunakan node --check sebagai gate minimum.
+- `npm install` sekali; `npm run sync` (salin www ke android); `npm run open` (butuh Android Studio).
+- Tes cepat tanpa Android: serve folder `www/` (mis. `python3 -m http.server 8080 --directory www`).
+- Build APK manual: `cd android && ./gradlew assembleDebug`; atau biarkan CI build otomatis per push.
