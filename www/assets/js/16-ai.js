@@ -13,20 +13,25 @@ function loadCustomAI(){
   const c=getCustomAI();
   ['cai-url','cai-model','cai-key'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const st=document.getElementById('custom-ai-status');if(!st)return;
+  const keyInp=document.getElementById('cai-key');
   if(c){
     const urlEl=document.getElementById('cai-url'),mEl=document.getElementById('cai-model');
     if(urlEl)urlEl.value=c.baseUrl;if(mEl)mEl.value=c.model;
-    st.textContent='✅ Aktif: '+c.model+' @ '+c.baseUrl.replace(/^https?:\/\//,'');
+    if(keyInp)keyInp.placeholder='Tersimpan ('+c.key.slice(-4)+') — kosongkan jika tak ingin mengganti';
+    st.textContent='✅ Aktif: '+c.model+' @ '+c.baseUrl.replace(/^https?:\/\//,'')+' · key ••••'+c.key.slice(-4);
     st.style.color='var(--success)';
   }else{
+    if(keyInp)keyInp.placeholder='API key provider';
     st.textContent='Belum ada provider kustom (memakai Gemini).';
     st.style.color='var(--text3)';
   }
 }
 function saveCustomAI(){
   const g=id=>(document.getElementById(id)||{}).value||'';
-  const baseUrl=g('cai-url').trim().replace(/\/+$/,''),model=g('cai-model').trim(),key=g('cai-key').trim();
-  if(!baseUrl||!model||!key){showToast('Lengkapi Base URL, Model, dan API key','warn');return;}
+  const baseUrl=g('cai-url').trim().replace(/\/+$/,''),model=g('cai-model').trim(),keyIn=g('cai-key').trim();
+  const prev=getCustomAI();
+  const key=keyIn||((prev&&prev.key)||'');
+  if(!baseUrl||!model||!key){showToast(prev?'Isi Base URL & Model (key lama tetap dipakai jika kolom key dibiarkan kosong)':'Lengkapi Base URL, Model, dan API key','warn');return;}
   if(!/^https?:\/\//i.test(baseUrl)){showToast('Base URL harus diawali http:// atau https://','warn');return;}
   localStorage.setItem(CAI_KEY,JSON.stringify({baseUrl,model,key}));
   loadCustomAI();showToast('Provider AI kustom aktif ✨','ok');
