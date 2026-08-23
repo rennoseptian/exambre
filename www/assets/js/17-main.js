@@ -1,1 +1,1 @@
-document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();initCloud();initExambreSplash();});
+document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();renderHeaderAcct();initCloud();initExambreSplash();});
