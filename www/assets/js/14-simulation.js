@@ -24,7 +24,11 @@ function renderRevModeTabs(){
 function openReviewTab(){
   renderRevModeTabs();
   if(revMode==='sim'){
-    if(simState&&!simState.finished)renderSimQuestion();
+    if(simState&&!simState.finished){
+      clearInterval(simTimerHandle);
+      simTimerHandle=setInterval(simTick,1000);
+      renderSimQuestion();
+    }
     else if(simState&&simState.finished)renderSimSummary();
     else renderSimSetup();
   }else{
