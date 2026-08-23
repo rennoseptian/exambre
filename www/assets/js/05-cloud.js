@@ -196,10 +196,14 @@ async function connectFirebase(){
   if(!raw){showToast('Tempel config Firebase dulu','warn');return;}
   const start=raw.indexOf('{'),end=raw.lastIndexOf('}');
   if(start===-1||end===-1||end<start){showToast('❌ Format config tidak valid','warn');return;}
-  const objText=raw.slice(start,end+1);
+  let objText=raw.slice(start,end+1)
+    .replace(/;\s*$/,'')
+    .replace(/([{,]\s*)([A-Za-z_$][\w$]*)(\s*):/g,'$1"$2"$3:')
+    .replace(/'/g,'"')
+    .replace(/,\s*([}\]])/g,'$1');
   let cfg;
   try{cfg=JSON.parse(objText);}
-  catch(e){showToast('❌ Format JSON tidak valid. Pastikan config Firebase berbentuk JSON murni.','warn');return;}
+  catch(e){showToast('❌ Config tetap tak terbaca. Salin ulang blok firebaseConfig utuh dari console.','warn',5000);return;}
   if(!cfg.apiKey||!cfg.projectId){showToast('❌ Config tidak lengkap (butuh apiKey & projectId)','warn');return;}
   setFbConfig(cfg);
   const btn=document.getElementById('btn-connect-fb');if(btn)btn.classList.add('loading');
