@@ -144,7 +144,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .filter-row select{font-size:12px;padding:5px 9px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit}
 .qcard{background:var(--bg);border:none;border-radius:var(--radius-lg);padding:var(--sp-4) 18px;margin-bottom:var(--sp-3);box-shadow:0 2px 5px rgba(16,18,24,.08),0 8px 22px rgba(16,18,24,.09);transition:box-shadow var(--dur-2) var(--ease),transform var(--dur-2) var(--ease)}
 @media(hover:hover){.qcard:hover{box-shadow:0 3px 8px rgba(16,18,24,.10),0 12px 28px rgba(16,18,24,.12)}}
-.qcard:hover{box-shadow:var(--shadow-md);border-color:var(--border2)}
 .qmeta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px}
 .qmeta-left{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .badge{font-size:11px;padding:3px 9px;border-radius:var(--radius-pill);font-weight:600;white-space:nowrap}
