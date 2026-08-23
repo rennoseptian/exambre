@@ -45,9 +45,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .gpill b{font-weight:700;color:var(--text)}
 .bottom-nav{display:flex;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(calc(100% - 24px),560px);background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(16px);backdrop-filter:saturate(1.4) blur(16px);border-radius:26px;padding:7px 8px;z-index:500;box-shadow:var(--shadow-lg)}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:inherit;font-size:10px;font-weight:600;padding:6px 2px 5px;position:relative;border-radius:16px;transition:color var(--dur-1) var(--ease),transform var(--dur-1) var(--ease)}
-.bnav-item::before{content:'';position:absolute;top:2px;left:50%;transform:translateX(-50%) scaleY(.5);width:52px;height:50px;border-radius:16px;background:transparent;transition:background var(--dur-2) var(--ease),transform var(--dur-2) var(--ease)}
+.bnav-item::before{content:'';position:absolute;top:3px;left:50%;margin-left:-28px;width:56px;height:30px;border-radius:999px;background:transparent;transition:background var(--dur-2) var(--ease)}
 .bnav-item i,.bnav-item span{position:relative;z-index:1}
-.bnav-item.on::before{background:var(--blue50);transform:translateX(-50%) scaleY(1)}
+.bnav-item.on::before{background:var(--blue50)}
 .bnav-item i{font-size:20px}
 .bnav-item.on{color:var(--accent)}
 .bnav-item:active{transform:scale(.94)}
