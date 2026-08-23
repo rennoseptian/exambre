@@ -65,7 +65,7 @@ async function callGeminiVision(base64, mimeType) {
               inlineData: { mimeType: mimeType, data: base64 }
             },
             {
-              text: `Kamu adalah sistem ekstraksi soal ujian Indonesia (CPNS/STAN/UTBK).\nEkstrak semua informasi dari gambar soal ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Jika field tidak ada di gambar, isi dengan string kosong "".\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas.\n- Untuk "pembahasan": format menggunakan HTML dasar: <p> paragraf, <b> tebal, <ol><li> daftar bernomor. Jangan gunakan tag lain.\n- Untuk "jawaban", tulis HANYA SATU HURUF KAPITAL (A, B, C, D, atau E) — TANPA titik, tanpa tanda kurung, tanpa teks lain. Contoh benar: "B". Contoh SALAH: "B. Sadar Berbangsa", "(B)", "b".
+              text: `Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak semua informasi dari gambar soal ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Jika field tidak ada di gambar, isi dengan string kosong "".\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas.\n- Untuk "pembahasan": format menggunakan HTML dasar: <p> paragraf, <b> tebal, <ol><li> daftar bernomor. Jangan gunakan tag lain.\n- Untuk "jawaban", tulis HANYA SATU HURUF KAPITAL (A, B, C, D, atau E) — TANPA titik, tanpa tanda kurung, tanpa teks lain. Contoh benar: "B". Contoh SALAH: "B. Sadar Berbangsa", "(B)", "b".
 - Cari jawaban benar dari: warna hijau, tanda centang (✓), lingkaran terisi, atau kata Benar/Kunci/Answer di gambar.\n- Cari jawaban SALAH dari: warna merah/pink, tanda silang (✗), atau kata Jawaban Saya di gambar.\n\nFORMAT JSON:\n{\n  "soal": "teks lengkap soal termasuk nomor jika ada",\n  "A": "teks pilihan A",\n  "B": "teks pilihan B",\n  "C": "teks pilihan C",\n  "D": "teks pilihan D",\n  "E": "teks pilihan E",\n  "jawaban": "SATU HURUF jawaban BENAR (hijau/centang), kosong jika tidak ada",\n  "jawaban_saya": "SATU HURUF jawaban yang DIPILIH PENGGUNA (ada label: Jawaban kamu adalah X, Jawaban anda X, atau pilihan berwarna merah/pink), kosong jika tidak ada",\n  "pembahasan": "pembahasan dalam format HTML dasar jika ada di gambar, kosong jika tidak"\n}`
             }
           ]
@@ -218,7 +218,7 @@ async function generateExp(qId){
   const optLabels=q.opts.map((o,i)=>(LETTERS[i]||String.fromCharCode(65+i))+'. '+o.replace(/<[^>]+>/g,''));
   const correctLabel=q.correct; // stored as letter 'A'–'E'
 
-  const prompt=`Kamu adalah tutor ahli untuk ujian CPNS dan STAN Indonesia.
+  const prompt=`Kamu adalah tutor ahli untuk berbagai jenis ujian dan tes seleksi.
 Buat penjelasan singkat, jelas, dan mudah dipahami untuk soal berikut.
 
 SOAL:
