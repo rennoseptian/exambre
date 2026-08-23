@@ -68,8 +68,7 @@ const Store={
   lastDeleted:null,
   notes:[],noteCats:[],noteNid:1,curNoteCat:'ALL',noteSearchQ:'',curNoteId:null,
   gami:{streak:0,lastActive:null,xp:0,badges:[]},
-  fbApp:null,fbDb:null,fbStorage:null,fbReady:false,syncCode:null,
-  cloudSaveTimer:null,cloudBusy:false,pendingDeletes:[]
+  pendingDeletes:[]
 };
 function defineState(name){
   Object.defineProperty(window,name,{get(){return Store[name];},set(v){Store[name]=v;},configurable:true});

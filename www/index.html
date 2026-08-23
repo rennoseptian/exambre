@@ -45,16 +45,6 @@
   </div>
 </div>
 
-<!-- CLOUD SYNC MODAL -->
-<div class="modal-overlay" id="sync-modal">
-  <div class="modal" style="max-width:460px">
-    <button class="modal-close" onclick="document.getElementById('sync-modal').classList.remove('on')" aria-label="Tutup"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-cloud" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>Sinkronisasi Cloud</h3>
-    <p class="sub">Data tersimpan otomatis secara online — nggak perlu backup manual lagi</p>
-    <div id="sync-content"></div>
-  </div>
-</div>
-
 <!-- NOTE EDITOR OVERLAY -->
 <div class="note-editor-overlay" id="note-editor-overlay">
   <div class="note-editor-header">
@@ -217,7 +207,7 @@
 
 <div class="app">
   <div class="header nopr">
-    <div id="hdr-acct"></div>
+    <h1><i class="ti ti-book-2" style="color:var(--accent)"></i> Exambre</h1>
     <div class="gami-row" id="gami-row"></div>
   </div>
 
@@ -393,21 +383,6 @@
       <button class="btn btn-s" onclick="openSettings()"><i class="ti ti-settings"></i> Kelola Kategori</button>
     </div>
     <div class="panel set-panel">
-      <h4><i class="ti ti-cloud" style="color:var(--accent)"></i> Cloud Sync</h4>
-      <p class="set-desc">Sinkronkan soal antar perangkat secara otomatis.</p>
-      <div class="cloud-status-row" id="cloud-status"><i class="ti ti-cloud-off"></i> Cloud belum disambung</div>
-      <button class="btn btn-s" onclick="openSyncModal()"><i class="ti ti-cloud"></i> Atur Cloud Sync</button>
-    </div>
-    <div class="panel set-panel">
-      <h4><i class="ti ti-sun-moon" style="color:var(--accent)"></i> Tema</h4>
-      <p class="set-desc">Pilih tampilan terang, gelap, atau ikuti pengaturan HP.</p>
-      <div class="theme-toggle" id="theme-toggle">
-        <button data-th="auto" onclick="applyTheme('auto')"><i class="ti ti-device-mobile"></i> Otomatis</button>
-        <button data-th="light" onclick="applyTheme('light')"><i class="ti ti-sun"></i> Terang</button>
-        <button data-th="dark" onclick="applyTheme('dark')"><i class="ti ti-moon"></i> Gelap</button>
-      </div>
-    </div>
-    <div class="panel set-panel">
       <h4><i class="ti ti-database-export" style="color:var(--accent)"></i> Data</h4>
       <p class="set-desc">Backup semua soal & progress ke file, atau pulihkan dari file backup.</p>
       <div class="data-actions">
@@ -512,10 +487,6 @@
   </button>
 </nav>
 
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script src="./assets/js/01-state.js"></script>
 <script src="./assets/js/02-gamify-data.js"></script>
 <script src="./assets/js/03-notes.js"></script>

@@ -152,6 +152,5 @@ function persist(){
       console.error('persist() error:',e);
     }
   }
-  scheduleCloudSave();
 }
 
