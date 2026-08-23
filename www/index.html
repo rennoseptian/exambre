@@ -137,7 +137,13 @@
     <h3><i class="ti ti-file-text" style="color:var(--accent);font-size:16px"></i> Preview Hasil Scan</h3>
     <p class="sub">Centang soal yang ingin diimpor. Soal bertanda tidak valid otomatis tak terpilih.</p>
     <div id="batch-list" style="max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding-right:2px"></div>
-    <div class="field"><label>Kategori tujuan</label><select id="batch-cat"></select></div>
+    <div class="field"><label>Kategori tujuan</label>
+      <div style="display:flex;gap:8px">
+        <select id="batch-cat" style="flex:1"></select>
+        <button class="btn btn-s btn-sm" onclick="saranKategoriBatch(this)" style="white-space:nowrap"><i class="ti ti-sparkles"></i> Sarankan</button>
+      </div>
+      <div class="opt-ce-hint" style="margin-top:4px">✨ Biarkan AI mengelompokkan otomatis — boleh membuat kategori baru.</div>
+    </div>
     <div class="btn-row">
       <button class="btn btn-s" onclick="closeBatchModal()">Batal</button>
       <button class="btn btn-p" id="batch-go" onclick="runBatchImport()"><i class="ti ti-download"></i> Impor</button>
@@ -299,7 +305,7 @@
           </div>
         </div>
         <div class="g2">
-          <div class="field"><label>Kategori</label><select id="p-cat" onchange="updateBabSelect('p-bab','p-cat')"></select></div>
+          <div class="field"><label>Kategori <button type="button" title="Sarankan kategori dengan AI" aria-label="Sarankan kategori dengan AI" onclick="saranKategoriTunggal()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;padding:0 2px;vertical-align:middle">✨</button></label><select id="p-cat" onchange="updateBabSelect('p-bab','p-cat')"></select></div>
           <div class="field"><label>Sub-Bab</label><select id="p-bab"></select></div>
         </div>
         <div class="g2">

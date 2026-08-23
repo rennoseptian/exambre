@@ -624,12 +624,17 @@ async function scanBatchToQuestions(inputEl){
 }
 function renderBatchPreview(){
   const wrap=document.getElementById('batch-list');if(!wrap)return;
-  wrap.innerHTML=(window._batchItems||[]).map((it,i)=>`
+  const asg=window._batchAssign||{};
+  wrap.innerHTML=(window._batchItems||[]).map((it,i)=>{
+    const a=asg[i];
+    const tag=a?`<span style="flex-shrink:0;font-size:10px;font-weight:700;${catBadgeStyle(a.cat)}padding:3px 9px;border-radius:99px">${_escHtml(((cats[a.cat]&&cats[a.cat].name)||a.cat)+(a.bab?' · '+a.bab:''))}</span>`:'';
+    return`
     <label class="batch-row${it.ok?'':' inv'}">
       <input type="checkbox" ${it._sel?'checked':''} ${it.ok?'':'disabled'} onchange="_bt(${i},this.checked)">
       <span style="flex:1">${_escHtml((i+1)+'. '+it.soal.slice(0,120))}${it.ok?'':' <b style="color:var(--danger-ink)">tidak valid</b>'}</span>
+      ${tag}
       <b style="flex-shrink:0">${it.jawaban||'—'}</b>
-    </label>`).join('');
+    </label>`;}).join('');
   updateBatchCount();
 }
 window._bt=function(i,v){if(window._batchItems[i]){window._batchItems[i]._sel=v;updateBatchCount();}};
@@ -640,15 +645,19 @@ function updateBatchCount(){
 }
 function closeBatchModal(){document.getElementById('batch-modal').classList.remove('on');}
 function runBatchImport(){
-  const cat=(document.getElementById('batch-cat')||{}).value||'';
-  if(!cat){showToast('Pilih kategori tujuan dulu','warn');return;}
-  const items=(window._batchItems||[]).filter(x=>x._sel&&x.ok);
-  if(!items.length){showToast('Tidak ada soal terpilih','warn');return;}
-  items.forEach(it=>{
-    qs.push({id:nid++,cat,bab:'',q:sanitizeHtml(it.soal),opts:it.opts,optImgs:{},wrong:'',correct:it.jawaban,
+  const fallback=(document.getElementById('batch-cat')||{}).value||'';
+  const asg=window._batchAssign||{};
+  const all=window._batchItems||[];
+  const chosen=all.map((it,idx)=>({it,idx})).filter(o=>o.it._sel&&o.it.ok);
+  if(!chosen.length){showToast('Tidak ada soal terpilih','warn');return;}
+  if(!fallback&&!chosen.some(o=>asg[o.idx])){showToast('Pilih kategori manual atau jalankan ✨ Sarankan dulu','warn');return;}
+  chosen.forEach(({it,idx})=>{
+    const a=asg[idx];
+    qs.push({id:nid++,cat:(a&&a.cat)||fallback,bab:(a&&a.bab)||'',q:sanitizeHtml(it.soal),opts:it.opts,optImgs:{},wrong:'',correct:it.jawaban,
       expHtml:it.pembahasan?sanitizeHtml(it.pembahasan):'',
       qimgs:[],eimgs:[],mastered:false,srs:{due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0}});
   });
+  window._batchAssign=null;
   persist();closeBatchModal();
   checkBadges();updateDueBadge();renderGami();
   showToast('✅ '+items.length+' soal berhasil diimpor!','ok');
@@ -759,6 +768,81 @@ function simpanVariasi(){
   document.getElementById('variasi-modal').classList.remove('on');
   checkBadges();updateDueBadge();renderGami();
   showToast('🔀 Variasi soal masuk daftar!','ok');
+}
+
+/* Feature 4.6 — Saran kategori otomatis */
+const _PALETTE=['#EAF1FE','#E4F6EE','#FEF2E2','#F3EEFE','#FDEDE8','#E9F7F0','#FBEAE9'];
+function _ensureCat(name,bab){
+  const key=(name||'LAINNYA').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,12)||'KAT';
+  if(!cats[key]){
+    cats[key]={name:(name||key).slice(0,24),color:_PALETTE[Object.keys(cats).length%_PALETTE.length],textColor:'#3552CC',babs:[]};
+  }
+  if(bab&&!cats[key].babs.includes(bab))cats[key].babs.push(bab);
+  return key;
+}
+async function saranKategoriBatch(btn){
+  const all=window._batchItems||[];
+  if(!all.some(x=>x.ok)){showToast('Tidak ada soal untuk dianalisis','warn');return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya','warn',5000);return;}
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Menganalisis...';}
+  const daftar=all.map((it,i)=>it.ok?((i+1)+'. '+it.soal.replace(/\s+/g,' ').slice(0,140)):'').filter(Boolean).join('\n');
+  const prompt=[
+    'Kamu adalah asisten kurikulum. Kelompokkan soal-soal bernomor berikut ke kategori pelajaran & sub-bab paling tepat.',
+    'Nama kategori ringkas dan umum (contoh: MATEMATIKA, FISIKA, BAHASA INDONESIA, SEJARAH). Sub-bab lebih spesifik (contoh: Trigonometri).',
+    '',
+    daftar,
+    '',
+    'ATURAN WAJIB:',
+    '- Jawab HANYA JSON valid tanpa markdown tanpa backtick.',
+    '- Format: {"groups":[{"kategori":"NAMA","subbab":"Nama","indeks":[nomor soal mulai dari 1]}]}',
+    '- Setiap nomor yang tercantum harus masuk tepat satu group.'
+  ].join('\n');
+  try{
+    const data=_extractJSON(await callAI(prompt,true));
+    const groups=Array.isArray(data)?data:(data.groups||[]);
+    const assign={};let made=0;
+    const existing=new Set(getCatKeys());
+    groups.forEach(g=>{
+      const bab=String((g&&g.subbab)||'').trim();
+      const key=_ensureCat(String((g&&g.kategori)||'').trim(),bab);
+      if(!existing.has(key))made++;
+      (g&&g.indeks||[]).forEach(n=>{const i=parseInt(n,10)-1;if(all[i]&&all[i].ok)assign[i]={cat:key,bab};});
+    });
+    window._batchAssign=assign;
+    persist();buildCatTabs();populateCatSelects();
+    renderBatchPreview();
+    showToast('✨ '+Object.keys(assign).length+' soal dikelompokkan'+(made?', '+made+' kategori baru dibuat':'')+' — cek label di tiap baris','ok',4500);
+  }catch(e){
+    const msg=e.message||'';
+    if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar.','warn',5000);
+    else showToast('Gagal menganalisis: '+msg,'warn',5000);
+  }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Sarankan';}}
+}
+async function saranKategoriTunggal(){
+  const pa=document.getElementById('paste-ta');
+  const txt=((pa&&(pa.innerText||pa.textContent))||'').trim().slice(0,600);
+  if(!txt){showToast('Tempel soalnya dulu','warn');return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya','warn',5000);return;}
+  try{
+    const prompt=[
+      'Tentukan kategori pelajaran & sub-bab untuk soal berikut.',
+      'Nama kategori ringkas umum (contoh: MATEMATIKA). Sub-bab spesifik.',
+      '',
+      txt,
+      '',
+      'Jawab HANYA JSON valid: {"kategori":"NAMA","subbab":"Nama"} — tanpa markdown/backtick.'
+    ].join('\n');
+    const d=_extractJSON(await callAI(prompt,true));
+    const key=_ensureCat(String(d.kategori||'').trim(),String(d.subbab||'').trim());
+    persist();populateCatSelects();buildCatTabs();
+    const sel=document.getElementById('p-cat');
+    if(sel){sel.value=key;updateBabSelect('p-bab','p-cat');}
+    const bs=document.getElementById('p-bab');
+    if(bs&&d.subbab&&[...bs.options].some(o=>o.value===d.subbab))bs.value=d.subbab;
+    showToast('✨ Saran: '+((cats[key]&&cats[key].name)||key)+(d.subbab?' · '+d.subbab:''),'ok');
+  }catch(e){
+    showToast('Gagal menyarankan: '+(e.message||''),'warn',5000);
+  }
 }
 
 
