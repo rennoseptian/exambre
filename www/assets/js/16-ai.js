@@ -71,25 +71,35 @@ async function cekModelProvider(btn){
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-list-check"></i> Cek Daftar Model';}}
 }
 async function callCustomAI(prompt,json){
-  const c=getCustomAI();
-  const body={model:c.model,messages:[{role:'user',content:prompt}],temperature:json?0.3:0.4};
-  if(json)body.response_format={type:'json_object'};
-  const res=await fetch(c.baseUrl+'/chat/completions',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
-    body:JSON.stringify(body)
-  });
-  if(!res.ok){
-    let msg=res.statusText;
-    try{const e=await res.json();msg=(e.error&&e.error.message)||msg;}catch(_){}
-    if(res.status===429)throw new Error('RATE_LIMIT');
-    if(res.status===401||res.status===403)throw new Error('BAD_KEY');
-    throw new Error(msg);
+  const attempt=async useJson=>{
+    const c=getCustomAI();
+    const body={model:c.model,messages:[{role:'user',content:prompt}],temperature:useJson?0.3:0.4,max_tokens:2048};
+    if(useJson)body.response_format={type:'json_object'};
+    const res=await fetch(c.baseUrl+'/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify(body)
+    });
+    if(!res.ok){
+      let msg=res.statusText;
+      try{const e=await res.json();msg=(e.error&&(e.error.message||e.error.code))||msg;}catch(_){}
+      if(res.status===429)throw new Error('RATE_LIMIT');
+      if(res.status===401||res.status===403)throw new Error('BAD_KEY');
+      throw new Error(msg);
+    }
+    const d=await res.json();
+    const t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
+    if(!t)throw new Error('EMPTY_RESPONSE');
+    return String(t).trim();
+  };
+  try{
+    return await attempt(true);
+  }catch(e){
+    if(json&&!['RATE_LIMIT','BAD_KEY','NO_KEY'].includes(e.message)){
+      return await attempt(false);
+    }
+    throw e;
   }
-  const data=await res.json();
-  const text=data&&data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content;
-  if(!text)throw new Error('EMPTY_RESPONSE');
-  return String(text).trim();
 }
 async function callAI(prompt,json){return getCustomAI()?callCustomAI(prompt,json):callGemini(prompt,json);}
 
