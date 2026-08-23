@@ -39,12 +39,16 @@ Dibangun sebagai aplikasi Android native via [Capacitor 6](https://capacitorjs.c
 - Sinkronisasi otomatis antar perangkat via Firebase Firestore + Storage (gambar diupload, hemat ruang localStorage)
 - Cukup tempel config Firebase Anda sendiri; data terkunci pada **Kode Sync** unik
 
-### 🤖 AI (opsional)
-Butuh API key gratis [Gemini](https://aistudio.google.com); teks juga bisa dialihkan ke provider OpenAI-compatible lain (Groq/OpenRouter/Cerebras/Ollama).
-- **Scan soal dari foto** → otomatis mengisi form tambah soal *(vision: Gemini)*
+### 🤖 AI (opsional) — 8 kemampuan
+Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa dialihkan ke provider OpenAI-compatible lain (Groq/OpenRouter/Cerebras/Ollama) via *Lainnya → Provider Kustom*.
+- **Scan soal dari foto** → otomatis mengisi form *(vision: Gemini)*
 - **Scan Halaman** — banyak soal sekaligus → preview centang → impor massal *(vision: Gemini)*
-- **Buat Soal dari Catatan** ✨ — AI menyusun soal ber-pembahasan dari isi catatan, langsung masuk jadwal SRS
+- **✨ Sarankan Kategori** — AI mengelompokkan hasil scan ke kategori/sub-bab (boleh bikin baru), plus saran kategori di form paste
+- **Buat Soal dari Catatan** ✨ — soal ber-pembahasan dari isi catatan, langsung terjadwal SRS
 - **Generate pembahasan** satu klik untuk soal apa pun
+- **💬 Tanya Tutor** — chat kontekstual per soal: pahami kunci, opsi, dan jawaban salah Anda
+- **🔀 Variasi Soal** — soal baru konsep sama/konteks beda, melatih pemahaman bukan hafalan
+- **🔍 Analisis Pola Kesalahan** — ringkasan pola + fokus per kategori + micro-lesson (tab Statistik)
 
 ### 📊 Statistik & Analisis
 - Akurasi, progres dikuasai, titik lemah per kategori
@@ -60,7 +64,7 @@ Butuh API key gratis [Gemini](https://aistudio.google.com); teks juga bisa diali
 
 | Bagian di App | Fungsinya | Berkas terkait (`www/assets/js/`) |
 |---|---|---|
-| Tab Soal — kartu soal | daftar, tag dikuasai, edit inline, hapus+undo | `10-render-edit`, `12-card-actions` |
+| Tab Soal — kartu soal | daftar, tag dikuasai, edit inline, hapus+undo, 💬 tutor, 🔀 variasi | `10-render-edit`, `12-card-actions`, `16-ai` |
 | Tombol "+ Tambah Soal" | panel paste/manual + preview parse | `11-panel-forms` |
 | Scan foto & Scan Halaman | ekstraksi AI dari gambar | `16-ai` |
 | Search bar & filter status/bab | penyaringan daftar soal | `08-theme-io`, CSS `.filter-row` |
