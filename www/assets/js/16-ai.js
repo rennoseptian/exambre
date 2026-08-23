@@ -37,6 +37,39 @@ function saveCustomAI(){
   loadCustomAI();showToast('Provider AI kustom aktif ✨','ok');
 }
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
+
+async function cekModelProvider(btn){
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const baseUrl=g('cai-url').trim().replace(/\/+$/,'');
+  const key=g('cai-key').trim()||((getCustomAI()||{}).key||'');
+  if(!baseUrl||!/^https?:\/\//i.test(baseUrl)){showToast('Isi Base URL dulu','warn');return;}
+  if(!key){showToast('Isi API key dulu (atau simpan provider dulu)','warn');return;}
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Memuat...';}
+  try{
+    const res=await fetch(baseUrl+'/models',{headers:{'Authorization':'Bearer '+key}});
+    if(res.status===401)throw new Error('API key tidak valid');
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    const ids=(d.data||[]).map(m=>m.id).sort();
+    const wrap=document.getElementById('cai-model-list');
+    if(wrap){
+      wrap.innerHTML='';
+      if(!ids.length){wrap.innerHTML='<span style="font-size:11.5px;color:var(--text3)">Tidak ada model dilaporkan provider.</span>';}
+      ids.forEach(id=>{
+        const b=document.createElement('button');
+        b.type='button';b.className='ctab';
+        b.style.cssText='padding:5px 11px;min-height:0;font-size:11px;background:var(--bg2);color:var(--text);box-shadow:none';
+        b.textContent=id;
+        b.onclick=()=>{const m=document.getElementById('cai-model');if(m)m.value=id;};
+        wrap.appendChild(b);
+      });
+      wrap.style.marginTop='8px';
+    }
+    showToast(ids.length+' model tersedia — klik salah satu untuk mengisi kolom Model','ok',4000);
+  }catch(e){
+    showToast('Gagal mengambil daftar model: '+e.message,'warn',4500);
+  }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-list-check"></i> Cek Daftar Model';}}
+}
 async function callCustomAI(prompt,json){
   const c=getCustomAI();
   const body={model:c.model,messages:[{role:'user',content:prompt}],temperature:json?0.3:0.4};
