@@ -67,7 +67,7 @@ Prinsip terbukti: SATU komponen per commit + user tes di browser dulu.
 ## Roadmap Fitur AI (disetujui user — urutan eksekusi)
 1. ✅ Generate Soal dari Catatan (0fd37ad): tombol ✨ di kartu catatan → modal
    jumlah/kategori → callGemini → JSON {questions:[...]} → validasi → masuk SRS.
-2. ⏭️ BERIKUTNYA — Custom provider AI: kolom opsional di Lainnya
+2. ✅ Custom provider AI (OpenAI-compatible): kolom opsional di Lainnya
    (base URL + model + API key, format OpenAI-compatible /v1/chat/completions)
    agar bisa pakai Groq/OpenRouter-free/Cerebras/Ollama-lokal; Gemini tetap default.
 3. Batch scan multi-soal: satu foto halaman berisi banyak soal → preview → impor massal.

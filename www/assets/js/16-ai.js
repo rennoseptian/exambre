@@ -1,5 +1,58 @@
 /* ── AI FEATURES ── */
 
+/* Feature 4.2 — Custom OpenAI-compatible provider */
+const CAI_KEY='exambre_custom_ai';
+function getCustomAI(){
+  try{
+    const c=JSON.parse(localStorage.getItem(CAI_KEY)||'null');
+    if(!c||!c.baseUrl||!/^https?:\/\//i.test(c.baseUrl)||!c.model||!c.key)return null;
+    return c;
+  }catch(e){return null;}
+}
+function loadCustomAI(){
+  const c=getCustomAI();
+  ['cai-url','cai-model','cai-key'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const st=document.getElementById('custom-ai-status');if(!st)return;
+  if(c){
+    const urlEl=document.getElementById('cai-url'),mEl=document.getElementById('cai-model');
+    if(urlEl)urlEl.value=c.baseUrl;if(mEl)mEl.value=c.model;
+    st.textContent='✅ Aktif: '+c.model+' @ '+c.baseUrl.replace(/^https?:\/\//,'');
+    st.style.color='var(--success)';
+  }else{
+    st.textContent='Belum ada provider kustom (memakai Gemini).';
+    st.style.color='var(--text3)';
+  }
+}
+function saveCustomAI(){
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const baseUrl=g('cai-url').trim().replace(/\/+$/,''),model=g('cai-model').trim(),key=g('cai-key').trim();
+  if(!baseUrl||!model||!key){showToast('Lengkapi Base URL, Model, dan API key','warn');return;}
+  if(!/^https?:\/\//i.test(baseUrl)){showToast('Base URL harus diawali http:// atau https://','warn');return;}
+  localStorage.setItem(CAI_KEY,JSON.stringify({baseUrl,model,key}));
+  loadCustomAI();showToast('Provider AI kustom aktif ✨','ok');
+}
+function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
+async function callCustomAI(prompt){
+  const c=getCustomAI();
+  const res=await fetch(c.baseUrl+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+    body:JSON.stringify({model:c.model,messages:[{role:'user',content:prompt}],temperature:0.4})
+  });
+  if(!res.ok){
+    let msg=res.statusText;
+    try{const e=await res.json();msg=(e.error&&e.error.message)||msg;}catch(_){}
+    if(res.status===429)throw new Error('RATE_LIMIT');
+    if(res.status===401||res.status===403)throw new Error('BAD_KEY');
+    throw new Error(msg);
+  }
+  const data=await res.json();
+  const text=data&&data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content;
+  if(!text)throw new Error('EMPTY_RESPONSE');
+  return String(text).trim();
+}
+async function callAI(prompt){return getCustomAI()?callCustomAI(prompt):callGemini(prompt);}
+
 /* Feature 1.2 — Gemini API Key Management */
 function loadGeminiKey(){
   const key=localStorage.getItem('exambre_gemini_key')||'';
@@ -206,8 +259,8 @@ function fillQuestionFormFromScan(parsed) {
 /* Feature 1.4 — Generate Explanation */
 async function generateExp(qId){
   const q=qs.find(x=>x.id===qId);if(!q)return;
-  const key=localStorage.getItem('exambre_gemini_key');
-  if(!key){showToast('Masukkan Gemini API key di menu Lainnya → AI Penjelasan','warn',5000);return;}
+  const hasAI=!!(getCustomAI()||localStorage.getItem('exambre_gemini_key'));
+  if(!hasAI){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
 
   // Show loading state on all matching buttons (card + review)
   ['gen-exp-btn-'+qId,'gen-exp-btn-rev-'+qId].forEach(id=>{
@@ -237,7 +290,7 @@ FORMAT WAJIB (gunakan HTML sederhana, hanya <p>, <b>, <ul>, <li>):
 Jangan gunakan tag lain. Jawab langsung tanpa preamble.`;
 
   try{
-    const result=await callGemini(prompt);
+    const result=await callAI(prompt);
     const clean=result.replace(/\`\`\`html?|\`\`\`/gi,'').trim();
     q.expHtml=sanitizeHtml(clean);
     persist();render();
@@ -422,7 +475,7 @@ async function runNoteToQ(){
   const cat=(document.getElementById('note2q-cat')||{}).value||'';
   if(!cat){showToast('Pilih kategori tujuan dulu','warn');return;}
   const cnt=parseInt((document.getElementById('note2q-count')||{}).value,10)||5;
-  if(!localStorage.getItem('exambre_gemini_key')){showToast('Masukkan Gemini API key di menu Lainnya → AI Penjelasan','warn',5000);return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
   const src=((n.bodyText&&n.bodyText.trim())?(n.bodyText.trim()):(n.body||'').replace(/<[^>]+>/g,' ')).slice(0,8000);
   const btn=document.getElementById('note2q-go');if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Membuat...';}
   const prompt=`Kamu adalah pembuat soal latihan ahli. Buat ${cnt} soal pilihan ganda BERDASARKAN materi berikut. Variasikan tingkat kesulitan dan utamakan pemahaman, bukan hafalan kata per kata.\n\nMATERI:\n${src}\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Format: {"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"SATU HURUF KAPITAL","pembahasan":"<p>penjelasan singkat</p>"}]}\n- Opsi boleh hanya 4; isi E dengan string kosong "".\n- "jawaban" HANYA satu huruf kapital tanpa titik atau tanda kurung.\n- "pembahasan" memakai HTML sederhana (<p>, <b>, <ol>, <li>) dan menjelaskan MENGAPA kunci benar.`;

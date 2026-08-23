@@ -368,6 +368,28 @@
         </button>
       </div>
       <p id="gemini-key-status" style="font-size:12px;margin-top:8px;color:var(--text3)"></p>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:700">
+          🔌 Provider Kustom (opsional — format OpenAI)
+        </label>
+        <p style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:10px">
+          Pakai Groq, OpenRouter, Cerebras, atau Ollama lokal. Kosongkan = kembali ke Gemini.
+          Fitur scan foto tetap memakai Gemini.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input id="cai-url" placeholder="Base URL (cth: https://api.groq.com/openai/v1)"
+            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
+          <input id="cai-model" placeholder="Model (cth: llama-3.3-70b-versatile)"
+            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
+          <input id="cai-key" type="password" placeholder="API key provider"
+            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-p btn-sm" onclick="saveCustomAI()"><i class="ti ti-check"></i> Simpan Provider</button>
+          <button class="btn btn-s btn-sm" onclick="clearCustomAI()">Hapus</button>
+        </div>
+        <p id="custom-ai-status" style="font-size:11.5px;margin-top:8px;color:var(--text3)"></p>
+      </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
         <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600">
           🎯 Tanggal Ujian Target

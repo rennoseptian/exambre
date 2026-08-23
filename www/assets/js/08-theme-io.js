@@ -5,6 +5,7 @@ function renderLainnya(){
     b.classList.toggle('on', b.dataset.th===cur);
   });
   loadGeminiKey();
+  loadCustomAI();
   loadExamDate();
 }
 function applyTheme(theme){
