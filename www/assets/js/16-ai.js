@@ -404,4 +404,58 @@ function renderReadinessWidget(){
   </div>`;
 }
 
+/* Feature 4.1 — Generate Soal dari Catatan */
+function openNoteToQ(noteId){
+  const n=notes.find(x=>x.id===noteId);if(!n)return;
+  if(!getCatKeys().length){showToast('Buat kategori dulu di tab Lainnya → Kelola Kategori','warn',4000);return;}
+  const src=(n.bodyText&&n.bodyText.trim())||(n.body||'').replace(/<[^>]+>/g,' ');
+  if(!src.trim()){showToast('Catatan masih kosong','warn');return;}
+  window._n2qId=noteId;
+  const info=document.getElementById('note2q-info');if(info)info.textContent='Sumber: '+(n.title||'(Tanpa judul)');
+  const cs=document.getElementById('note2q-cat');
+  if(cs)cs.innerHTML=getCatKeys().map(k=>`<option value="${k}">${(cats[k]&&cats[k].name)||k}</option>`).join('');
+  const modal=document.getElementById('note2q-modal');if(modal)modal.classList.add('on');
+}
+async function runNoteToQ(){
+  const n=notes.find(x=>x.id===window._n2qId);if(!n)return;
+  const modal=document.getElementById('note2q-modal');
+  const cat=(document.getElementById('note2q-cat')||{}).value||'';
+  if(!cat){showToast('Pilih kategori tujuan dulu','warn');return;}
+  const cnt=parseInt((document.getElementById('note2q-count')||{}).value,10)||5;
+  if(!localStorage.getItem('exambre_gemini_key')){showToast('Masukkan Gemini API key di menu Lainnya → AI Penjelasan','warn',5000);return;}
+  const src=((n.bodyText&&n.bodyText.trim())?(n.bodyText.trim()):(n.body||'').replace(/<[^>]+>/g,' ')).slice(0,8000);
+  const btn=document.getElementById('note2q-go');if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Membuat...';}
+  const prompt=`Kamu adalah pembuat soal latihan ahli. Buat ${cnt} soal pilihan ganda BERDASARKAN materi berikut. Variasikan tingkat kesulitan dan utamakan pemahaman, bukan hafalan kata per kata.\n\nMATERI:\n${src}\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Format: {"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"SATU HURUF KAPITAL","pembahasan":"<p>penjelasan singkat</p>"}]}\n- Opsi boleh hanya 4; isi E dengan string kosong "".\n- "jawaban" HANYA satu huruf kapital tanpa titik atau tanda kurung.\n- "pembahasan" memakai HTML sederhana (<p>, <b>, <ol>, <li>) dan menjelaskan MENGAPA kunci benar.`;
+  try{
+    const raw=await callGemini(prompt);
+    const clean=raw.replace(/```json?|```/gi,'').trim();
+    let data;try{data=JSON.parse(clean);}catch(e){throw new Error('FORMAT_ERROR');}
+    const arr=Array.isArray(data)?data:(data.questions||[]);
+    let added=0;
+    arr.forEach(it=>{
+      const qtxt=((it&&it.soal)||'').trim();if(!qtxt)return;
+      const opts=LETTERS.map(l=>(it[l]||'').trim());
+      if(opts.filter(Boolean).length<2)return;
+      const m=/\b([A-E])\b/.exec((it.jawaban||'').toUpperCase().trim());const cor=m?m[1]:'';
+      if(!cor)return;
+      qs.push({id:nid++,cat,bab:'',q:sanitizeHtml(qtxt),opts,optImgs:{},wrong:'',correct:cor,
+        expHtml:it.pembahasan?sanitizeHtml(String(it.pembahasan)):'',
+        qimgs:[],eimgs:[],mastered:false,srs:{due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0}});
+      added++;
+    });
+    persist();
+    if(modal)modal.classList.remove('on');
+    if(added){checkBadges();updateDueBadge();renderGami();}
+    showToast(added?`✨ ${added} soal berhasil dibuat dari catatan!`:'Tidak ada soal valid yang dihasilkan — coba lagi.',added?'ok':'warn',5000);
+  }catch(e){
+    const msg=e.message||'';
+    if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa di menu Lainnya.','warn',5000);
+    else if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
+    else if(msg==='FORMAT_ERROR')showToast('Format balasan AI tidak terbaca. Coba lagi.','warn',5000);
+    else showToast('Gagal membuat soal: '+msg,'warn',5000);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Generate';}
+  }
+}
+
 

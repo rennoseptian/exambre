@@ -40,7 +40,7 @@ function renderNotes(){
     const d=n.updatedAt?new Date(n.updatedAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
     const preview=(n.bodyText||'').slice(0,140);
     return`<div class="note-card" onclick="openNoteEditor(${n.id})">
-      <div class="note-card-header"><div class="note-card-title">${n.title||'(Tanpa judul)'}</div></div>
+      <div class="note-card-header"><div class="note-card-title">${n.title||'(Tanpa judul)'}</div><button class="ibtn edit-btn" style="width:34px;height:34px;font-size:13px" title="Buat soal dari catatan ini" aria-label="Buat soal dari catatan ini" onclick="event.stopPropagation();openNoteToQ(${n.id})"><i class="ti ti-sparkles"></i></button></div>
       <div class="note-meta">${catBadge}<span class="note-date">${d}</span></div>
       <div class="note-card-preview">${preview||'<i style="color:var(--text3)">Kosong</i>'}</div>
     </div>`;

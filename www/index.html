@@ -112,6 +112,24 @@
   </div>
 </div>
 
+<!-- NOTE TO QUESTION MODAL -->
+<div class="modal-overlay" id="note2q-modal">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-close" onclick="document.getElementById('note2q-modal').classList.remove('on')" aria-label="Tutup"><i class="ti ti-x"></i></button>
+    <h3><i class="ti ti-sparkles" style="color:var(--accent);font-size:16px"></i> Buat Soal dari Catatan</h3>
+    <p class="sub">AI akan menyusun soal latihan berdasarkan isi catatan ini, lengkap dengan pembahasan.</p>
+    <p id="note2q-info" style="font-size:12px;color:var(--text2);margin-bottom:12px;background:var(--bg2);border-radius:var(--radius);padding:8px 12px"></p>
+    <div class="field"><label>Jumlah soal</label>
+      <select id="note2q-count"><option value="3">3 soal</option><option value="5" selected>5 soal</option><option value="10">10 soal</option></select>
+    </div>
+    <div class="field"><label>Kategori tujuan</label><select id="note2q-cat"></select></div>
+    <div class="btn-row">
+      <button class="btn btn-s" onclick="document.getElementById('note2q-modal').classList.remove('on')">Batal</button>
+      <button class="btn btn-p" id="note2q-go" onclick="runNoteToQ()"><i class="ti ti-sparkles"></i> Generate</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM MODAL -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal" style="max-width:380px;text-align:center">
