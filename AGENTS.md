@@ -72,7 +72,7 @@ Prinsip terbukti: SATU komponen per commit + user tes di browser dulu.
    agar bisa pakai Groq/OpenRouter-free/Cerebras/Ollama-lokal; Gemini tetap default.
 3. ✅ Batch scan multi-soal (tombol Scan Halaman): preview ber-checkbox → impor massal.
 4. ✅ Tanya tutor per soal (tombol 💬 di kartu): chat bottom-sheet dengan konteks soal+opsi+kunci+jawaban user+pembahasan, riwayat dalam sesi.
-5. Variasi soal dari soal existing (latih pemahaman, bukan hafalan).
+5. ✅ Variasi soal (ikon shuffle di kartu): 1 soal baru konsep sama/konteks beda → preview → simpan.
 6. Saran kategori/sub-bab otomatis saat import massal.
 7. Analisis pola kesalahan user + micro-lesson.
 Catatan desain AI layer: prompt scan/pembahasan sudah netral (bukan CPNS-specific);
