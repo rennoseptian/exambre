@@ -3,8 +3,7 @@
    (biar gak kena limit ukuran 1MB/dokumen), dan semua gambar diupload ke Firebase
    Storage (bukan base64 lagi) — ini sekaligus mengatasi localStorage yang gampang penuh.
    "Kode Sync" dipakai untuk menyambungkan data yang sama di device lain. */
-let fbApp=null,fbDb=null,fbStorage=null,fbReady=false,syncCode=null;
-let cloudSaveTimer=null,cloudBusy=false,pendingDeletes=[];
+/* State cloud (fbApp, fbReady, syncCode, dst.) dideklarasikan di 01-state.js (Store terpusat). */
 
 function getFbConfig(){try{return JSON.parse(localStorage.getItem('cpns-fb-config')||'null');}catch(e){return null;}}
 function setFbConfig(cfg){localStorage.setItem('cpns-fb-config',JSON.stringify(cfg));}

@@ -55,13 +55,25 @@ function migrateCatColors(){
   });
 }
 
-let qs=[],nid=10,curCat='ALL',curSt='all',curBab='all',searchQ='';
-let cats={};
-let revList=[],revIdx=0,revDone=false,revSessionXP=0,sessionCorrect=0;
-let revMode='srs',simState=null,simTimerHandle=null,simSelectedCats=null,simTimerType='total',simHistory=[];
+/* ── STORE TERPUSAT (fase 3) ──
+   Semua state mutable tinggal di satu objek `Store`.
+   Nama-nama global lama dipertahankan sebagai accessor di `window`,
+   jadi seluruh kode lama (termasuk inline onclick) tetap berfungsi tanpa perubahan. */
+const Store={
+  qs:[],nid:10,curCat:'ALL',curSt:'all',curBab:'all',searchQ:'',
+  cats:{},
+  revList:[],revIdx:0,revDone:false,revSessionXP:0,sessionCorrect:0,
+  revMode:'srs',simState:null,simTimerHandle:null,simSelectedCats:null,simTimerType:'total',simHistory:[],
+  imgAreas:{},
+  lastDeleted:null,
+  notes:[],noteCats:[],noteNid:1,curNoteCat:'ALL',noteSearchQ:'',curNoteId:null,
+  gami:{streak:0,lastActive:null,xp:0,badges:[]},
+  fbApp:null,fbDb:null,fbStorage:null,fbReady:false,syncCode:null,
+  cloudSaveTimer:null,cloudBusy:false,pendingDeletes:[]
+};
+function defineState(name){
+  Object.defineProperty(window,name,{get(){return Store[name];},set(v){Store[name]=v;},configurable:true});
+}
+Object.keys(Store).forEach(defineState);
 const SIMHISTK='exambre_sim_history';
-let imgAreas={};
-let lastDeleted=null;
-let notes=[],noteCats=[],noteNid=1,curNoteCat='ALL',noteSearchQ='',curNoteId=null;
-let gami={streak:0,lastActive:null,xp:0,badges:[]};
 
