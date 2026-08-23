@@ -6,13 +6,17 @@ mode simulasi ujian ber-timer, catatan rich-text, gamifikasi (streak/XP/badge), 
 dan fitur AI Gemini (scan soal dari foto, generate pembahasan).
 
 ## Struktur
-- `www/index.html` — SEMUA kode di satu file (~3.100 baris):
-  - `<style>` utama: awal file s/d ~baris 349 (+1 inline `<style>` kecil di area paste ~line 547)
-  - Body HTML: splash, lightbox, toast-wrap, badge-toast, modals (settings/sync/note-cat/confirm/import), `.app` dengan 5 sec: list/review/catatan/stats/lainnya, bottom-nav
-  - `<script>` utama: mulai setelah 3 script firebase compat gstatic, s/d `</script>` sebelum `</body>`
-- `www/manifest.json`, `www/assets/` (font Inter lokal, tabler icons webfont lokal)
+- `www/index.html` — markup saja (~400 baris) + 1 inline `<style>` kecil di area paste
+  + theme-init script satu baris di <head> (jangan dipindah, anti-FOUC).
+- `www/assets/app.css` — seluruh stylesheet.
+- `www/assets/js/*.js` — 17 file classic-script BERURUTAN berbagi scope global
+  (bukan ES module; urutan load di index.html penting untuk const/let top-level):
+  01-state, 02-gamify-data, 03-notes, 04-srs-toast, 05-cloud, 06-media, 07-categories,
+  08-theme-io, 09-image-inputs, 10-render-edit, 11-panel-forms, 12-card-actions,
+  13-review, 14-simulation, 15-stats, 16-ai, 17-main (listener DOMContentLoaded).
+- `www/manifest.json`, `www/assets/fonts|icons`
 - `capacitor.config.json` — appId com.exambre.app, webDir www
-- Tidak ada build system / bundler / test framework saat ini.
+- Tidak ada bundler/test framework. Verifikasi: node --check per file js.
 
 ## State Global Penting (jangan ubah nama sembarangan — dipakai lintas-fungsi & inline onclick)
 `qs, nid, cats, revList, revIdx, revMode('srs'|'sim'), simState, simHistory, notes, noteCats,

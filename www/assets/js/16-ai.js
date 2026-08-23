@@ -1,0 +1,407 @@
+/* ── AI FEATURES ── */
+
+/* Feature 1.2 — Gemini API Key Management */
+function loadGeminiKey(){
+  const key=localStorage.getItem('exambre_gemini_key')||'';
+  const inp=document.getElementById('gemini-key-inp');
+  const status=document.getElementById('gemini-key-status');
+  if(inp)inp.value=key;
+  if(status){
+    status.textContent=key?'✅ API key tersimpan ('+key.slice(0,8)+'...)':'Belum ada API key.';
+    status.style.color=key?'var(--success)':'var(--text3)';
+  }
+}
+function previewGeminiKey(val){
+  const status=document.getElementById('gemini-key-status');if(!status)return;
+  status.textContent=val?'Tekan Simpan untuk menyimpan key.':'Belum ada API key.';
+  status.style.color='var(--text3)';
+}
+function saveGeminiKey(){
+  const val=(document.getElementById('gemini-key-inp').value||'').trim();
+  if(!val){localStorage.removeItem('exambre_gemini_key');loadGeminiKey();showToast('API key dihapus','ok');return;}
+  if(val.length<20){showToast('API key terlalu pendek, pastikan menyalin key yang lengkap','warn',4000);return;}
+  localStorage.setItem('exambre_gemini_key',val);loadGeminiKey();showToast('API key tersimpan','ok');
+}
+
+/* Feature 1.3 — Core Gemini API call */
+async function callGemini(prompt){
+  const key=localStorage.getItem('exambre_gemini_key');
+  if(!key)throw new Error('NO_KEY');
+  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key='+key,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.4,maxOutputTokens:512}
+    })
+  });
+  if(!res.ok){
+    const err=await res.json().catch(()=>({}));
+    const msg=err?.error?.message||res.statusText;
+    if(res.status===429)throw new Error('RATE_LIMIT');
+    if(res.status===400)throw new Error('BAD_KEY');
+    throw new Error(msg);
+  }
+  const data=await res.json();
+  const text=data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if(!text)throw new Error('EMPTY_RESPONSE');
+  return text.trim();
+}
+
+/* Feature 1.1b — Gemini Vision API call */
+async function callGeminiVision(base64, mimeType) {
+  const key = localStorage.getItem('exambre_gemini_key');
+  if (!key) throw new Error('NO_KEY');
+
+  const res = await fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=' + key,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {
+              inlineData: { mimeType: mimeType, data: base64 }
+            },
+            {
+              text: `Kamu adalah sistem ekstraksi soal ujian Indonesia (CPNS/STAN/UTBK).\nEkstrak semua informasi dari gambar soal ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Jika field tidak ada di gambar, isi dengan string kosong "".\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas.\n- Untuk "pembahasan": format menggunakan HTML dasar: <p> paragraf, <b> tebal, <ol><li> daftar bernomor. Jangan gunakan tag lain.\n- Untuk "jawaban", tulis HANYA SATU HURUF KAPITAL (A, B, C, D, atau E) — TANPA titik, tanpa tanda kurung, tanpa teks lain. Contoh benar: "B". Contoh SALAH: "B. Sadar Berbangsa", "(B)", "b".
+- Cari jawaban benar dari: warna hijau, tanda centang (✓), lingkaran terisi, atau kata Benar/Kunci/Answer di gambar.\n- Cari jawaban SALAH dari: warna merah/pink, tanda silang (✗), atau kata Jawaban Saya di gambar.\n\nFORMAT JSON:\n{\n  "soal": "teks lengkap soal termasuk nomor jika ada",\n  "A": "teks pilihan A",\n  "B": "teks pilihan B",\n  "C": "teks pilihan C",\n  "D": "teks pilihan D",\n  "E": "teks pilihan E",\n  "jawaban": "SATU HURUF jawaban BENAR (hijau/centang), kosong jika tidak ada",\n  "jawaban_saya": "SATU HURUF jawaban yang DIPILIH PENGGUNA (ada label: Jawaban kamu adalah X, Jawaban anda X, atau pilihan berwarna merah/pink), kosong jika tidak ada",\n  "pembahasan": "pembahasan dalam format HTML dasar jika ada di gambar, kosong jika tidak"\n}`
+            }
+          ]
+        }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+      })
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 429) throw new Error('RATE_LIMIT');
+    if (res.status === 400) throw new Error('BAD_KEY');
+    throw new Error(err?.error?.message || res.statusText);
+  }
+
+  const data = await res.json();
+  const text2 = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text2) throw new Error('EMPTY_RESPONSE');
+  return text2.trim();
+}
+
+/* Feature 1.1c — Scan image → auto-fill form */
+function showScanPreview(src) {
+  const wrap = document.getElementById('scan-preview-wrap');
+  const img  = document.getElementById('scan-preview-img');
+  if (!wrap || !img) return;
+  img.src = src;
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function hideScanPreview() {
+  const wrap = document.getElementById('scan-preview-wrap');
+  const img  = document.getElementById('scan-preview-img');
+  if (wrap) wrap.style.display = 'none';
+  if (img)  img.src = '';
+}
+
+async function scanImageToQuestion(inputEl) {
+  const file = inputEl && inputEl.files && inputEl.files[0];
+  if (!file) return;
+
+  if (!localStorage.getItem('exambre_gemini_key')) {
+    showToast('Masukkan Gemini API key dulu di Lainnya → AI Penjelasan', 'warn', 5000);
+    inputEl.value = '';
+    return;
+  }
+
+  const btn = document.getElementById('scan-img-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Memindai...';
+  }
+
+  try {
+    // Read file — capture both full dataUrl (for preview) and base64 (for API)
+    const { base64, dataUrl } = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve({ dataUrl: e.target.result, base64: e.target.result.split(',')[1] });
+      reader.onerror = () => reject(new Error('Gagal membaca gambar'));
+      reader.readAsDataURL(file);
+    });
+    showScanPreview(dataUrl); // tampilkan preview gambar asli
+
+    const mimeType = file.type || 'image/jpeg';
+    const rawResponse = await callGeminiVision(base64, mimeType);
+
+    const clean = rawResponse.replace(/```json?|```/gi, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(clean);
+    } catch (e) {
+      throw new Error('FORMAT_ERROR');
+    }
+
+    fillQuestionFormFromScan(parsed);
+    showToast('Soal berhasil dipindai! Periksa kembali sebelum menyimpan ✨', 'ok', 6000);
+
+  } catch (e) {
+    const msg = e.message || '';
+    if (msg === 'NO_KEY')           showToast('Masukkan Gemini API key dulu di menu Lainnya', 'warn', 5000);
+    else if (msg === 'RATE_LIMIT')  showToast('Terlalu banyak request. Tunggu 1 menit lalu coba lagi.', 'warn', 5000);
+    else if (msg === 'BAD_KEY')     showToast('API key tidak valid. Periksa kembali di menu Lainnya.', 'warn', 5000);
+    else if (msg === 'FORMAT_ERROR') showToast('Gagal membaca format soal. Coba ambil foto lebih jelas.', 'warn', 5000);
+    else showToast('Gagal memindai gambar: ' + msg, 'warn', 5000);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-camera"></i> Scan Soal dari Foto/Screenshot';
+    }
+    if (inputEl) inputEl.value = '';
+  }
+}
+
+function fillQuestionFormFromScan(parsed) {
+  // Switch to manual mode (find the manual tab button and call switchMode)
+  const manualTab = document.querySelector('#add-panel .t2[onclick*="manual"]');
+  if (manualTab) switchMode('manual', manualTab);
+
+  // Fill question text — m-q is a <textarea>, use .value
+  const qEl = document.getElementById('m-q');
+  if (qEl && parsed.soal) qEl.value = parsed.soal;
+
+  // Fill options A–E (contenteditable divs with ids m-opt-A … m-opt-E)
+  ['A','B','C','D','E'].forEach(l => {
+    const optEl = document.getElementById('m-opt-' + l);
+    if (optEl && parsed[l]) optEl.innerHTML = sanitizeHtml(parsed[l]);
+  });
+
+  // Set correct answer in select
+  if (parsed.jawaban) {
+    const sel = document.getElementById('m-correct');
+    // Gemini kadang mengembalikan "B. Teks pilihan..." atau "(B)" atau "B)"
+    // Ekstrak huruf pertama yang valid saja
+    const raw = (parsed.jawaban || '').toUpperCase().trim();
+    const letterMatch = raw.match(/\b([A-E])\b/);
+    const jawaban = letterMatch ? letterMatch[1] : raw.charAt(0);
+    if (sel && jawaban && LETTERS.includes(jawaban)) sel.value = jawaban;
+  }
+
+  // Fill wrong answer (jawaban saya yang salah — warna merah di screenshot)
+  if (parsed.jawaban_saya) {
+    const wrongSel = document.getElementById('m-wrong');
+    const rawW = (parsed.jawaban_saya || '').toUpperCase().trim();
+    const wrongMatch = rawW.match(/\b([A-E])\b/);
+    const jawabanSaya = wrongMatch ? wrongMatch[1] : rawW.charAt(0);
+    if (wrongSel && jawabanSaya && LETTERS.includes(jawabanSaya)) wrongSel.value = jawabanSaya;
+  }
+
+  // Fill explanation RTE
+  if (parsed.pembahasan && parsed.pembahasan.trim()) {
+    const expEl = document.getElementById('rte-m');
+    if (expEl) expEl.innerHTML = sanitizeHtml(parsed.pembahasan);
+  }
+}
+
+/* Feature 1.4 — Generate Explanation */
+async function generateExp(qId){
+  const q=qs.find(x=>x.id===qId);if(!q)return;
+  const key=localStorage.getItem('exambre_gemini_key');
+  if(!key){showToast('Masukkan Gemini API key di menu Lainnya → AI Penjelasan','warn',5000);return;}
+
+  // Show loading state on all matching buttons (card + review)
+  ['gen-exp-btn-'+qId,'gen-exp-btn-rev-'+qId].forEach(id=>{
+    const btn=document.getElementById(id);
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Generating...';}
+  });
+
+  const optLabels=q.opts.map((o,i)=>(LETTERS[i]||String.fromCharCode(65+i))+'. '+o.replace(/<[^>]+>/g,''));
+  const correctLabel=q.correct; // stored as letter 'A'–'E'
+
+  const prompt=`Kamu adalah tutor ahli untuk ujian CPNS dan STAN Indonesia.
+Buat penjelasan singkat, jelas, dan mudah dipahami untuk soal berikut.
+
+SOAL:
+${q.q.replace(/<[^>]+>/g,'')}
+
+PILIHAN JAWABAN:
+${optLabels.join('\n')}
+
+JAWABAN BENAR: ${correctLabel}
+
+FORMAT WAJIB (gunakan HTML sederhana, hanya <p>, <b>, <ul>, <li>):
+<p><b>Kenapa ${correctLabel} benar:</b> [penjelasan 2-3 kalimat]</p>
+<p><b>Kenapa pilihan lain salah:</b> [ringkasan singkat]</p>
+<p><b>Tips mengingat:</b> [1 kalimat tip praktis]</p>
+
+Jangan gunakan tag lain. Jawab langsung tanpa preamble.`;
+
+  try{
+    const result=await callGemini(prompt);
+    const clean=result.replace(/\`\`\`html?|\`\`\`/gi,'').trim();
+    q.expHtml=sanitizeHtml(clean);
+    persist();render();
+    showToast('Penjelasan berhasil digenerate! ✨','ok');
+  }catch(e){
+    ['gen-exp-btn-'+qId,'gen-exp-btn-rev-'+qId].forEach(id=>{
+      const btn=document.getElementById(id);
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Generate Penjelasan';}
+    });
+    if(e.message==='NO_KEY'){showToast('Masukkan Gemini API key dulu di menu Lainnya','warn',5000);}
+    else if(e.message==='RATE_LIMIT'){showToast('Terlalu banyak request. Tunggu 1 menit lalu coba lagi.','warn',5000);}
+    else if(e.message==='BAD_KEY'){showToast('API key tidak valid. Periksa kembali di menu Lainnya.','warn',5000);}
+    else{showToast('Gagal generate: '+e.message,'warn',5000);}
+  }
+}
+
+/* Feature 2.1 — Weakness Analysis */
+function analyzeWeakness(){
+  const catKeys=getCatKeys();
+  if(!catKeys.length||!qs.length)return[];
+  const dueSet=new Set(srsDueQs().map(q=>q.id));
+  return catKeys.map(key=>{
+    const catQs=qs.filter(q=>q.cat===key);
+    const answered=catQs.filter(q=>q.srs&&q.srs.reps>0);
+    const accuracy=answered.length
+      ?answered.reduce((s,q)=>{const tot=q.srs.totalAttempts||0;return s+(tot>0?(q.srs.totalCorrect||0)/tot:0);},0)/answered.length
+      :null;
+    const avgEase=catQs.length?catQs.reduce((s,q)=>s+((q.srs&&q.srs.ease)||2.5),0)/catQs.length:2.5;
+    const dueCount=catQs.filter(q=>dueSet.has(q.id)).length;
+    const mastered=catQs.filter(q=>q.mastered).length;
+    return{
+      key,name:cats[key]?.name||key,color:cats[key]?.color||'var(--bg2)',textColor:cats[key]?.textColor||'var(--text)',
+      total:catQs.length,answered:answered.length,accuracy,avgEase,dueCount,mastered,
+      score:accuracy!==null?accuracy*0.6+(avgEase/3.5)*0.4:-1
+    };
+  }).sort((a,b)=>a.score-b.score);
+}
+
+/* Feature 2.2 — Render Weakness Section */
+function renderWeaknessSection(){
+  const data=analyzeWeakness();
+  if(!data.length)return'';
+  const hasAnswered=data.some(d=>d.accuracy!==null);
+  if(!hasAnswered){
+    return`<div class="panel" style="text-align:center;padding:24px;color:var(--text2);font-size:13px">
+      <i class="ti ti-chart-bar" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4"></i>
+      Selesaikan beberapa soal dulu untuk melihat analisis kelemahan.
+    </div>`;
+  }
+  const rows=data.map(d=>{
+    const pct=d.accuracy!==null?Math.round(d.accuracy*100):null;
+    const bar=pct!==null
+      ?`<div style="height:6px;background:var(--bg3);border-radius:3px;margin-top:4px"><div style="width:${pct}%;height:100%;border-radius:3px;background:${pct>=70?'var(--success)':pct>=40?'var(--accent)':'var(--warn)'};transition:width .4s"></div></div>`
+      :'<p style="font-size:11px;color:var(--text3);margin:4px 0 0">Belum pernah dijawab</p>';
+    return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;font-weight:600;color:var(--text)">${d.name}</span>
+        <span style="font-size:12px;color:${pct===null?'var(--text3)':pct>=70?'var(--success)':pct>=40?'var(--accent)':'var(--warn)'};font-weight:700">${pct!==null?pct+'%':'—'}</span>
+      </div>${bar}
+      <div style="display:flex;gap:12px;margin-top:4px">
+        <span style="font-size:11px;color:var(--text3)">${d.total} soal</span>
+        <span style="font-size:11px;color:var(--text3)">${d.mastered} dikuasai</span>
+        <span style="font-size:11px;color:var(--text3)">${d.dueCount} jatuh tempo</span>
+      </div>
+    </div>`;
+  }).join('');
+  const weakest=data[0];
+  const tip=weakest.accuracy!==null
+    ?`Fokuskan review ke <b>${weakest.name}</b> — akurasi kamu di sana baru ${Math.round(weakest.accuracy*100)}%.`
+    :`Mulai kerjakan soal di <b>${weakest.name}</b> untuk memulai analisis.`;
+  return`<div class="panel" style="margin-bottom:var(--sp-4)">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:4px">
+      <i class="ti ti-target" style="color:var(--warn)"></i> Analisis Kelemahan
+    </h3>
+    <div style="background:var(--bg2);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;font-size:13px;line-height:1.6;color:var(--text2)">
+      💡 ${tip}
+    </div>
+    <div style="padding:0 2px">${rows}</div>
+  </div>`;
+}
+
+/* Feature 3.2 — Exam Date Functions */
+function loadExamDate(){
+  const saved=localStorage.getItem('exambre_exam_date');
+  const inp=document.getElementById('exam-date-inp');
+  if(inp&&saved)inp.value=saved;
+  updateExamDateStatus(saved);
+}
+function saveExamDate(val){
+  if(!val)return;
+  const d=new Date(val);
+  if(d<=new Date()){showToast('Tanggal ujian harus di masa depan','warn');return;}
+  localStorage.setItem('exambre_exam_date',val);updateExamDateStatus(val);showToast('Tanggal ujian disimpan','ok');
+}
+function clearExamDate(){
+  localStorage.removeItem('exambre_exam_date');
+  const inp=document.getElementById('exam-date-inp');if(inp)inp.value='';
+  updateExamDateStatus(null);
+}
+function updateExamDateStatus(val){
+  const status=document.getElementById('exam-date-status');if(!status)return;
+  if(!val){status.textContent='Belum ada tanggal ujian.';return;}
+  const days=Math.ceil((new Date(val)-Date.now())/86400000);
+  status.textContent=days>0?`📅 ${days} hari lagi menuju ujian`:'Ujian sudah lewat.';
+  status.style.color=days<=7?'var(--warn)':'var(--text3)';
+}
+
+/* Feature 3.3 — Readiness Calculation */
+function calcReadiness(){
+  const examDate=localStorage.getItem('exambre_exam_date');
+  if(!examDate||!qs.length)return null;
+  const daysLeft=Math.ceil((new Date(examDate)-Date.now())/86400000);
+  if(daysLeft<=0)return null;
+  const total=qs.length;
+  const mastered=qs.filter(q=>q.mastered).length;
+  const answered=qs.filter(q=>q.srs&&q.srs.reps>0).length;
+  const avgAccuracy=answered
+    ?qs.filter(q=>q.srs&&q.srs.reps>0).reduce((s,q)=>{const tot=q.srs.totalAttempts||0;return s+(tot>0?(q.srs.totalCorrect||0)/tot:0);},0)/answered
+    :0;
+  const reviewedLast7=qs.filter(q=>q.srs&&q.srs.due&&q.srs.due>Date.now()-7*86400000&&q.srs.reps>0).length;
+  const dailyPace=Math.max(1,Math.round(reviewedLast7/7));
+  const remaining=total-mastered;
+  const daysNeeded=remaining>0?Math.ceil(remaining/dailyPace):0;
+  const masteredScore=total>0?(mastered/total)*50:0;
+  const accuracyScore=avgAccuracy*30;
+  const timeScore=daysLeft>=daysNeeded?20:(daysLeft/Math.max(daysNeeded,1))*20;
+  const score=Math.min(100,Math.round(masteredScore+accuracyScore+timeScore));
+  return{score,daysLeft,daysNeeded,mastered,total,dailyPace,avgAccuracy:Math.round(avgAccuracy*100),label:score>=80?'Siap':score>=55?'Hampir Siap':'Perlu Latihan'};
+}
+
+/* Feature 3.4 — Render Readiness Widget */
+function renderReadinessWidget(){
+  const r=calcReadiness();if(!r)return'';
+  const color=r.score>=80?'var(--success)':r.score>=55?'var(--accent)':'var(--warn)';
+  const circumference=2*Math.PI*36;
+  const dash=circumference*(1-r.score/100);
+  return`<div class="panel" style="margin-bottom:var(--sp-4)">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">
+      <i class="ti ti-rosette" style="color:${color}"></i> Kesiapan Ujian
+    </h3>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div style="flex-shrink:0">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="36" fill="none" stroke="var(--bg3)" stroke-width="8"/>
+          <circle cx="44" cy="44" r="36" fill="none" stroke="${color}" stroke-width="8"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${dash}"
+            stroke-linecap="round"
+            transform="rotate(-90 44 44)"
+            style="transition:stroke-dashoffset .6s"/>
+          <text x="44" y="48" text-anchor="middle" font-size="18" font-weight="800" fill="${color}">${r.score}</text>
+        </svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:18px;font-weight:800;color:${color};margin-bottom:4px">${r.label}</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.8">
+          📅 ${r.daysLeft} hari menuju ujian<br>
+          ✅ ${r.mastered}/${r.total} soal dikuasai<br>
+          🎯 Akurasi rata-rata: ${r.avgAccuracy}%<br>
+          ${r.daysNeeded>r.daysLeft?`⚠️ Butuh ±${r.daysNeeded} hari — percepat pace!`:`✨ Kamu on track dengan pace ${r.dailyPace} soal/hari`}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+
