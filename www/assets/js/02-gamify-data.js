@@ -114,7 +114,7 @@ function sfx(name){
   if(!sfxEnabled())return;
   try{
     if(!_sfxCache[name])_sfxCache[name]=new Audio('./assets/sfx/'+name+'.wav');
-    const a=_sfxCache[name].cloneNode();a.volume=0.55;a.play().catch(()=>{});
+    const a=_sfxCache[name].cloneNode();a.volume=0.8;a.play().catch(()=>{});
   }catch(e){}
 }
 function confettiBurst(){
