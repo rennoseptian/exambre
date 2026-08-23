@@ -1,6 +1,8 @@
 # 📚 Exambre
 
-Aplikasi latihan soal CPNS dengan **spaced repetition** (repetisi berjarak ala Anki/SM-2), simulasi ujian ber-timer, catatan rich-text, gamifikasi, sinkronisasi cloud, dan bantuan AI.
+Aplikasi latihan soal universal dengan **spaced repetition** (repetisi berjarak ala Anki/SM-2), simulasi ujian ber-timer, catatan rich-text, gamifikasi, sinkronisasi cloud, dan bantuan AI.
+
+Cocok untuk materi apa pun — ujian masuk, sertifikasi, bahasa asing, kedokteran, hukum, atau kumpulan rumus pribadi Anda.
 
 Dibangun sebagai aplikasi Android native via [Capacitor 6](https://capacitorjs.com) — tanpa framework frontend, murni HTML/CSS/JavaScript modular.
 
