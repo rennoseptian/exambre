@@ -19,6 +19,9 @@ dan fitur AI Gemini (scan soal dari foto, generate pembahasan).
 - Tidak ada bundler/test framework. Verifikasi: node --check per file js.
 
 ## State Global Penting (jangan ubah nama sembarangan — dipakai lintas-fungsi & inline onclick)
+Sejak fase 3, semua state mutable tinggal di objek `Store` (dideklarasikan di `01-state.js`).
+Nama lama (`qs`, `cats`, `gami`, `simState`, dll.) adalah accessor window ke `Store` —
+tetap dipakai normal di seluruh kode. Daftar kuncinya:
 `qs, nid, cats, revList, revIdx, revMode('srs'|'sim'), simState, simHistory, notes, noteCats,
 gami, imgAreas, curCat, curSt, curBab, searchQ, fbReady, syncCode`
 Storage keys: `cpns-wb-v6` (data utama), `exambre-notes-v1`, `exambre_sim_history`,
