@@ -22,18 +22,18 @@
 @font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('./assets/fonts/inter-700.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:800;font-display:swap;src:url('./assets/fonts/inter-800.woff2') format('woff2')}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#ffffff;--bg2:#f7f7f8;--bg3:#f2f2f4;--text:#16171b;--text2:#6b6d76;--text3:#75777f;--border:rgba(15,15,20,0.08);--border2:rgba(15,15,20,0.13);--radius:8px;--radius-lg:12px;--radius-pill:999px;--accent:#4F62E0;--accent-dark:#3949B8;--accent-ink:#3949B8;--success:#1D9E75;--success-dark:#16805e;--success-ink:#177055;--danger:#D6433D;--danger-dark:#b8332e;--danger-ink:#a8332e;--gold:#B45A00;--gold-dark:#8f4700;--gold-ink:#8f4700;--note:#7C3AED;--note-dark:#6326D9;--note-ink:#5B21B6;--blue50:#EAF1FE;--blue800:#3552CC;--teal50:#E4F6EE;--teal800:#1A7A52;--amber50:#FEF2E2;--amber800:#B45A00;--purple50:#F2EDFE;--purple800:#6B3FD4;--coral50:#FDEDE8;--coral800:#C24A2E;--green50:#E9F7F0;--green800:#177055;--red50:#FBEAE9;--red800:#A8332E;
+:root{--bg:#ffffff;--bg2:#f7f7f8;--bg3:#f2f2f4;--text:#16171b;--text2:#6b6d76;--text3:#75777f;--border:rgba(15,15,20,0.08);--border2:rgba(15,15,20,0.13);--radius:8px;--radius-lg:12px;--radius-pill:999px;--accent:#4F62E0;--accent-dark:#3949B8;--accent-ink:#3949B8;--success:#1D9E75;--success-dark:#16805e;--success-ink:#177055;--danger:#D6433D;--danger-dark:#b8332e;--danger-ink:#a8332e;--gold:#B45A00;--gold-dark:#8f4700;--gold-ink:#8f4700;--note:#7C3AED;--note-dark:#6326D9;--note-ink:#5B21B6;--blue50:#EAF1FE;--blue800:#3552CC;--teal50:#E4F6EE;--teal800:#1A7A52;--amber50:#FEF2E2;--amber800:#B45A00;--purple50:#F2EDFE;--purple800:#6B3FD4;--coral50:#FDEDE8;--coral800:#C24A2E;--green50:#E9F7F0;--green800:#177055;--red50:#FBEAE9;--red800:#A8332E;--warn:#B45A00;
   --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;
   --fs-xs:12px;--fs-sm:13px;--fs-base:14px;--fs-md:16px;--fs-lg:20px;--fs-xl:24px;
   --shadow-sm:0 1px 2px rgba(15,15,20,.05);--shadow-card:0 1px 2px rgba(15,15,20,.05);
   --shadow-md:0 2px 6px rgba(15,15,20,.07),0 1px 2px rgba(15,15,20,.05);
   --shadow-lg:0 12px 28px rgba(15,15,20,.12),0 2px 6px rgba(15,15,20,.06);
   --ease:cubic-bezier(.4,0,.2,1);--dur-1:120ms;--dur-2:200ms;}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--note:#a78bfa;--note-dark:#7C3AED;--note-ink:#c4b5fd;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--note:#a78bfa;--note-dark:#7C3AED;--note-ink:#c4b5fd;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;--warn:#e0a040;
   --shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-card:0 1px 2px rgba(0,0,0,.3);
   --shadow-md:0 2px 8px rgba(0,0,0,.36),0 1px 2px rgba(0,0,0,.3);
   --shadow-lg:0 14px 32px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3);}}
-:root[data-theme="dark"]{--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--note:#a78bfa;--note-dark:#7C3AED;--note-ink:#c4b5fd;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;
+:root[data-theme="dark"]{--bg:#1a1b1f;--bg2:#212227;--bg3:#16171a;--text:#eef0f4;--text2:#a0a2ab;--text3:#8a8c94;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7C8CF0;--accent-dark:#4F62E0;--accent-ink:#aab4f7;--success:#3ec28e;--success-dark:#1D9E75;--success-ink:#7fdbb4;--danger:#e8625c;--danger-dark:#D6433D;--danger-ink:#f0a3a0;--gold:#e0a040;--gold-dark:#B45A00;--gold-ink:#e6bd80;--note:#a78bfa;--note-dark:#7C3AED;--note-ink:#c4b5fd;--blue50:#1c2440;--blue800:#9eb0f5;--teal50:#0e2a20;--teal800:#6fd6ab;--amber50:#2c1f0c;--amber800:#eda552;--purple50:#241e3d;--purple800:#bfa9f0;--coral50:#301c14;--coral800:#f0a085;--green50:#0f241a;--green800:#7fdbb4;--red50:#2c1414;--red800:#f0a3a0;--warn:#e0a040;
   --shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-card:0 1px 2px rgba(0,0,0,.3);
   --shadow-md:0 2px 8px rgba(0,0,0,.36),0 1px 2px rgba(0,0,0,.3);
   --shadow-lg:0 14px 32px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.3);}
@@ -2206,13 +2206,13 @@ function renderRev(){
     <div class="rcard">
       <p class="rq">${sanitizeHtml(q.q)}</p>
       ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${ei.src}" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${ei.src}')">`;}).join('')+'</div>':''}
-      <div class="ropts">${(q.opts||[]).filter(o=>o&&o.trim()&&o!=='<br>').map((o,i)=>{
-        if(!LETTERS[i])return'';const l=LETTERS[i];
+      <div class="ropts">${(q.opts||[]).map((o,i)=>{
+        if(!LETTERS[i]||!o||!o.trim()||o==='<br>')return'';const l=LETTERS[i];
         const safeO=sanitizeHtml(o);
         const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
         const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${imgSrc}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">` :'';
         const displayHtml=safeO.replace(/<img([^>]*)style="[^"]*"([^>]*)>/gi,'<img$1style="max-height:100px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px"$2>');
-        return`<button class="ropt" onclick="ansRev(${q.id},'${l}',this)"><span class="ltr">${l}.</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
+        return`<button class="ropt" data-l="${l}" onclick="ansRev(${q.id},'${l}',this)"><span class="ltr">${l}.</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
       }).join('')}</div>
       <div id="rfb"></div>
       <div style="display:flex;justify-content:flex-end"><button class="btn btn-p" id="rnext" style="display:none" onclick="nextRev()">Soal Berikutnya <i class="ti ti-arrow-right"></i></button></div>
@@ -2244,7 +2244,7 @@ function renderRevSummary(){
 function ansRev(qid,chosen,btn){
   if(revDone)return;revDone=true;
   const q=qs.find(x=>x.id===qid),ok=chosen===q.correct;
-  document.querySelectorAll('.ropt').forEach((b,i)=>{b.disabled=true;const l=LETTERS[i];if(l===chosen&&!ok)b.classList.add('rw');if(l===q.correct)b.classList.add('rc');if(l===chosen&&ok)b.classList.add('rc');});
+  document.querySelectorAll('.ropt').forEach(b=>{b.disabled=true;const l=b.dataset.l;if(l===chosen&&!ok)b.classList.add('rw');if(l===q.correct)b.classList.add('rc');if(l===chosen&&ok)b.classList.add('rc');});
   const eimgHtml=q.eimgs&&q.eimgs.length?'<div style="margin-top:8px">'+q.eimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return'<img src="'+ei.src+'" onclick="openLB(\''+ei.src+'\')" style="max-height:200px;border-radius:4px;border:0.5px solid var(--border);cursor:pointer;object-fit:contain;display:block;margin-bottom:6px">';}).join('')+'</div>':'';
   const wasMastered=!!q.mastered;
   srsUpdate(q,ok);
@@ -2496,8 +2496,8 @@ function renderSimQuestion(){
     <div class="rcard">
       <p class="rq">${sanitizeHtml(q.q)}</p>
       ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${ei.src}" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${ei.src}')">`;}).join('')+'</div>':''}
-      <div class="ropts">${(q.opts||[]).filter(o=>o&&o.trim()&&o!=='<br>').map((o,i)=>{
-        if(!LETTERS[i])return'';const l=LETTERS[i];
+      <div class="ropts">${(q.opts||[]).map((o,i)=>{
+        if(!LETTERS[i]||!o||!o.trim()||o==='<br>')return'';const l=LETTERS[i];
         const safeO=sanitizeHtml(o);
         const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
         const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${imgSrc}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">`:'';
@@ -2864,7 +2864,7 @@ function fillQuestionFormFromScan(parsed) {
     // Gemini kadang mengembalikan "B. Teks pilihan..." atau "(B)" atau "B)"
     // Ekstrak huruf pertama yang valid saja
     const raw = (parsed.jawaban || '').toUpperCase().trim();
-    const letterMatch = raw.match(/([A-E])/);
+    const letterMatch = raw.match(/\b([A-E])\b/);
     const jawaban = letterMatch ? letterMatch[1] : raw.charAt(0);
     if (sel && jawaban && LETTERS.includes(jawaban)) sel.value = jawaban;
   }
@@ -3087,7 +3087,7 @@ function renderReadinessWidget(){
 }
 
 
-document.addEventListener('DOMContentLoaded',()=>{loadData();initCloud();initExambreSplash();});
+document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();initCloud();initExambreSplash();});
 </script>
 </body>
 </html>
