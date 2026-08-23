@@ -101,7 +101,19 @@ async function callCustomAI(prompt,json){
     throw e;
   }
 }
-async function callAI(prompt,json){return getCustomAI()?callCustomAI(prompt,json):callGemini(prompt,json);}
+async function callAI(prompt,json){
+  const c=getCustomAI();
+  if(!c)return callGemini(prompt,json);
+  try{
+    return await callCustomAI(prompt,json);
+  }catch(e){
+    console.warn('Provider kustom gagal, mencoba fallback Gemini:',e.message);
+    if(localStorage.getItem('exambre_gemini_key')){
+      return await callGemini(prompt,json);
+    }
+    throw e;
+  }
+}
 
 async function callAIChat(systemText,hist){
   const c=getCustomAI();

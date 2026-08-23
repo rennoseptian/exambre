@@ -44,6 +44,7 @@ localStorage keys (JANGAN rename `cpns-*` demi kompatibilitas data pengguna lama
 
 ## Lapisan AI (file `16-ai.js`)
 Dispatcher: `callAI(prompt, json?)` → provider kustom jika tersedia, else Gemini.
+Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback ke Gemini (console.warn tercatat).
 `callAIChat(systemText, hist)` untuk chat multi-turn sungguhan (tutor).
 - Provider kustom: format OpenAI-compatible `/chat/completions`; config di Lainnya
   (baseUrl+model+key, disimpan `exambre_custom_ai`). Scan foto TETAP Gemini (vision).
