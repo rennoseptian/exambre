@@ -511,4 +511,99 @@ async function runNoteToQ(){
   }
 }
 
+/* Feature 4.3 — Batch scan multi-soal */
+function _escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function callGeminiVisionBatch(base64,mime){
+  const key=localStorage.getItem('exambre_gemini_key');
+  if(!key)throw new Error('NO_KEY');
+  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key='+key,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      contents:[{parts:[
+        {inlineData:{mimeType:mime,data:base64}},
+        {text:`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`}
+      ]}],
+      generationConfig:{temperature:0.1,maxOutputTokens:8192}
+    })
+  });
+  if(!res.ok){
+    if(res.status===429)throw new Error('RATE_LIMIT');
+    if(res.status===400)throw new Error('BAD_KEY');
+    let msg=res.statusText;
+    try{const e=await res.json();msg=(e.error&&e.error.message)||msg;}catch(_){}
+    throw new Error(msg);
+  }
+  const data=await res.json();
+  const text=data&&data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text;
+  if(!text)throw new Error('EMPTY_RESPONSE');
+  return text.trim();
+}
+async function scanBatchToQuestions(inputEl){
+  const file=inputEl&&inputEl.files&&inputEl.files[0];if(!file)return;
+  if(!localStorage.getItem('exambre_gemini_key')){showToast('Scan foto memakai Gemini — masukkan API key dulu di Lainnya','warn',5000);inputEl.value='';return;}
+  const btn=document.getElementById('batch-img-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Memindai halaman...';}
+  try{
+    const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=()=>rej(new Error('Gagal membaca gambar'));r.readAsDataURL(file);});
+    const raw=await callGeminiVisionBatch(base64,file.type||'image/jpeg');
+    const clean=raw.replace(/```json?|```/gi,'').trim();
+    let data;try{data=JSON.parse(clean);}catch(e){throw new Error('FORMAT_ERROR');}
+    const arr=Array.isArray(data)?data:(data.questions||[]);
+    const items=[];
+    arr.forEach(it=>{
+      const qtxt=((it&&it.soal)||'').trim();if(!qtxt)return;
+      const opts=LETTERS.map(l=>(it[l]||'').trim());
+      const m=/\b([A-E])\b/.exec((it.jawaban||'').toUpperCase().trim());const cor=m?m[1]:'';
+      const ok=opts.filter(Boolean).length>=2&&!!cor;
+      items.push({soal:qtxt,opts,jawaban:cor,pembahasan:String(it.pembahasan||''),ok,_sel:ok});
+    });
+    if(!items.length)throw new Error('EMPTY_RESPONSE');
+    window._batchItems=items;
+    renderBatchPreview();
+    const catSel=document.getElementById('batch-cat');
+    if(catSel)catSel.innerHTML=getCatKeys().map(k=>`<option value="${k}">${(cats[k]&&cats[k].name)||k}</option>`).join('');
+    document.getElementById('batch-modal').classList.add('on');
+  }catch(e){
+    const msg=e.message||'';
+    if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
+    else if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa di menu Lainnya.','warn',5000);
+    else if(msg==='FORMAT_ERROR')showToast('Format balasan AI tidak terbaca. Foto lebih jelas & coba lagi.','warn',5000);
+    else showToast('Gagal memindai: '+msg,'warn',5000);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-file-text"></i> Scan Halaman — Banyak Soal Sekaligus';}
+    if(inputEl)inputEl.value='';
+  }
+}
+function renderBatchPreview(){
+  const wrap=document.getElementById('batch-list');if(!wrap)return;
+  wrap.innerHTML=(window._batchItems||[]).map((it,i)=>`
+    <label class="batch-row${it.ok?'':' inv'}">
+      <input type="checkbox" ${it._sel?'checked':''} ${it.ok?'':'disabled'} onchange="_bt(${i},this.checked)">
+      <span style="flex:1">${_escHtml((i+1)+'. '+it.soal.slice(0,120))}${it.ok?'':' <b style="color:var(--danger-ink)">tidak valid</b>'}</span>
+      <b style="flex-shrink:0">${it.jawaban||'—'}</b>
+    </label>`).join('');
+  updateBatchCount();
+}
+window._bt=function(i,v){if(window._batchItems[i]){window._batchItems[i]._sel=v;updateBatchCount();}};
+function updateBatchCount(){
+  const n=(window._batchItems||[]).filter(x=>x._sel).length;
+  const b=document.getElementById('batch-go');
+  if(b)b.innerHTML='<i class="ti ti-download"></i> Impor '+n+' Soal';
+}
+function closeBatchModal(){document.getElementById('batch-modal').classList.remove('on');}
+function runBatchImport(){
+  const cat=(document.getElementById('batch-cat')||{}).value||'';
+  if(!cat){showToast('Pilih kategori tujuan dulu','warn');return;}
+  const items=(window._batchItems||[]).filter(x=>x._sel&&x.ok);
+  if(!items.length){showToast('Tidak ada soal terpilih','warn');return;}
+  items.forEach(it=>{
+    qs.push({id:nid++,cat,bab:'',q:sanitizeHtml(it.soal),opts:it.opts,optImgs:{},wrong:'',correct:it.jawaban,
+      expHtml:it.pembahasan?sanitizeHtml(it.pembahasan):'',
+      qimgs:[],eimgs:[],mastered:false,srs:{due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0}});
+  });
+  persist();closeBatchModal();
+  checkBadges();updateDueBadge();renderGami();
+  showToast('✅ '+items.length+' soal berhasil diimpor!','ok');
+}
+
 

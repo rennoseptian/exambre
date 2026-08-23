@@ -130,6 +130,21 @@
   </div>
 </div>
 
+<!-- BATCH SCAN MODAL -->
+<div class="modal-overlay" id="batch-modal">
+  <div class="modal" style="max-width:540px">
+    <button class="modal-close" onclick="closeBatchModal()" aria-label="Tutup"><i class="ti ti-x"></i></button>
+    <h3><i class="ti ti-file-text" style="color:var(--accent);font-size:16px"></i> Preview Hasil Scan</h3>
+    <p class="sub">Centang soal yang ingin diimpor. Soal bertanda tidak valid otomatis tak terpilih.</p>
+    <div id="batch-list" style="max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding-right:2px"></div>
+    <div class="field"><label>Kategori tujuan</label><select id="batch-cat"></select></div>
+    <div class="btn-row">
+      <button class="btn btn-s" onclick="closeBatchModal()">Batal</button>
+      <button class="btn btn-p" id="batch-go" onclick="runBatchImport()"><i class="ti ti-download"></i> Impor</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM MODAL -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal" style="max-width:380px;text-align:center">
@@ -204,6 +219,22 @@
           aria-label="Scan soal dari foto atau screenshot"
         >
           <i class="ti ti-camera"></i> Scan Soal dari Foto/Screenshot
+        </button>
+        <input
+          type="file"
+          id="batch-img-input"
+          accept="image/*"
+          style="display:none"
+          onchange="scanBatchToQuestions(this)"
+        >
+        <button
+          id="batch-img-btn"
+          class="btn btn-s"
+          style="width:100%;gap:6px;margin-top:8px"
+          onclick="document.getElementById('batch-img-input').click()"
+          aria-label="Scan satu halaman berisi banyak soal"
+        >
+          <i class="ti ti-file-text"></i> Scan Halaman — Banyak Soal Sekaligus
         </button>
       </div>
 
