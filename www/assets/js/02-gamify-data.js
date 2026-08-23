@@ -110,11 +110,11 @@ function loadSfxToggle(){
   const on=sfxEnabled();
   document.querySelectorAll('#sfx-toggle button').forEach(b=>b.classList.toggle('on',(b.dataset.sfx==='on')===on));
 }
-function sfx(name){
+function sfx(name,vol){
   if(!sfxEnabled())return;
   try{
     if(!_sfxCache[name])_sfxCache[name]=new Audio('./assets/sfx/'+name+'.wav');
-    const a=_sfxCache[name].cloneNode();a.volume=0.8;a.play().catch(()=>{});
+    const a=_sfxCache[name].cloneNode();a.volume=0.8*(vol===undefined?1:vol);a.play().catch(()=>{});
   }catch(e){}
 }
 function confettiBurst(){

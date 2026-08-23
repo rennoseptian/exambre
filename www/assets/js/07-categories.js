@@ -61,6 +61,7 @@ function populateAnswerSelects(wId,cId){
 
 /* ── NAV ── */
 function goSec(id,btn){
+  sfx('tap',0.4);
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.bnav-item').forEach(t=>{t.classList.remove('on');t.setAttribute('aria-selected','false');});
   const target=document.getElementById('sec-'+id);
