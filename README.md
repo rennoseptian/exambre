@@ -39,9 +39,12 @@ Dibangun sebagai aplikasi Android native via [Capacitor 6](https://capacitorjs.c
 - Sinkronisasi otomatis antar perangkat via Firebase Firestore + Storage (gambar diupload, hemat ruang localStorage)
 - Cukup tempel config Firebase Anda sendiri; data terkunci pada **Kode Sync** unik
 
-### 🤖 AI Gemini (opsional)
-- **Scan soal dari foto/screenshot** → otomatis mengisi form (butuh API key gratis dari [aistudio.google.com](https://aistudio.google.com))
-- **Generate pembahasan** satu klik untuk soal yang belum ada penjelasan
+### 🤖 AI (opsional)
+Butuh API key gratis [Gemini](https://aistudio.google.com); teks juga bisa dialihkan ke provider OpenAI-compatible lain (Groq/OpenRouter/Cerebras/Ollama).
+- **Scan soal dari foto** → otomatis mengisi form tambah soal *(vision: Gemini)*
+- **Scan Halaman** — banyak soal sekaligus → preview centang → impor massal *(vision: Gemini)*
+- **Buat Soal dari Catatan** ✨ — AI menyusun soal ber-pembahasan dari isi catatan, langsung masuk jadwal SRS
+- **Generate pembahasan** satu klik untuk soal apa pun
 
 ### 📊 Statistik & Analisis
 - Akurasi, progres dikuasai, titik lemah per kategori
@@ -50,6 +53,27 @@ Dibangun sebagai aplikasi Android native via [Capacitor 6](https://capacitorjs.c
 ### 💾 Data
 - Export/import backup `.json` lengkap (soal, catatan, progres)
 - Semua data tetap tersimpan lokal meski tanpa internet
+
+---
+
+## 🗺️ Peta Fitur → Berkas (panduan saat menemukan bug)
+
+| Bagian di App | Fungsinya | Berkas terkait (`www/assets/js/`) |
+|---|---|---|
+| Tab Soal — kartu soal | daftar, tag dikuasai, edit inline, hapus+undo | `10-render-edit`, `12-card-actions` |
+| Tombol "+ Tambah Soal" | panel paste/manual + preview parse | `11-panel-forms` |
+| Scan foto & Scan Halaman | ekstraksi AI dari gambar | `16-ai` |
+| Search bar & filter status/bab | penyaringan daftar soal | `08-theme-io`, CSS `.filter-row` |
+| Chip kategori (atas) | pindah kategori soal | `07-categories` |
+| Tab Review → Latihan (SRS) | sesi review, feedback, XP/streak, badge toast | `13-review`, `02-gamify-data` |
+| Tab Review → Simulasi Ujian | timer, hasil per kategori, riwayat simulasi | `14-simulation` |
+| Tab Catatan | editor rich-text, kategori catatan, tombol ✨ buat soal | `03-notes`, `16-ai` |
+| Tab Statistik | ringkasan, lencana, kelemahan, kesiapan ujian, countdown ujian | `15-stats`, `16-ai` |
+| Tab Lainnya | tema, export/import, cloud sync, API keys, reset data | `08-theme-io`, `05-cloud`, `16-ai` |
+| Navigasi bawah / splash / toast | kerangka & notifikasi global | `index.html`, `17-main`, CSS |
+| State semua fitur | objek pusat `Store` + accessor window | `01-state` |
+
+**Penyimpanan lokal:** `cpns-wb-v6` (soal+progress) · `exambre-notes-v1` (catatan) · `exambre_sim_history` · `exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` · `exambre_exam_date` · `cpns-fb-config` & `cpns-sync-code` (cloud)
 
 ---
 
