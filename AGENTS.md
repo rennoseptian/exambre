@@ -7,7 +7,6 @@ Exambre = aplikasi **universal** untuk latihan soal apa pun (bukan spesifik CPNS
 - Simulasi ujian ber-timer (per-soal / total sesi) — terpisah total dari SRS
 - Catatan rich-text per kategori
 - Gamifikasi ringan (streak harian / XP / lencana)
-- Cloud sync opsional (Firebase Firestore + Storage)
 - 8 fitur AI opsional (lihat seksi "Lapisan AI")
 Seluruh string UI berbahasa Indonesia. Aplikasi single-page tanpa framework frontend.
 
@@ -18,9 +17,9 @@ Seluruh string UI berbahasa Indonesia. Aplikasi single-page tanpa framework fron
 - `www/assets/app.css` — seluruh stylesheet. Ada 3 blok palet yang HARUS sinkron jika mengubah token:
   `:root` (light), `@media(prefers-color-scheme:dark) :root:not([data-theme=light])`,
   `:root[data-theme="dark"]`.
-- `www/assets/js/*.js` — 17 file classic-script BERURUTAN yang berbagi scope global
-  (bukan ES module). URUTAN load di index.html penting untuk const/let top-level:
-  01-state, 02-gamify-data, 03-notes, 04-srs-toast, 05-cloud, 06-media, 07-categories,
+- `www/assets/js/*.js` — 16 file classic-script BERURUTAN berbagi scope global
+  (bukan ES module). URUTAN load penting; nomor 05 sengaja bolong (file cloud lama dihapus):
+  01-state, 02-gamify-data, 03-notes, 04-srs-toast, 06-media, 07-categories,
   08-theme-io, 09-image-inputs, 10-render-edit, 11-panel-forms, 12-card-actions,
   13-review, 14-simulation, 15-stats, 16-ai, 17-main (hanya listener DOMContentLoaded).
 - `android/` — project native Capacitor (sudah di-commit; JANGAN jalankan `npx cap add android`
@@ -40,7 +39,7 @@ curBab, searchQ, fbApp, fbDb, fbStorage, fbReady, syncCode, pendingDeletes`.
 localStorage keys (JANGAN rename `cpns-*` demi kompatibilitas data pengguna lama):
 `cpns-wb-v6` (soal+progress utama) · `exambre-notes-v1` · `exambre_sim_history` ·
 `exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` (provider kustom) ·
-`exambre_exam_date` · `cpns-fb-config` · `cpns-sync-code`.
+`exambre_exam_date`. (Kunci lama `cpns-fb-config`/`cpns-sync-code` tak lagi dipakai.)
 
 ## Lapisan AI (file `16-ai.js`)
 Dispatcher: `callAI(prompt, json?)` → provider kustom jika tersedia, else Gemini.
@@ -98,6 +97,10 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
   Prinsip terbukti WAJIB diikuti: SATU komponen per commit + user tes dulu sebelum lanjut.
 - Aplikasi dideklarasikan user sebagai UNIVERSAL (semua mata pelajaran/jenis ujian),
   sehingga deskripsi & prompt tidak boleh spesifik CPNS.
+- Google Login & Cloud Sync Firebase DIHAPUS atas keputusan user (b95cb9e) setelah
+  setup rules terasa merepotkan — app kini 100% lokal. Jangan bangun ulang tanpa diminta.
+- SFX & FX playful ada (assets/sfx/*.wav custom + confetti + count-up); saklar di Lainnya,
+  preferensi disimpan di key `exambre_sfx` ('off' = mati, default aktif).
 
 ## Cara Kerja dengan User
 - Bahasa komunikasi: Indonesia. User bukan programmer, tapi tester yang teliti —
