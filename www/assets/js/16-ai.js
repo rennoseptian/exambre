@@ -53,6 +53,42 @@ async function callCustomAI(prompt){
 }
 async function callAI(prompt){return getCustomAI()?callCustomAI(prompt):callGemini(prompt);}
 
+async function callAIChat(systemText,hist){
+  const c=getCustomAI();
+  if(c){
+    const res=await fetch(c.baseUrl+'/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify({model:c.model,messages:[{role:'system',content:systemText},...hist.map(h=>({role:h.r==='user'?'user':'assistant',content:h.t}))],temperature:0.5,max_tokens:1024})
+    });
+    if(!res.ok){
+      if(res.status===429)throw new Error('RATE_LIMIT');
+      if(res.status===401||res.status===403)throw new Error('BAD_KEY');
+      throw new Error(res.statusText);
+    }
+    const d=await res.json();
+    const t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
+    if(!t)throw new Error('EMPTY_RESPONSE');
+    return String(t).trim();
+  }
+  const key=localStorage.getItem('exambre_gemini_key');
+  if(!key)throw new Error('NO_KEY');
+  const contents=hist.map((h,i)=>({role:h.r==='user'?'user':'model',parts:[{text:i===0?(systemText+'\n\nPertanyaan user: '+h.t):h.t}]}));
+  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key='+key,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents,generationConfig:{temperature:0.5,maxOutputTokens:1024}})
+  });
+  if(!res.ok){
+    if(res.status===429)throw new Error('RATE_LIMIT');
+    if(res.status===400)throw new Error('BAD_KEY');
+    throw new Error(res.statusText);
+  }
+  const d=await res.json();
+  const t=d&&d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;
+  if(!t)throw new Error('EMPTY_RESPONSE');
+  return t.trim();
+}
+
 /* Feature 1.2 — Gemini API Key Management */
 function loadGeminiKey(){
   const key=localStorage.getItem('exambre_gemini_key')||'';
@@ -635,20 +671,17 @@ async function sendTutor(){
   const load=_tutorAdd('ai','<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> menyusun jawaban…');
   const btn=document.getElementById('tutor-send');if(btn)btn.disabled=true;
   try{
-    const ctx=[
-      'Kamu adalah tutor pribadi yang sabar dan jelas. Konteks soal berikut:',
+    const system=[
+      'Kamu adalah tutor pribadi yang sabar dan jelas untuk soal berikut.',
       'SOAL: '+(q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim(),
       'OPSI: '+((q.opts||[]).map((o,i)=>o?LETTERS[i]+'. '+String(o).replace(/<[^>]+>/g,' ').trim():null).filter(Boolean).join(' | ')||'(tanpa opsi)'),
       'KUNCI BENAR: '+q.correct,
       'JAWABAN USER: '+(q.wrong?q.wrong+' (tercatat salah)':'belum menjawab'),
       'PEMBAHASAN TERSIMPAN: '+(q.expHtml?String(q.expHtml).replace(/<[^>]+>/g,' ').slice(0,600):'(tidak ada)'),
       '',
-      'Riwayat percakapan sejauh ini:',
-      ...(window._tutor.hist.slice(-6).map(h=>(h.r==='user'?'User: ':'Tutor: ')+h.t)),
-      '',
-      'Jawab pertanyaan terbaru user. Singkat, padat, bahasa Indonesia santai. Format HTML sederhana (<p>, <b>, <ul>, <li>) — tanpa markdown, tanpa backtick.'
+      'ATURAN: Jawab HANYA pertanyaan user terakhir — jangan melanjutkan kalimat siapa pun, jangan mengarang konteks baru. Singkat, padat, bahasa Indonesia santai. Format HTML sederhana (<p>, <b>, <ul>, <li>) tanpa markdown tanpa backtick.'
     ].join('\n');
-    const out=await callAI(ctx);
+    const out=await callAIChat(system,window._tutor.hist);
     load.innerHTML=sanitizeHtml(String(out).replace(/```html?|```/gi,''));
     window._tutor.hist.push({r:'ai',t:String(out).slice(0,2000)});
   }catch(e){
