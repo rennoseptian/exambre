@@ -349,3 +349,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .batch-row{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg2);border-radius:12px;font-size:12px;line-height:1.45;cursor:pointer}
 .batch-row input{accent-color:var(--accent);margin-top:1px}
 .batch-row.inv{opacity:.55}
+.tbub{padding:9px 12px;border-radius:14px;font-size:12.5px;line-height:1.55;max-width:88%}
+.tbub.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.tbub.ai{align-self:flex-start;background:var(--bg2);border-bottom-left-radius:4px}
+.tbub.ai b,.tbub.ai strong{font-weight:700}
+#tutor-inp::placeholder{color:var(--text3)}

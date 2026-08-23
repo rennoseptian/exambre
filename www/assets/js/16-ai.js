@@ -606,4 +606,55 @@ function runBatchImport(){
   showToast('✅ '+items.length+' soal berhasil diimpor!','ok');
 }
 
+/* Feature 4.4 — Tanya Tutor per Soal */
+function openTutor(qid){
+  const q=qs.find(x=>x.id===qid);if(!q)return;
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
+  window._tutor={qid,hist:[]};
+  const sub=document.getElementById('tutor-sub');
+  if(sub)sub.textContent=_escHtml((q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,90));
+  const m=document.getElementById('tutor-msgs');if(m)m.innerHTML='';
+  const inp=document.getElementById('tutor-inp');if(inp)inp.value='';
+  document.getElementById('tutor-modal').classList.add('on');
+  setTimeout(()=>{if(inp)inp.focus();},180);
+}
+function closeTutor(){document.getElementById('tutor-modal').classList.remove('on');}
+function _tutorAdd(role,html){
+  const w=document.getElementById('tutor-msgs');if(!w)return null;
+  const d=document.createElement('div');d.className='tbub '+(role==='user'?'me':'ai');d.innerHTML=html;
+  w.appendChild(d);w.scrollTop=w.scrollHeight;return d;
+}
+async function sendTutor(){
+  if(!window._tutor)return;
+  const inp=document.getElementById('tutor-inp');
+  const text=(inp&&inp.value||'').trim();if(!text)return;
+  const q=qs.find(x=>x.id===window._tutor.qid);if(!q)return;
+  inp.value='';
+  _tutorAdd('user',_escHtml(text));
+  window._tutor.hist.push({r:'user',t:text});
+  const load=_tutorAdd('ai','<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> menyusun jawaban…');
+  const btn=document.getElementById('tutor-send');if(btn)btn.disabled=true;
+  try{
+    const ctx=[
+      'Kamu adalah tutor pribadi yang sabar dan jelas. Konteks soal berikut:',
+      'SOAL: '+(q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim(),
+      'OPSI: '+((q.opts||[]).map((o,i)=>o?LETTERS[i]+'. '+String(o).replace(/<[^>]+>/g,' ').trim():null).filter(Boolean).join(' | ')||'(tanpa opsi)'),
+      'KUNCI BENAR: '+q.correct,
+      'JAWABAN USER: '+(q.wrong?q.wrong+' (tercatat salah)':'belum menjawab'),
+      'PEMBAHASAN TERSIMPAN: '+(q.expHtml?String(q.expHtml).replace(/<[^>]+>/g,' ').slice(0,600):'(tidak ada)'),
+      '',
+      'Riwayat percakapan sejauh ini:',
+      ...(window._tutor.hist.slice(-6).map(h=>(h.r==='user'?'User: ':'Tutor: ')+h.t)),
+      '',
+      'Jawab pertanyaan terbaru user. Singkat, padat, bahasa Indonesia santai. Format HTML sederhana (<p>, <b>, <ul>, <li>) — tanpa markdown, tanpa backtick.'
+    ].join('\n');
+    const out=await callAI(ctx);
+    load.innerHTML=sanitizeHtml(String(out).replace(/```html?|```/gi,''));
+    window._tutor.hist.push({r:'ai',t:String(out).slice(0,2000)});
+  }catch(e){
+    const msg=e.message||'';
+    load.innerHTML='<span style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar — coba beberapa menit lagi.':msg==='BAD_KEY'?'API key tidak valid. Periksa Lainnya.':'Gagal: '+_escHtml(msg))+'</span>';
+  }finally{if(btn)btn.disabled=false;}
+}
+
 
