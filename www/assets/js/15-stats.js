@@ -11,6 +11,7 @@ function renderStatsPage(){
   const accAll=attAll?Math.round(corAll/attAll*100):null;
 
   let html=renderReadinessWidget();
+  html+=renderPolaPanel();
   html+=`<div class="stats" style="margin-bottom:16px">
     <div class="scard"><div class="snum">${totalAll}</div><div class="slbl">Total Soal</div></div>
     <div class="scard"><div class="snum" style="color:var(--success)">${masteredAll}</div><div class="slbl">Dikuasai</div></div>

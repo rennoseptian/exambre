@@ -845,4 +845,67 @@ async function saranKategoriTunggal(){
   }
 }
 
+/* Feature 4.7 — Analisis Pola Kesalahan */
+function renderPolaPanel(){
+  return `<div class="panel" style="margin-bottom:16px">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:4px"><i class="ti ti-bulb" style="color:var(--gold-dark)"></i> Analisis Pola Kesalahan</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">AI menelaah riwayat jawaban Anda — menemukan pola kekeliruan lalu menyusun micro-lesson yang ditargetkan.</p>
+    <button class="btn btn-p" onclick="analisisPola(this)"><i class="ti ti-wand"></i> Analisis Sekarang</button>
+    <div id="pola-result" style="margin-top:12px"></div>
+  </div>`;
+}
+async function analisisPola(btn){
+  if(!qs.length){showToast('Belum ada soal','warn');return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya','warn',5000);return;}
+  const catStats=getCatKeys().map(k=>{
+    const cqs=qs.filter(q=>q.cat===k);
+    const att=cqs.reduce((a,q)=>a+ensureSrs(q).totalAttempts,0);
+    if(!att)return null;
+    const cor=cqs.reduce((a,q)=>a+ensureSrs(q).totalCorrect,0);
+    const lapses=cqs.reduce((a,q)=>a+(ensureSrs(q).lapses||0),0);
+    return{kategori:(cats[k]&&cats[k].name)||k,jumlah_soal:cqs.length,percobaan:att,benar:cor,akurasi_persen:Math.round(cor/att*100),total_kejadian_salah:lapses};
+  }).filter(Boolean);
+  const lemah=qs.filter(q=>{const s=ensureSrs(q);return s.totalAttempts>0&&!q.mastered;})
+    .sort((a,b)=>(ensureSrs(b).lapses-ensureSrs(a).lapses)||((ensureSrs(a).totalCorrect/Math.max(1,ensureSrs(a).totalAttempts))-(ensureSrs(b).totalCorrect/Math.max(1,ensureSrs(b).totalAttempts))))
+    .slice(0,12)
+    .map(q=>({soal:(q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,120),kategori:(cats[q.cat]&&cats[q.cat].name)||q.cat,kunci_benar:q.correct,jawaban_user_tersimpan:q.wrong||'-',kali_lupus:ensureSrs(q).lapses||0}));
+  if(!catStats.length&&!lemah.length){
+    showToast('Belum ada data percobaan — kerjakan beberapa soal dulu','warn');return;
+  }
+  const wrap=document.getElementById('pola-result');
+  if(wrap)wrap.innerHTML='<div class="tbub ai"><i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> menelaah riwayat jawaban…</div>';
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Menganalisis...';}
+  const prompt=[
+    'Kamu adalah coach belajar yang tajam dan membangun semangat.',
+    'Berikut data belajar pengguna dalam JSON:',
+    JSON.stringify({statistik_kategori:catStats,soal_yang_seringsalah:lemah}),
+    '',
+    'TUGAS:',
+    '1. Temukan POLA kekeliruan yang spesifik (bukan generik) dari data tersebut.',
+    '2. Beri fokus perbaikan per kategori terlemah.',
+    '3. Susun SATU micro-lesson singkat untuk pola paling dominan.',
+    '',
+    'ATURAN WAJIB:',
+    '- Jawab HANYA JSON valid tanpa markdown/backtick.',
+    '- Format: {"ringkasan":"<p>2-3 kalimat pola umum</p>","fokus":[{"kategori":"","masalah":"","saran":""}],"micro_lesson":"<p>HTML pelajaran mini 4-8 kalimat, boleh <b>, <ul>, <li>, sertakan contoh singkat</p>"}',
+    '- Bahasa Indonesia yang memotivasi.'
+  ].join('\n');
+  try{
+    const d=_extractJSON(await callAI(prompt,true));
+    if(wrap){
+      const f=(d.fokus||[]).map(x=>'<div style="padding:9px 0;border-bottom:1px solid var(--border)">'
+        +'<div style="font-weight:800;font-size:12.5px">'+_escHtml(x.kategori||'')+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+_escHtml(x.masalah||'')+'</div>'
+        +(x.saran?'<div style="font-size:12px;margin-top:3px"><b>Saran:</b> '+_escHtml(x.saran)+'</div>':'')
+        +'</div>').join('');
+      wrap.innerHTML='<div style="background:var(--bg2);border-radius:var(--radius);padding:11px 13px;font-size:13px;line-height:1.6">'+sanitizeHtml(String(d.ringkasan||''))+'</div>'
+        +(f?'<div style="margin-top:8px">'+f+'</div>':'')
+        +(d.micro_lesson?'<div class="exp-block" style="margin-top:10px"><div class="exp-label">Micro Lesson</div><div class="exp-content">'+sanitizeHtml(String(d.micro_lesson))+'</div></div>':'');
+    }
+  }catch(e){
+    const msg=e.message||'';
+    if(wrap)wrap.innerHTML='<div class="tbub ai" style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar.':msg==='BAD_KEY'?'API key tidak valid.':'Gagal: '+_escHtml(msg))+'</div>';
+  }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-wand"></i> Analisis Sekarang';}}
+}
+
 
