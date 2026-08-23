@@ -64,8 +64,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .cats-wrap::after{display:none}
 .cats-wrap.at-end::after{opacity:0}
 .cats-wrap.no-overflow::after{display:none}
-.ctab{padding:9px 15px;min-height:40px;display:inline-flex;align-items:center;border:none;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg2);color:var(--text2);box-shadow:0 2px 6px rgba(79,98,224,0),0 4px 16px rgba(79,98,224,0);transition:all .18s var(--ease);font-family:inherit}
-.ctab.on{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(79,98,224,.38),0 4px 16px rgba(79,98,224,.28)}
+.ctab{padding:9px 15px;min-height:40px;display:inline-flex;align-items:center;border:none;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;background:var(--bg2);color:var(--text2);box-shadow:0 1px 3px rgba(79,98,224,0),0 3px 11px rgba(79,98,224,0);transition:all .18s var(--ease);font-family:inherit}
+.ctab.on{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(79,98,224,.35),0 3px 11px rgba(79,98,224,.32)}
 .ctab:hover:not(.on){filter:brightness(.95)}
 .ctab:active{transform:scale(.96)}
 .btn{padding:9px 17px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:background var(--dur-1) var(--ease),color var(--dur-1) var(--ease),opacity var(--dur-1) var(--ease),transform var(--dur-1) var(--ease),box-shadow var(--dur-1) var(--ease)}
@@ -301,7 +301,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .bnav-item i{font-size:19px}
   .stats{grid-template-columns:repeat(2,1fr);gap:8px}
   .scard{padding:10px 8px}.snum{font-size:19px}.slbl{font-size:12px}
-  .cats{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:-6px;margin-bottom:6px;padding:10px 2px 12px;scrollbar-width:none}
+  .cats{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:-8px;margin-bottom:2px;padding:12px 2px 18px;scrollbar-width:none}
   .cats::-webkit-scrollbar{display:none}
   .ctab{flex-shrink:0}
   .toolbar{flex-direction:column;align-items:stretch;gap:8px}
