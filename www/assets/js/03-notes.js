@@ -11,7 +11,7 @@ function renderNoteCatTabs(){
   el.innerHTML=`<button class="ctab${curNoteCat==='ALL'?' on':''}" role="tab" aria-selected="${curNoteCat==='ALL'}" onclick="fNoteCat('ALL',this)">Semua <span style="opacity:.6;font-size:10px">${allCount}</span></button>`
     +noteCats.map(c=>{
       const cnt=notes.filter(n=>n.catId===c.id).length;
-      return`<button class="ctab${curNoteCat===c.id?' on':''}" role="tab" aria-selected="${curNoteCat===c.id}" onclick="fNoteCat('${c.id}',this)" style="${curNoteCat===c.id?'':'color:'+(c.textColor||autoTextColor(c.color))+';border-color:'+c.color}">${c.name} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
+      return`<button class="ctab${curNoteCat===c.id?' on':''}" role="tab" aria-selected="${curNoteCat===c.id}" onclick="fNoteCat('${c.id}',this)" style="${curNoteCat===c.id?'':'background:'+c.color+';color:'+(c.textColor||autoTextColor(c.color))}">${c.name} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
     }).join('');
 }
 function fNoteCat(id,btn){curNoteCat=id;renderNoteCatTabs();renderNotes();}

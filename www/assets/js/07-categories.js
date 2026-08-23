@@ -28,7 +28,7 @@ function buildCatTabs(){
   el.innerHTML=`<button class="ctab${curCat==='ALL'?' on':''}" role="tab" aria-selected="${curCat==='ALL'}" onclick="fCat('ALL',this)">Semua <span style="opacity:.6;font-size:10px">${allCount}</span></button>`
     +getCatKeys().map(k=>{
       const cnt=qs.filter(q=>q.cat===k).length;
-      return`<button class="ctab${k===curCat?' on':''}" role="tab" aria-selected="${k===curCat}" onclick="fCat('${k}',this)" style="${curCat===k?'':'color:'+cats[k].textColor+';border-color:'+cats[k].color}">${cats[k].name||k} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
+      return`<button class="ctab${k===curCat?' on':''}" role="tab" aria-selected="${k===curCat}" onclick="fCat('${k}',this)" style="${curCat===k?'':'background:'+cats[k].color+';color:'+(cats[k].textColor||autoTextColor(cats[k].color))}">${cats[k].name||k} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
     }).join('');
   initCatScroll(document.getElementById('cat-tabs'));
   initCatScroll(document.getElementById('note-cat-tabs'));
