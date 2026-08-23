@@ -74,7 +74,9 @@ Prinsip terbukti: SATU komponen per commit + user tes di browser dulu.
 4. ✅ Tanya tutor per soal (tombol 💬 di kartu): chat bottom-sheet dengan konteks soal+opsi+kunci+jawaban user+pembahasan, riwayat dalam sesi.
 5. ✅ Variasi soal (ikon shuffle di kartu): 1 soal baru konsep sama/konteks beda → preview → simpan.
 6. ✅ Saran kategori/sub-bab otomatis (tombol ✨ di modal batch + form paste; boleh membuat kategori baru).
-7. Analisis pola kesalahan user + micro-lesson.
+7. ✅ Analisis pola kesalahan + micro-lesson (panel di tab Statistik, tombol Analisis Sekarang).
+
+STATUS ROADMAP AI: SEMUA 7 ITEM SELESAI. Pengembangan AI berikutnya = ide baru (mis. cloze cards, TTS, dsb).
 Catatan desain AI layer: prompt scan/pembahasan sudah netral (bukan CPNS-specific);
 kunci storage `cpns-*` JANGAN diganti (kompatibilitas data lama).
 
