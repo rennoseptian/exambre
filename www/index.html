@@ -161,6 +161,20 @@
   </div>
 </div>
 
+<!-- VARIASI SOAL MODAL -->
+<div class="modal-overlay" id="variasi-modal">
+  <div class="modal" style="max-width:480px">
+    <button class="modal-close" onclick="document.getElementById('variasi-modal').classList.remove('on')" aria-label="Tutup"><i class="ti ti-x"></i></button>
+    <h3><i class="ti ti-arrows-shuffle" style="color:var(--accent);font-size:16px"></i> Variasi Soal</h3>
+    <p class="sub">Soal baru dengan konsep sama, konteks berbeda — melatih pemahaman.</p>
+    <div id="variasi-body" style="font-size:13px;line-height:1.6"></div>
+    <div class="btn-row">
+      <button class="btn btn-s" onclick="document.getElementById('variasi-modal').classList.remove('on')">Buang</button>
+      <button class="btn btn-p" onclick="simpanVariasi()"><i class="ti ti-device-floppy"></i> Simpan ke SRS</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM MODAL -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal" style="max-width:380px;text-align:center">

@@ -690,4 +690,64 @@ async function sendTutor(){
   }finally{if(btn)btn.disabled=false;}
 }
 
+/* Feature 4.5 — Variasi Soal */
+async function buatVariasi(qid,btn){
+  const q=qs.find(x=>x.id===qid);if(!q)return;
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>';}
+  const prompt=[
+    'Kamu adalah pembuat soal latihan ahli. Buat SATU soal pilihan ganda BARU yang menguji konsep dan keterampilan yang SAMA dengan soal contoh berikut, tetapi dengan skenario/angka/konteks yang berbeda sehingga menjawabnya menuntut pemahaman — bukan ingatan pada soal asli.',
+    '',
+    'SOAL ASLI: '+(q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim(),
+    'OPSI ASLI: '+((q.opts||[]).map((o,i)=>o?LETTERS[i]+'. '+String(o).replace(/<[^>]+>/g,' ').trim():null).filter(Boolean).join(' | ')||'(tanpa opsi)'),
+    'KUNCI ASLI: '+q.correct,
+    'PEMBAHASAN ASLI: '+(q.expHtml?String(q.expHtml).replace(/<[^>]+>/g,' ').slice(0,500):'(tidak ada)'),
+    '',
+    'ATURAN WAJIB:',
+    '- Jawab HANYA JSON valid. Tidak ada markdown, tidak ada backtick.',
+    '- Format: {"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"SATU HURUF KAPITAL","pembahasan":"<p>...</p>"}]}',
+    '- Opsi boleh hanya 4; isi E dengan "".',
+    '- Tingkat kesulitan setara soal asli. Bahasa Indonesia.'
+  ].join('\n');
+  try{
+    const raw=await callAI(prompt);
+    const clean=raw.replace(/```json?|```/gi,'').trim();
+    let data;try{data=JSON.parse(clean);}catch(e){throw new Error('FORMAT_ERROR');}
+    const arr=Array.isArray(data)?data:(data.questions||[]);
+    let it=null;
+    for(const c of arr){
+      const qtxt=((c&&c.soal)||'').trim();
+      const opts=LETTERS.map(l=>(c[l]||'').trim());
+      const m=/\b([A-E])\b/.exec((c.jawaban||'').toUpperCase().trim());const cor=m?m[1]:'';
+      if(qtxt&&opts.filter(Boolean).length>=2&&cor){it={soal:qtxt,opts,jawaban:cor,pembahasan:String(c.pembahasan||'')};break;}
+    }
+    if(!it)throw new Error('EMPTY_RESPONSE');
+    window._vari={it,srcId:qid};
+    const body=document.getElementById('variasi-body');
+    if(body)body.innerHTML='<p style="font-weight:700;margin-bottom:8px">'+_escHtml(it.soal)+'</p>'
+      +'<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px">'
+      +it.opts.map((o,i)=>o?'<div style="background:var(--bg2);border-radius:10px;padding:7px 11px;font-size:12.5px'+(LETTERS[i]===it.jawaban?';outline:1.5px solid var(--success);color:var(--success-ink);font-weight:600':'')+'"><b>'+LETTERS[i]+'.</b> '+_escHtml(o)+'</div>':'').join('')
+      +'</div>'
+      +(it.pembahasan?'<div class="exp-block" style="font-size:12.5px">'+sanitizeHtml(it.pembahasan)+'</div>':'');
+    document.getElementById('variasi-modal').classList.add('on');
+  }catch(e){
+    const msg=e.message||'';
+    if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
+    else if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa Lainnya.','warn',5000);
+    else showToast('Gagal membuat variasi: '+msg,'warn',5000);
+  }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-arrows-shuffle"></i>';}}
+}
+function simpanVariasi(){
+  const v=window._vari;if(!v)return;
+  const src=qs.find(x=>x.id===v.srcId);
+  qs.push({id:nid++,cat:src?src.cat:'',bab:src?src.bab:'',q:sanitizeHtml(v.it.soal),opts:v.it.opts,optImgs:{},wrong:'',correct:v.it.jawaban,
+    expHtml:v.it.pembahasan?sanitizeHtml(v.it.pembahasan):'',
+    qimgs:[],eimgs:[],mastered:false,srs:{due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0}});
+  window._vari=null;
+  persist();
+  document.getElementById('variasi-modal').classList.remove('on');
+  checkBadges();updateDueBadge();renderGami();
+  showToast('🔀 Variasi soal masuk daftar!','ok');
+}
+
 

@@ -56,6 +56,7 @@ function renderQCard(q,i){
       </div>
       <div class="qacts nopr">
         <button class="ibtn" title="Tanya Tutor" aria-label="Tanya Tutor" onclick="openTutor(${q.id})"><i class="ti ti-message-circle"></i></button>
+        <button class="ibtn" title="Buat variasi soal serupa" aria-label="Buat variasi soal serupa" onclick="buatVariasi(${q.id},this)"><i class="ti ti-arrows-shuffle"></i></button>
         <button class="ibtn edit-btn" title="Edit" onclick="toggleInlineEdit(${q.id})" aria-label="Edit soal"><i class="ti ti-pencil"></i></button>
         <button class="ibtn ok" title="${q.mastered?'Tandai belum dikuasai':'Tandai dikuasai'}" onclick="toggleM(${q.id})" aria-label="${q.mastered?'Tandai belum dikuasai':'Tandai dikuasai'}"><i class="ti ti-${q.mastered?'rotate':'check'}"></i></button>
         <button class="ibtn del" title="Hapus" onclick="delQ(${q.id})" aria-label="Hapus soal"><i class="ti ti-trash"></i></button>
