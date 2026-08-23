@@ -70,7 +70,7 @@ Prinsip terbukti: SATU komponen per commit + user tes di browser dulu.
 2. ✅ Custom provider AI (OpenAI-compatible): kolom opsional di Lainnya
    (base URL + model + API key, format OpenAI-compatible /v1/chat/completions)
    agar bisa pakai Groq/OpenRouter-free/Cerebras/Ollama-lokal; Gemini tetap default.
-3. Batch scan multi-soal: satu foto halaman berisi banyak soal → preview → impor massal.
+3. ✅ Batch scan multi-soal (tombol Scan Halaman): preview ber-checkbox → impor massal.
 4. Tanya tutor per soal: chat mini kontekstual (soal+pilihan+jawaban user+pembahasan).
 5. Variasi soal dari soal existing (latih pemahaman, bukan hafalan).
 6. Saran kategori/sub-bab otomatis saat import massal.
