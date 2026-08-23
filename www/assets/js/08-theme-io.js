@@ -6,6 +6,7 @@ function renderLainnya(){
   });
   loadGeminiKey();
   loadCustomAI();
+  loadSfxToggle();
   loadExamDate();
 }
 function applyTheme(theme){

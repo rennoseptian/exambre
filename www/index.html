@@ -478,6 +478,14 @@
       </div>
     </div>
     <div class="panel set-panel">
+      <h4><i class="ti ti-volume-2" style="color:var(--accent)"></i> Efek Suara</h4>
+      <p class="set-desc">Bunyi saat menjawab, naik Dikuasai, lencana baru, dan sesi selesai.</p>
+      <div class="theme-toggle" id="sfx-toggle" style="max-width:220px">
+        <button data-sfx="on" onclick="setSfx(true)"><i class="ti ti-volume-2"></i> Aktif</button>
+        <button data-sfx="off" onclick="setSfx(false)"><i class="ti ti-volume-3"></i> Nonaktif</button>
+      </div>
+    </div>
+    <div class="panel set-panel">
       <h4><i class="ti ti-alert-triangle" style="color:var(--danger)"></i> Reset Total Data</h4>
       <p class="set-desc">Hapus SEMUA soal, kategori, catatan, dan progress dari perangkat ini. Tidak bisa dibatalkan — export dulu kalau perlu backup.</p>
       <button class="btn btn-warn" onclick="clearAllData()"><i class="ti ti-trash"></i> Hapus Semua Data</button>

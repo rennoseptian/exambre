@@ -55,6 +55,7 @@ function renderRev(){
     </div>`;
 }
 function renderRevSummary(){
+  sfx('session');confettiBurst();
   const total=revList.length;
   const sessionXP=revSessionXP||0;
   document.getElementById('rev-content').innerHTML=`
@@ -77,6 +78,7 @@ function renderRevSummary(){
         <i class="ti ti-books"></i> Kembali ke Daftar Soal
       </button>
     </div>`;
+  countUpNumbers('#rev-content');
 }
 function ansRev(qid,chosen,btn){
   if(revDone)return;revDone=true;
@@ -91,6 +93,8 @@ function ansRev(qid,chosen,btn){
   }
   const justMastered=!wasMastered&&q.mastered;
   ensureGami();trackDailyActivity();
+  sfx(ok?'correct':'wrong');
+  if(justMastered){sfx('mastered');confettiBurst();}
   const xpGain=(ok?10:2)+(justMastered?20:0);
   gami.xp+=xpGain;
   revSessionXP+=xpGain;

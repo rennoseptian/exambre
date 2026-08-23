@@ -74,6 +74,7 @@ function renderStatsPage(){
 
   html+=renderWeaknessSection();
   el.innerHTML=html;
+  countUpNumbers('#stats-content');
 }
 
 function bindPasteArea(){
