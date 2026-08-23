@@ -32,12 +32,14 @@ function saveCustomAI(){
   loadCustomAI();showToast('Provider AI kustom aktif ✨','ok');
 }
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
-async function callCustomAI(prompt){
+async function callCustomAI(prompt,json){
   const c=getCustomAI();
+  const body={model:c.model,messages:[{role:'user',content:prompt}],temperature:json?0.3:0.4};
+  if(json)body.response_format={type:'json_object'};
   const res=await fetch(c.baseUrl+'/chat/completions',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
-    body:JSON.stringify({model:c.model,messages:[{role:'user',content:prompt}],temperature:0.4})
+    body:JSON.stringify(body)
   });
   if(!res.ok){
     let msg=res.statusText;
@@ -51,7 +53,7 @@ async function callCustomAI(prompt){
   if(!text)throw new Error('EMPTY_RESPONSE');
   return String(text).trim();
 }
-async function callAI(prompt){return getCustomAI()?callCustomAI(prompt):callGemini(prompt);}
+async function callAI(prompt,json){return getCustomAI()?callCustomAI(prompt,json):callGemini(prompt,json);}
 
 async function callAIChat(systemText,hist){
   const c=getCustomAI();
@@ -113,7 +115,7 @@ function saveGeminiKey(){
 }
 
 /* Feature 1.3 — Core Gemini API call */
-async function callGemini(prompt){
+async function callGemini(prompt,json){
   const key=localStorage.getItem('exambre_gemini_key');
   if(!key)throw new Error('NO_KEY');
   const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key='+key,{
@@ -121,7 +123,7 @@ async function callGemini(prompt){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       contents:[{parts:[{text:prompt}]}],
-      generationConfig:{temperature:0.4,maxOutputTokens:512}
+      generationConfig:Object.assign({temperature:json?0.3:0.4,maxOutputTokens:2048},json?{response_mime_type:'application/json'}:{})
     })
   });
   if(!res.ok){
@@ -226,7 +228,7 @@ async function scanImageToQuestion(inputEl) {
 
     let parsed;
     try {
-      parsed = JSON.parse(clean);
+      parsed = _extractJSON(clean);
     } catch (e) {
       throw new Error('FORMAT_ERROR');
     }
@@ -516,9 +518,8 @@ async function runNoteToQ(){
   const btn=document.getElementById('note2q-go');if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Membuat...';}
   const prompt=`Kamu adalah pembuat soal latihan ahli. Buat ${cnt} soal pilihan ganda BERDASARKAN materi berikut. Variasikan tingkat kesulitan dan utamakan pemahaman, bukan hafalan kata per kata.\n\nMATERI:\n${src}\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Format: {"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"SATU HURUF KAPITAL","pembahasan":"<p>penjelasan singkat</p>"}]}\n- Opsi boleh hanya 4; isi E dengan string kosong "".\n- "jawaban" HANYA satu huruf kapital tanpa titik atau tanda kurung.\n- "pembahasan" memakai HTML sederhana (<p>, <b>, <ol>, <li>) dan menjelaskan MENGAPA kunci benar.`;
   try{
-    const raw=await callAI(prompt);
-    const clean=raw.replace(/```json?|```/gi,'').trim();
-    let data;try{data=JSON.parse(clean);}catch(e){throw new Error('FORMAT_ERROR');}
+    const raw=await callAI(prompt,true);
+    const data=_extractJSON(raw);
     const arr=Array.isArray(data)?data:(data.questions||[]);
     let added=0;
     arr.forEach(it=>{
@@ -549,6 +550,18 @@ async function runNoteToQ(){
 
 /* Feature 4.3 — Batch scan multi-soal */
 function _escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function _extractJSON(raw){
+  let t=String(raw||'').replace(/```json?|```/gi,'').trim();
+  try{return JSON.parse(t);}catch(e){}
+  for(const [a,b] of [['{','}'],['[',']']]){
+    const i=t.indexOf(a),j=t.lastIndexOf(b);
+    if(i>-1&&j>i){const seg=t.slice(i,j+1);
+      try{return JSON.parse(seg);}catch(e){}
+      try{return JSON.parse(seg.replace(/\u201C|\u201D/g,'"').replace(/\u2018|\u2019/g,"'").replace(/,\s*([}\]])/g,'$1'));}catch(e){}
+    }
+  }
+  throw new Error('FORMAT_ERROR');
+}
 async function callGeminiVisionBatch(base64,mime){
   const key=localStorage.getItem('exambre_gemini_key');
   if(!key)throw new Error('NO_KEY');
@@ -559,7 +572,7 @@ async function callGeminiVisionBatch(base64,mime){
         {inlineData:{mimeType:mime,data:base64}},
         {text:`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`}
       ]}],
-      generationConfig:{temperature:0.1,maxOutputTokens:8192}
+      generationConfig:{temperature:0.1,maxOutputTokens:8192,response_mime_type:'application/json'}
     })
   });
   if(!res.ok){
@@ -582,8 +595,7 @@ async function scanBatchToQuestions(inputEl){
   try{
     const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=()=>rej(new Error('Gagal membaca gambar'));r.readAsDataURL(file);});
     const raw=await callGeminiVisionBatch(base64,file.type||'image/jpeg');
-    const clean=raw.replace(/```json?|```/gi,'').trim();
-    let data;try{data=JSON.parse(clean);}catch(e){throw new Error('FORMAT_ERROR');}
+    let data=_extractJSON(raw);
     const arr=Array.isArray(data)?data:(data.questions||[]);
     const items=[];
     arr.forEach(it=>{
@@ -710,9 +722,8 @@ async function buatVariasi(qid,btn){
     '- Tingkat kesulitan setara soal asli. Bahasa Indonesia.'
   ].join('\n');
   try{
-    const raw=await callAI(prompt);
-    const clean=raw.replace(/```json?|```/gi,'').trim();
-    let data;try{data=JSON.parse(clean);}catch(e){throw new Error('FORMAT_ERROR');}
+    const raw=await callAI(prompt,true);
+    const data=_extractJSON(raw);
     const arr=Array.isArray(data)?data:(data.questions||[]);
     let it=null;
     for(const c of arr){
