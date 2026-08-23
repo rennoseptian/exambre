@@ -66,7 +66,7 @@ function goSec(id,btn){
   const target=document.getElementById('sec-'+id);
   target.classList.add('on');btn.classList.add('on');btn.setAttribute('aria-selected','true');
   target.style.animation='none';requestAnimationFrame(()=>{target.style.animation='secIn var(--dur-2) var(--ease)';});
-  if(id!=='review')clearInterval(simTimerHandle);
+  if(id!=='review'){clearInterval(simTimerHandle);if(typeof simState!=='undefined'&&simState&&!simState.finished)window.simPausedAt=Date.now();}
   if(id==='review')openReviewTab();else if(id==='stats')renderStatsPage();else if(id==='lainnya')renderLainnya();else if(id==='catatan')renderNotes();else render();
 }
 

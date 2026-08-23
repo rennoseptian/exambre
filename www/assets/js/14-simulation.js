@@ -25,6 +25,12 @@ function openReviewTab(){
   renderRevModeTabs();
   if(revMode==='sim'){
     if(simState&&!simState.finished){
+      if(typeof simPausedAt!=='undefined'&&simPausedAt){
+        const gap=Date.now()-simPausedAt;
+        simState.startedAt+=gap;
+        if(simState.qStartedAt)simState.qStartedAt+=gap;
+        simPausedAt=null;
+      }
       clearInterval(simTimerHandle);
       simTimerHandle=setInterval(simTick,1000);
       renderSimQuestion();
@@ -165,19 +171,20 @@ function startSimulation(){
     const mins=Math.max(1,parseInt(document.getElementById('sim-total-min').value,10)||Math.ceil(shuffled.length*0.75));
     totalSec=mins*60;
   }
-  simState={questions:shuffled,idx:0,answers:{},timerType,perSoalSec,perSoalLeft:perSoalSec,totalSecInit:totalSec,totalLeft:totalSec,startedAt:Date.now(),finished:false,catsUsed:Array.from(simSelectedCats)};
+  simState={questions:shuffled,idx:0,answers:{},timerType,perSoalSec,perSoalLeft:perSoalSec,totalSecInit:totalSec,totalLeft:totalSec,startedAt:Date.now(),qStartedAt:Date.now(),finished:false,catsUsed:Array.from(simSelectedCats)};
   clearInterval(simTimerHandle);
   simTimerHandle=setInterval(simTick,1000);
   renderSimQuestion();
 }
 function simTick(){
   if(!simState||simState.finished)return;
+  const now=Date.now();
   if(simState.timerType==='total'){
-    simState.totalLeft--;
+    simState.totalLeft=Math.max(0,simState.totalSecInit-Math.floor((now-simState.startedAt)/1000));
     updateSimTotalBar();
     if(simState.totalLeft<=0){finishSimulation(true);}
   }else{
-    simState.perSoalLeft--;
+    simState.perSoalLeft=Math.max(0,simState.perSoalSec-Math.floor((now-simState.qStartedAt)/1000));
     updateSimPersoalBar();
     if(simState.perSoalLeft<=0){simNext();}
   }
@@ -249,6 +256,7 @@ function simNext(){
   if(!simState||simState.finished)return;
   simState.idx++;
   if(simState.idx>=simState.questions.length){finishSimulation(false);return;}
+  simState.qStartedAt=Date.now();
   simState.perSoalLeft=simState.perSoalSec;
   renderSimQuestion();
 }
