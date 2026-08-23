@@ -413,9 +413,9 @@ function analyzeWeakness(){
   return catKeys.map(key=>{
     const catQs=qs.filter(q=>q.cat===key);
     const answered=catQs.filter(q=>q.srs&&q.srs.reps>0);
-    const accuracy=answered.length
-      ?answered.reduce((s,q)=>{const tot=q.srs.totalAttempts||0;return s+(tot>0?(q.srs.totalCorrect||0)/tot:0);},0)/answered.length
-      :null;
+    const attSum=answered.reduce((a,q)=>a+(q.srs.totalAttempts||0),0);
+    const corSum=answered.reduce((a,q)=>a+(q.srs.totalCorrect||0),0);
+    const accuracy=attSum>0?corSum/attSum:null;
     const avgEase=catQs.length?catQs.reduce((s,q)=>s+((q.srs&&q.srs.ease)||2.5),0)/catQs.length:2.5;
     const dueCount=catQs.filter(q=>dueSet.has(q.id)).length;
     const mastered=catQs.filter(q=>q.mastered).length;
@@ -508,7 +508,7 @@ function calcReadiness(){
   const avgAccuracy=answered
     ?qs.filter(q=>q.srs&&q.srs.reps>0).reduce((s,q)=>{const tot=q.srs.totalAttempts||0;return s+(tot>0?(q.srs.totalCorrect||0)/tot:0);},0)/answered
     :0;
-  const reviewedLast7=qs.filter(q=>q.srs&&q.srs.due&&q.srs.due>Date.now()-7*86400000&&q.srs.reps>0).length;
+  const reviewedLast7=qs.filter(q=>q.srs&&(q.srs.lastReviewedAt||0)>Date.now()-7*86400000).length;
   const dailyPace=Math.max(1,Math.round(reviewedLast7/7));
   const remaining=total-mastered;
   const daysNeeded=remaining>0?Math.ceil(remaining/dailyPace):0;

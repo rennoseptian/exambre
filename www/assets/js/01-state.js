@@ -62,7 +62,7 @@ function migrateCatColors(){
 const Store={
   qs:[],nid:10,curCat:'ALL',curSt:'all',curBab:'all',searchQ:'',
   cats:{},
-  revList:[],revIdx:0,revDone:false,revSessionXP:0,sessionCorrect:0,
+  revList:[],revIdx:0,revDone:false,revSessionXP:0,sessionCorrect:0,sessionWrong:0,
   revMode:'srs',simState:null,simTimerHandle:null,simSelectedCats:null,simTimerType:'total',simHistory:[],
   imgAreas:{},
   lastDeleted:null,

@@ -1,6 +1,6 @@
 /* ── REVIEW ── */
 function startReview(forceAll){
-  revIdx=0;revSessionXP=0;sessionCorrect=0;
+  revIdx=0;revSessionXP=0;sessionCorrect=0;sessionWrong=0;window._revFree=!!forceAll;
   if(forceAll){
     revList=qs.slice().sort(()=>Math.random()-.5);
   }else{
@@ -61,9 +61,10 @@ function renderRevSummary(){
     <div class="rcard" style="text-align:center;padding:32px 20px">
       <div style="font-size:48px;margin-bottom:12px">🎉</div>
       <h2 style="font-size:20px;font-weight:800;margin-bottom:6px">Sesi selesai!</h2>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:24px">
-        Kamu sudah mereview semua soal yang jatuh tempo hari ini.
+      <p style="font-size:13px;color:var(--text2);margin-bottom:${sessionWrong?'8px':'24px'}">
+        ${window._revFree?'Latihan bebas selesai — kamu sudah mengerjakan seluruh soal.':'Kamu sudah mereview semua soal yang jatuh tempo hari ini.'}
       </p>
+      ${sessionWrong?'<p style="font-size:11.5px;color:var(--text3);margin-bottom:20px">Soal yang salah otomatis disisipkan ulang dalam sesi ini untuk langsung dilatih ulang — karena itu angka "Direview" bisa lebih besar dari jumlah soal unik.</p>':''}
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
         <div class="scard"><div class="snum">${total}</div><div class="slbl">Direview</div></div>
         <div class="scard"><div class="snum" style="color:var(--success)">${sessionCorrect}</div><div class="slbl">Benar</div></div>
@@ -93,7 +94,7 @@ function ansRev(qid,chosen,btn){
   const xpGain=(ok?10:2)+(justMastered?20:0);
   gami.xp+=xpGain;
   revSessionXP+=xpGain;
-  if(ok)sessionCorrect++;
+  if(ok)sessionCorrect++;else sessionWrong++;
   persist();
   checkBadges();
   renderGami();

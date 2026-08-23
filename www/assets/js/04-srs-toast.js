@@ -7,14 +7,16 @@
    - "Dikuasai" sekarang berarti sudah lolos 3x rep berturut-turut (bukan cuma sekali benar). */
 const DAY_MS=86400000;
 function ensureSrs(q){
-  if(!q.srs)q.srs={due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0,totalAttempts:0,totalCorrect:0};
+  if(!q.srs)q.srs={due:Date.now()-1,interval:0,ease:2.5,reps:0,lapses:0,totalAttempts:0,totalCorrect:0,lastReviewedAt:0};
   if(q.srs.totalAttempts===undefined)q.srs.totalAttempts=0;
   if(q.srs.totalCorrect===undefined)q.srs.totalCorrect=0;
+  if(q.srs.lastReviewedAt===undefined)q.srs.lastReviewedAt=0;
   return q.srs;
 }
 function srsUpdate(q,correct){
   const s=ensureSrs(q);
   s.totalAttempts+=1;
+  s.lastReviewedAt=Date.now();
   if(correct){
     s.totalCorrect+=1;
     s.reps+=1;
