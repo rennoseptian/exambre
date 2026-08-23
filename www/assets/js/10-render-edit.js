@@ -70,7 +70,7 @@ function renderQCard(q,i){
         let c='';if(l===q.wrong)c='ow';if(l===q.correct)c='oc';
         const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
         const scaled=renderOptImgScaled(sanitizeHtml(o),q.id,l,imgSrc);
-        return`<div class="opt-item ${c}"><span class="ltr">${l}.</span><div class="opt-html-content">${scaled}</div>${l===q.wrong?'<span class="opt-tag">✗ jawaban saya</span>':''}${l===q.correct?'<span class="opt-tag">✓ benar</span>':''}</div>`;
+        return`<div class="opt-item ${c}"><span class="ltr">${l}</span><div class="opt-html-content">${scaled}</div>${l===q.wrong?'<span class="opt-tag">✗ jawaban saya</span>':''}${l===q.correct?'<span class="opt-tag">✓ benar</span>':''}</div>`;
       }).join('')}
     </div>
     ${renderExpBlock(q)}

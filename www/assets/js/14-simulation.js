@@ -234,7 +234,7 @@ function renderSimQuestion(){
         const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${imgSrc}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">`:'';
         const displayHtml=safeO.replace(/<img([^>]*)style="[^"]*"([^>]*)>/gi,'<img$1style="max-height:100px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px"$2>');
         const selCls=selectedAns===l?' sel':'';
-        return`<button class="ropt${selCls}" onclick="selectSimAnswer(${q.id},'${l}',this)"><span class="ltr">${l}.</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
+        return`<button class="ropt${selCls}" onclick="selectSimAnswer(${q.id},'${l}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
       }).join('')}</div>
       <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-p" onclick="simNext()">${isLast?'Selesai & Lihat Hasil':'Soal Berikutnya'} <i class="ti ti-arrow-right"></i></button></div>
     </div>`;

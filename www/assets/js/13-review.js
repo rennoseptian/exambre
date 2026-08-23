@@ -48,7 +48,7 @@ function renderRev(){
         const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
         const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${imgSrc}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">` :'';
         const displayHtml=safeO.replace(/<img([^>]*)style="[^"]*"([^>]*)>/gi,'<img$1style="max-height:100px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px"$2>');
-        return`<button class="ropt" data-l="${l}" onclick="ansRev(${q.id},'${l}',this)"><span class="ltr">${l}.</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
+        return`<button class="ropt" data-l="${l}" onclick="ansRev(${q.id},'${l}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
       }).join('')}</div>
       <div id="rfb"></div>
       <div style="display:flex;justify-content:flex-end"><button class="btn btn-p" id="rnext" style="display:none" onclick="nextRev()">Soal Berikutnya <i class="ti ti-arrow-right"></i></button></div>
