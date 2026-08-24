@@ -729,13 +729,20 @@ function openTutor(qid){
   if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
   window._tutor={qid,hist:[]};
   const sub=document.getElementById('tutor-sub');
-  if(sub)sub.textContent=_escHtml((q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,90));
-  const m=document.getElementById('tutor-msgs');if(m)m.innerHTML='';
+  if(sub)sub.textContent='Tanya bebas tentang soal ini — sentuh salah satu contoh di bawah, atau ketik pertanyaanmu sendiri.';
+  const m=document.getElementById('tutor-msgs');
+  if(m){m.innerHTML='';_tutorAdd('ai','Halo! Saya siap membantu soal ini. Sentuh salah satunya:<br><span class="tchip" onclick="_tutorAsk(this)">Kenapa jawaban kuncinya benar?</span><span class="tchip" onclick="_tutorAsk(this)">Jelaskan langkah demi langkah</span><span class="tchip" onclick="_tutorAsk(this)">Kasih trik cepat mengerjakannya</span>');}
   const inp=document.getElementById('tutor-inp');if(inp)inp.value='';
   document.getElementById('tutor-modal').classList.add('on');
   setTimeout(()=>{if(inp)inp.focus();},180);
 }
 function closeTutor(){document.getElementById('tutor-modal').classList.remove('on');}
+function _tutorAsk(el){
+  if(!window._tutor)return;
+  const btn=document.getElementById('tutor-send');if(btn&&btn.disabled)return;
+  const inp=document.getElementById('tutor-inp');if(inp)inp.value=el.textContent;
+  sendTutor();
+}
 function _tutorAdd(role,html){
   const w=document.getElementById('tutor-msgs');if(!w)return null;
   const d=document.createElement('div');d.className='tbub '+(role==='user'?'me':'ai');d.innerHTML=html;
