@@ -16,7 +16,10 @@ Seluruh string UI berbahasa Indonesia. Aplikasi single-page tanpa framework fron
   satu `<style>` kecil untuk area paste-ta.
 - `www/assets/app.css` — seluruh stylesheet. Ada 3 blok palet yang HARUS sinkron jika mengubah token:
   `:root` (light), `@media(prefers-color-scheme:dark) :root:not([data-theme=light])`,
-  `:root[data-theme="dark"]`.
+  `:root[data-theme="dark"]`. Blok TERAKHIR file = layout desktop `@media(min-width:1024px)`
+  (sidebar kiri menggantikan bottom-nav, konten 1080px).
+- `www/sw.js` — service worker PWA (cache-first, offline + installable). WAJIB naikkan versi
+  `CACHE` (`exambre-vN`) setiap mengubah file inti agar client lama tidak dapat aset stale.
 - `www/assets/js/*.js` — 16 file classic-script BERURUTAN berbagi scope global
   (bukan ES module). URUTAN load penting; nomor 05 sengaja bolong (file cloud lama dihapus):
   01-state, 02-gamify-data, 03-notes, 04-srs-toast, 06-media, 07-categories,
@@ -24,8 +27,9 @@ Seluruh string UI berbahasa Indonesia. Aplikasi single-page tanpa framework fron
   13-review, 14-simulation, 15-stats, 16-ai, 17-main (hanya listener DOMContentLoaded).
 - `android/` — project native Capacitor (sudah di-commit; JANGAN jalankan `npx cap add android`
   lagi karena platform sudah ada).
-- `.github/workflows/build-android-apk.yml` — CI membangun APK release otomatis pada tiap push ke main;
-  hasil di tab Actions → Artifacts.
+- `.github/workflows/build-android-apk.yml` + `.github/workflows/deploy-web.yml` — CI membangun
+  APK release DAN deploy web ke GitHub Pages (https://rennoseptian.github.io/exambre)
+  otomatis pada tiap push ke main; hasil APK di tab Actions → Artifacts.
 - Tidak ada bundler/linter/test framework resmi.
 
 ## State & Penyimpanan
@@ -86,6 +90,11 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
 9. `.badge-toast` idle = `visibility:hidden` (transform saja meninggalkan potongan pil terlihat).
 10. Lingkaran huruf opsi TANPA titik (`${l}` bukan `${l}.`) agar huruf terpusat sempurna.
 11. Tutor chat: multi-turn asli + maxOutputTokens 1024; fitur JSON lain 2048 + mode json native.
+12. Daftar panjang TANPA CSS `columns`: `render()` membangun ulang seluruh `#qlist` tiap ketukan
+    kategori/search — column balancing di 86+ kartu bikin lag berat saat pindah tab.
+    Optimasi yang dipakai: `.qcard{content-visibility:auto;contain-intrinsic-size:auto 220px}`.
+13. Hover guard berlaku juga di blok desktop (media query nested `@media(hover:hover)` di dalam
+    `@media(min-width:1024px)`) — transform :hover tanpa guard "nyangkut" di layar sentuh besar.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →
@@ -101,6 +110,11 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
   setup rules terasa merepotkan — app kini 100% lokal. Jangan bangun ulang tanpa diminta.
 - SFX & FX playful ada (assets/sfx/*.wav custom + confetti + count-up); saklar di Lainnya,
   preferensi disimpan di key `exambre_sfx` ('off' = mati, default aktif).
+- Versi web online: GitHub Pages + service worker PWA offline/installable (779f50b);
+  manifest diperbaiki (branding Exambre, path ikon benar, start_url relatif) + ikon
+  dibuat transparan via flood-fill (072a04e).
+- Layout desktop responsif ≥1024px: sidebar kiri ganti bottom-nav, konten 1080px (30f6180).
+  List 2-kolom CSS columns DIBATALKAN karena lag (a619fa8) → lihat anti-regresi #12.
 
 ## Cara Kerja dengan User
 - Bahasa komunikasi: Indonesia. User bukan programmer, tapi tester yang teliti —

@@ -1,10 +1,10 @@
 # 📚 Exambre
 
-Aplikasi latihan soal universal dengan **spaced repetition** (repetisi berjarak ala Anki/SM-2), simulasi ujian ber-timer, catatan rich-text, gamifikasi, sinkronisasi cloud, dan bantuan AI.
+Aplikasi latihan soal universal dengan **spaced repetition** (repetisi berjarak ala Anki/SM-2), simulasi ujian ber-timer, catatan rich-text, gamifikasi, dan bantuan AI.
 
 Cocok untuk materi apa pun — ujian masuk, sertifikasi, bahasa asing, kedokteran, hukum, atau kumpulan rumus pribadi Anda.
 
-Dibangun sebagai aplikasi Android native via [Capacitor 6](https://capacitorjs.com) — tanpa framework frontend, murni HTML/CSS/JavaScript modular.
+Tersedia sebagai **aplikasi Android** (Capacitor 6) dan **web/PWA** (https://rennoseptian.github.io/exambre) — tanpa framework frontend, murni HTML/CSS/JavaScript modular, 100% lokal.
 
 ---
 
@@ -35,9 +35,12 @@ Dibangun sebagai aplikasi Android native via [Capacitor 6](https://capacitorjs.c
 ### 🎮 Gamifikasi
 - Streak belajar harian 🔥, XP ⚡, dan lencana pencapaian 🏅
 
-### ☁️ Cloud Sync (opsional)
-- Sinkronisasi otomatis antar perangkat via Firebase Firestore + Storage (gambar diupload, hemat ruang localStorage)
-- Cukup tempel config Firebase Anda sendiri; data terkunci pada **Kode Sync** unik
+### 🌐 Versi Web & PWA
+- Live di **https://rennoseptian.github.io/exambre** — deploy otomatis tiap push ke `main`
+- Bisa **di-install ke layar utama** HP (menu browser → *Tambahkan ke layar utama*)
+- **Offline penuh** setelah kunjungan pertama (service worker cache-first)
+- Di layar ≥1024px (laptop/PC) layout berubah jadi **desktop**: sidebar navigasi kiri, konten lebar — bukan "HP besar"
+- Catatan: online ≠ sinkron; tiap perangkat tetap punya datanya sendiri (lokal)
 
 ### 🤖 AI (opsional) — 8 kemampuan
 Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa dialihkan ke provider OpenAI-compatible lain (Groq/OpenRouter/Cerebras/Ollama) via *Lainnya → Provider Kustom*.
@@ -73,11 +76,11 @@ Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa
 | Tab Review → Simulasi Ujian | timer, hasil per kategori, riwayat simulasi | `14-simulation` |
 | Tab Catatan | editor rich-text, kategori catatan, tombol ✨ buat soal | `03-notes`, `16-ai` |
 | Tab Statistik | ringkasan, lencana, kelemahan, kesiapan ujian, countdown ujian | `15-stats`, `16-ai` |
-| Tab Lainnya | tema, export/import, cloud sync, API keys, reset data | `08-theme-io`, `05-cloud`, `16-ai` |
+| Tab Lainnya | tema, export/import, API keys, reset data | `08-theme-io`, `16-ai` |
 | Navigasi bawah / splash / toast | kerangka & notifikasi global | `index.html`, `17-main`, CSS |
 | State semua fitur | objek pusat `Store` + accessor window | `01-state` |
 
-**Penyimpanan lokal:** `cpns-wb-v6` (soal+progress) · `exambre-notes-v1` (catatan) · `exambre_sim_history` · `exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` · `exambre_exam_date` · `cpns-fb-config` & `cpns-sync-code` (cloud)
+**Penyimpanan lokal:** `cpns-wb-v6` (soal+progress) · `exambre-notes-v1` (catatan) · `exambre_sim_history` · `exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` · `exambre_exam_date` · `exambre_sfx` (saklar efek suara)
 
 ---
 
@@ -85,24 +88,25 @@ Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa
 | Lapisan | Teknologi |
 |---|---|
 | Native shell | Capacitor 6 (Android) |
-| UI | Vanilla CSS custom-properties, Tabler Icons, font Inter |
-| Logika | Vanilla JS — 17 modul classic-script berbagi store terpusat |
-| Cloud | Firebase (Firestore + Storage, compat SDK) |
-| AI | Google Gemini REST API |
+| Web/PWA | Service worker cache-first + GitHub Pages (deploy otomatis) |
+| UI | Vanilla CSS custom-properties, Tabler Icons, font Inter, layout responsif desktop ≥1024px |
+| Logika | Vanilla JS — 16 modul classic-script berbagi store terpusat |
+| AI | Google Gemini REST API + provider OpenAI-compatible opsional |
 
 ## 📁 Struktur
 ```
 ├── index.html              # markup + theme-init anti-FOUC
-├── manifest.json           # PWA manifest
+├── manifest.json           # PWA manifest (Exambre, ikon transparan)
+├── sw.js                   # service worker (offline + installable; bump CACHE saat ubah file inti)
 └── assets/
-    ├── app.css             # seluruh stylesheet
-    ├── js/                 # 01-state … 17-main (urutan load penting)
-    │   └── …               # state/gamify/notes/srs/cloud/media/categories/
+    ├── app.css             # seluruh stylesheet (+ blok desktop ≥1024px di akhir)
+    ├── js/                 # 01-state … 17-main (urutan load penting; 05 bolong sengaja)
+    │   └── …               # state/gamify/notes/srs/media/categories/
     │                       # io/images/render/forms/actions/review/
     │                       # simulation/stats/ai/main
-    ├── fonts/  icons/
+    ├── fonts/  icons/  icon/  sfx/
 ├── android/                # project native Capacitor
-└── .github/workflows/      # CI build APK otomatis
+└── .github/workflows/      # CI: build-android-apk.yml + deploy-web.yml (GitHub Pages)
 ```
 
 ## 🚀 Menjalankan
