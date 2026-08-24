@@ -727,7 +727,7 @@ function runBatchImport(){
 function openTutor(qid){
   const q=qs.find(x=>x.id===qid);if(!q)return;
   if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
-  window._tutor={qid,hist:[]};
+  window._tutor={qid,hist:[],view:[]};
   const sub=document.getElementById('tutor-sub');
   if(sub)sub.textContent='Tanya bebas tentang soal ini — sentuh salah satu contoh di bawah, atau ketik pertanyaanmu sendiri.';
   const m=document.getElementById('tutor-msgs');
@@ -743,6 +743,18 @@ function _tutorAsk(el){
   const inp=document.getElementById('tutor-inp');if(inp)inp.value=el.textContent;
   sendTutor();
 }
+function saveTutorToNotes(){
+  if(!window._tutor)return;
+  const v=(window._tutor.view||[]);
+  if(!v.some(x=>x.r==='ai')){showToast('Belum ada jawaban tutor untuk disimpan','warn');return;}
+  const q=qs.find(x=>x.id===window._tutor.qid);
+  const qPlain=q?(q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim():'';
+  let html='<p><b>Soal:</b> '+_escHtml(qPlain||'(soal tidak tersedia)')+'</p>';
+  v.forEach(x=>{html+=x.r==='user'?'<p><b>Tanya:</b> '+_escHtml(x.t)+'</p>':'<div><b>Tutor:</b>'+x.h+'</div>';});
+  notes.push({id:noteNid++,title:'Tutor — '+(qPlain.slice(0,60)||'percakapan'),body:html,bodyText:html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim(),catId:'',createdAt:Date.now(),updatedAt:Date.now()});
+  persistNotes();renderNotes();
+  showToast('Disimpan ke Catatan. <a onclick="closeTutor();goSec(\'catatan\')">Buka</a>','ok',5000);
+}
 function _tutorAdd(role,html){
   const w=document.getElementById('tutor-msgs');if(!w)return null;
   const d=document.createElement('div');d.className='tbub '+(role==='user'?'me':'ai');d.innerHTML=html;
@@ -754,7 +766,7 @@ async function sendTutor(){
   const text=(inp&&inp.value||'').trim();if(!text)return;
   const q=qs.find(x=>x.id===window._tutor.qid);if(!q)return;
   inp.value='';
-  _tutorAdd('user',_escHtml(text));
+  _tutorAdd('user',_escHtml(text));window._tutor.view.push({r:'user',t:text});
   window._tutor.hist.push({r:'user',t:text});
   const load=_tutorAdd('ai','<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> menyusun jawaban…');
   const btn=document.getElementById('tutor-send');if(btn)btn.disabled=true;
@@ -770,8 +782,10 @@ async function sendTutor(){
       'ATURAN: Jawab HANYA pertanyaan user terakhir — jangan melanjutkan kalimat siapa pun, jangan mengarang konteks baru. Singkat, padat, bahasa Indonesia santai. Format HTML sederhana (<p>, <b>, <ul>, <li>) tanpa markdown tanpa backtick.'
     ].join('\n');
     const out=await callAIChat(system,window._tutor.hist);
-    load.innerHTML=sanitizeHtml(String(out).replace(/```html?|```/gi,''));
+    const clean=sanitizeHtml(String(out).replace(/```html?|```/gi,''));
+    load.innerHTML=clean;
     window._tutor.hist.push({r:'ai',t:String(out).slice(0,2000)});
+    window._tutor.view.push({r:'ai',h:clean});
   }catch(e){
     const msg=e.message||'';
     load.innerHTML='<span style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar — coba beberapa menit lagi.':msg==='BAD_KEY'?'API key tidak valid. Periksa Lainnya.':'Gagal: '+_escHtml(msg))+'</span>';
