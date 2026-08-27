@@ -1,6 +1,6 @@
 /* Exambre Service Worker — cache-first shell, runtime untuk sisanya.
    Naikkan versi CACHE saat mengubah file inti agar client lama ter-refresh. */
-const CACHE='exambre-v6';
+const CACHE='exambre-v7';
 const CORE=[
   './index.html','./manifest.json','./assets/app.css',
   './assets/js/01-state.js','./assets/js/02-gamify-data.js','./assets/js/03-notes.js',

@@ -171,7 +171,7 @@ function startSimulation(){
     const mins=Math.max(1,parseInt(document.getElementById('sim-total-min').value,10)||Math.ceil(shuffled.length*0.75));
     totalSec=mins*60;
   }
-  simState={questions:shuffled,idx:0,answers:{},timerType,perSoalSec,perSoalLeft:perSoalSec,totalSecInit:totalSec,totalLeft:totalSec,startedAt:Date.now(),qStartedAt:Date.now(),finished:false,catsUsed:Array.from(simSelectedCats)};
+  simState={questions:shuffled,idx:0,answers:{},flags:new Set(),timerType,perSoalSec,perSoalLeft:perSoalSec,totalSecInit:totalSec,totalLeft:totalSec,startedAt:Date.now(),qStartedAt:Date.now(),finished:false,catsUsed:Array.from(simSelectedCats)};
   clearInterval(simTimerHandle);
   simTimerHandle=setInterval(simTick,1000);
   renderSimQuestion();
@@ -209,26 +209,31 @@ function renderSimQuestion(){
   const catStyle=catBadgeStyle(q.cat);const catName=cats[q.cat]?(cats[q.cat].name||q.cat):q.cat;
   const pct=Math.round((simState.idx/simState.questions.length)*100);
   const selectedAns=simState.answers[q.id];
+  const flagged=simState.flags.has(q.id);
+  const isFirst=simState.idx<=0;
   const isLast=simState.idx>=simState.questions.length-1;
+  const answeredCount=Object.keys(simState.answers).length;
+  const flagIco=flagged?'<i class="ti ti-flag" style="color:var(--danger-ink)"></i>':'<i class="ti ti-flag"></i>';
   const timerHtml=simState.timerType==='total'
-    ?`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--radius);padding:8px 12px;margin-bottom:12px">
-        <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="ti ti-hourglass"></i> Sisa waktu sesi</span>
-        <span id="sim-total-txt" style="font-weight:700;font-size:14px;font-variant-numeric:tabular-nums">${fmtMMSS(simState.totalLeft)}</span>
-      </div>
-      <div class="rev-prog" style="margin-bottom:8px"><div id="sim-total-fill" class="rev-progf" style="background:var(--accent);width:${Math.max(0,simState.totalLeft/simState.totalSecInit*100)}%"></div></div>`
-    :`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="ti ti-hourglass"></i> Waktu soal ini</span>
-        <span id="sim-ps-txt" style="font-weight:700;font-size:13px;font-variant-numeric:tabular-nums">${simState.perSoalLeft}s</span>
-      </div>
-      <div class="rev-prog" style="margin-bottom:8px;height:5px"><div id="sim-ps-fill" class="rev-progf" style="background:var(--gold);width:${Math.max(0,simState.perSoalLeft/simState.perSoalSec*100)}%"></div></div>`;
+    ?`<div class="sim-timer-bar"><div class="sim-timer-label"><i class="ti ti-hourglass"></i> Sisa waktu</div><div id="sim-total-txt" class="sim-timer-value">${fmtMMSS(simState.totalLeft)}</div></div>
+      <div class="rev-prog" style="margin-bottom:10px;height:5px"><div id="sim-total-fill" class="rev-progf" style="width:${Math.max(0,simState.totalLeft/simState.totalSecInit*100)}%"></div></div>`
+    :`<div class="sim-timer-bar"><div class="sim-timer-label"><i class="ti ti-hourglass"></i> Soal ini</div><div id="sim-ps-txt" class="sim-timer-value sim-timer-ps">${simState.perSoalLeft}s</div></div>
+      <div class="rev-prog" style="margin-bottom:10px;height:5px"><div id="sim-ps-fill" class="rev-progf" style="background:var(--gold);width:${Math.max(0,simState.perSoalLeft/simState.perSoalSec*100)}%"></div></div>`;
+  const navGrid=simState.questions.map((_,i)=>{
+    const a=simState.answers[simState.questions[i].id];
+    const f=simState.flags.has(simState.questions[i].id);
+    const c=i===simState.idx;
+    let cls='sim-nav-btn';
+    if(a)cls+=' answered';if(c)cls+=' current';if(f)cls+=' flagged';
+    return`<button class="${cls}" onclick="simJumpTo(${i})">${i+1}</button>`;
+  }).join('');
   document.getElementById('rev-content').innerHTML=`
     ${timerHtml}
-    <div class="rev-prog"><div class="rev-progf" style="width:${pct}%"></div></div>
-    <div class="rnav">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <div style="display:flex;gap:6px;align-items:center"><span class="badge" style="${catStyle}">${catName}</span>${q.bab?`<span class="badge-bab">${q.bab}</span>`:''}</div>
       <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:13px;color:var(--text2)">${simState.idx+1} / ${simState.questions.length}</span>
-        <button onclick="endSimulationEarly()" style="font-size:11px;color:var(--danger-ink);background:none;border:none;cursor:pointer;font-weight:600">Akhiri</button>
+        <span style="font-size:12px;color:var(--text2)">${answeredCount}/${simState.questions.length} dijawab</span>
+        <button onclick="endSimulationEarly()" style="font-size:11px;color:var(--danger-ink);background:none;border:none;cursor:pointer;font-weight:600">Selesai</button>
       </div>
     </div>
     <div class="rcard">
@@ -236,21 +241,38 @@ function renderSimQuestion(){
       ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${ei.src}" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${ei.src}')">`;}).join('')+'</div>':''}
       <div class="ropts">${(q.opts||[]).map((o,i)=>{
         if(!LETTERS[i]||!o||!o.trim()||o==='<br>')return'';const l=LETTERS[i];
-        const safeO=sanitizeHtml(o);
-        const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
+        const safeO=sanitizeHtml(o);const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
         const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${imgSrc}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">`:'';
         const displayHtml=safeO.replace(/<img([^>]*)style="[^"]*"([^>]*)>/gi,'<img$1style="max-height:100px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px"$2>');
-        const selCls=selectedAns===l?' sel':'';
-        return`<button class="ropt${selCls}" onclick="selectSimAnswer(${q.id},'${l}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
+        return`<button class="ropt${selectedAns===l?' sel':''}" onclick="selectSimAnswer(${q.id},'${l}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
       }).join('')}</div>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-p" onclick="simNext()">${isLast?'Selesai & Lihat Hasil':'Soal Berikutnya'} <i class="ti ti-arrow-right"></i></button></div>
-    </div>`;
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+      <button class="btn btn-s" onclick="simPrev()"${isFirst?' disabled':''} style="flex:1;justify-content:center"><i class="ti ti-arrow-left"></i> Sebelumnya</button>
+      <button class="btn ${flagged?'btn-warn':'btn-s'}" onclick="simToggleFlag()" aria-label="Ragen soal ini">${flagIco}</button>
+      <button class="btn btn-p" onclick="${isLast?'finishSimulation(false)':'simNext()'}" style="flex:1;justify-content:center">${isLast?'Selesai <i class="ti ti-check"></i>':'Berikutnya <i class="ti ti-arrow-right"></i>'}</button>
+    </div>
+    <div class="sim-nav-grid">${navGrid}</div>`;
 }
 function selectSimAnswer(qid,letter,btn){
   if(!simState||simState.finished)return;
   simState.answers[qid]=letter;
   btn.parentElement.querySelectorAll('.ropt').forEach(b=>b.classList.remove('sel'));
   btn.classList.add('sel');
+}
+function simPrev(){
+  if(!simState||simState.finished||simState.idx<=0)return;
+  simState.idx--;simState.qStartedAt=Date.now();simState.perSoalLeft=simState.perSoalSec;renderSimQuestion();
+}
+function simJumpTo(idx){
+  if(!simState||simState.finished||idx<0||idx>=simState.questions.length)return;
+  simState.idx=idx;simState.qStartedAt=Date.now();simState.perSoalLeft=simState.perSoalSec;renderSimQuestion();
+}
+function simToggleFlag(){
+  if(!simState||simState.finished)return;
+  const q=simState.questions[simState.idx];
+  simState.flags.has(q.id)?simState.flags.delete(q.id):simState.flags.add(q.id);
+  renderSimQuestion();
 }
 function simNext(){
   if(!simState||simState.finished)return;
