@@ -80,6 +80,10 @@ function setSimTimerType(type){
 }
 function renderSimSetup(){
   if(!simSelectedCats)simSelectedCats=new Set(getSimAvailCats());
+  const navEl=document.getElementById('sim-nav-container');
+  if(navEl)navEl.innerHTML='';
+  const sec=document.getElementById('sec-review');if(sec)sec.classList.remove('sim-active');
+  document.getElementById('rev-content').style.paddingBottom='';
   const availCats=getSimAvailCats();
   const pool=getSimPool();
   const defaultQCount=Math.min(20,pool.length||1);
@@ -251,8 +255,11 @@ function renderSimQuestion(){
       <button class="btn btn-s" onclick="simPrev()"${isFirst?' disabled':''} style="flex:1;justify-content:center"><i class="ti ti-arrow-left"></i> Sebelumnya</button>
       <button class="btn ${flagged?'btn-warn':'btn-s'}" onclick="simToggleFlag()" aria-label="Ragen soal ini">${flagIco}</button>
       <button class="btn btn-p" onclick="${isLast?'finishSimulation(false)':'simNext()'}" style="flex:1;justify-content:center">${isLast?'Selesai <i class="ti ti-check"></i>':'Berikutnya <i class="ti ti-arrow-right"></i>'}</button>
-    </div>
-    <div class="sim-nav-grid">${navGrid}</div>`;
+    </div>`;
+  const navEl=document.getElementById('sim-nav-container');
+  if(navEl)navEl.innerHTML=`<div class="sim-nav-grid">${navGrid}</div>`;
+  document.getElementById('rev-content').style.paddingBottom='180px';
+  document.getElementById('sec-review').classList.add('sim-active');
 }
 function selectSimAnswer(qid,letter,btn){
   if(!simState||simState.finished)return;
@@ -308,6 +315,10 @@ function finishSimulation(timedOut){
 }
 function renderSimSummary(){
   if(!simState||!simState.result)return;
+  const navEl=document.getElementById('sim-nav-container');
+  if(navEl)navEl.innerHTML='';
+  const sec=document.getElementById('sec-review');if(sec)sec.classList.remove('sim-active');
+  document.getElementById('rev-content').style.paddingBottom='';
   const r=simState.result;
   const color=r.accPct>=80?'var(--success)':r.accPct>=55?'var(--accent)':'var(--danger)';
   const catRows=Object.keys(r.perCat).map(k=>{
