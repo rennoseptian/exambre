@@ -399,10 +399,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   .search-wrap{max-width:340px}
   .toast-wrap{bottom:28px;left:calc(50% + 106px)}
   .badge-toast{left:calc(50% + 106px)}
-  #sec-review.sim-active{display:flex;gap:16px;align-items:flex-start}
+  #sec-review.sim-active{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;max-width:1100px}
+  #sec-review.sim-active #rev-mode-switch{flex:0 0 100%}
   #sec-review.sim-active #rev-content{flex:1;min-width:0}
-  #sec-review.sim-active #sim-nav-container{position:sticky;top:0;bottom:auto;left:auto;right:auto;width:200px;flex-shrink:0;border-radius:var(--radius-lg);box-shadow:var(--shadow-card);border:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 32px)}
-  #sec-review.sim-active #sim-nav-container .sim-nav-grid{grid-template-columns:repeat(4,1fr);padding:12px 10px}
+  #sec-review.sim-active #sim-nav-container{position:sticky;top:0;bottom:auto;left:auto;right:auto;width:220px;flex-shrink:0;border-radius:var(--radius-lg);box-shadow:var(--shadow-card);border:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 32px)}
+  #sec-review.sim-active #sim-nav-container .sim-nav-grid{grid-template-columns:repeat(5,1fr);padding:12px 10px}
 }
 /* Perf: kartu di luar layar tak dirender penuh — daftar panjang tetap mulus */
 .qcard{content-visibility:auto;contain-intrinsic-size:auto 220px}
