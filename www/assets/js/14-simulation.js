@@ -82,6 +82,7 @@ function renderSimSetup(){
   if(!simSelectedCats)simSelectedCats=new Set(getSimAvailCats());
   const navEl=document.getElementById('sim-nav-container');
   if(navEl)navEl.innerHTML='';
+  if(navEl)navEl.style.display='none';
   const sec=document.getElementById('sec-review');if(sec)sec.classList.remove('sim-active');
   document.getElementById('rev-content').style.paddingBottom='';
   const availCats=getSimAvailCats();
@@ -257,7 +258,7 @@ function renderSimQuestion(){
       <button class="btn btn-p" onclick="${isLast?'finishSimulation(false)':'simNext()'}" style="flex:1;justify-content:center">${isLast?'Selesai <i class="ti ti-check"></i>':'Berikutnya <i class="ti ti-arrow-right"></i>'}</button>
     </div>`;
   const navEl=document.getElementById('sim-nav-container');
-  if(navEl)navEl.innerHTML=`<div class="sim-nav-grid">${navGrid}</div>`;
+  if(navEl){navEl.style.display='';navEl.innerHTML=`<div class="sim-nav-grid">${navGrid}</div>`;}
   document.getElementById('rev-content').style.paddingBottom='180px';
   document.getElementById('sec-review').classList.add('sim-active');
 }
@@ -316,7 +317,7 @@ function finishSimulation(timedOut){
 function renderSimSummary(){
   if(!simState||!simState.result)return;
   const navEl=document.getElementById('sim-nav-container');
-  if(navEl)navEl.innerHTML='';
+  if(navEl){navEl.innerHTML='';navEl.style.display='none';}
   const sec=document.getElementById('sec-review');if(sec)sec.classList.remove('sim-active');
   document.getElementById('rev-content').style.paddingBottom='';
   const r=simState.result;
