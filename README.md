@@ -19,6 +19,7 @@ Tersedia sebagai **aplikasi Android** (Capacitor 6) dan **web/PWA** (https://ren
 ### ⏱️ Simulasi Ujian
 - Timer **per soal** atau **total sesi**
 - Pilih kategori & jumlah soal secara bebas
+- Navigasi grid nomor soal + ragen (flag) ala CAT — tampil di bawah konten (mobile) / panel penuh lebar (desktop)
 - Hasil dihitung di akhir: skor akurasi, rincian per kategori, jawaban benar/salah/kosong
 - Riwayat hingga 30 sesi terakhir tersimpan lokal
 - **Tidak memengaruhi** jadwal SRS — simulasi dan latihan terpisah total
@@ -100,7 +101,8 @@ Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa
 ├── sw.js                   # service worker (offline + installable; bump CACHE saat ubah file inti)
 └── assets/
     ├── app.css             # seluruh stylesheet (+ blok desktop ≥1024px di akhir)
-    ├── js/                 # 01-state … 17-main (urutan load penting; 05 bolong sengaja)
+    ├── js/                 # 01-state … 17-main (urutan load penting; 05 bolong sengaja,
+    │                       # tag <script>-nya sudah dibuang dari index.html — jangan pasang lagi)
     │   └── …               # state/gamify/notes/srs/media/categories/
     │                       # io/images/render/forms/actions/review/
     │                       # simulation/stats/ai/main

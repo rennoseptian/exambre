@@ -21,7 +21,8 @@ Seluruh string UI berbahasa Indonesia. Aplikasi single-page tanpa framework fron
 - `www/sw.js` — service worker PWA (cache-first, offline + installable). WAJIB naikkan versi
   `CACHE` (`exambre-vN`) setiap mengubah file inti agar client lama tidak dapat aset stale.
 - `www/assets/js/*.js` — 16 file classic-script BERURUTAN berbagi scope global
-  (bukan ES module). URUTAN load penting; nomor 05 sengaja bolong (file cloud lama dihapus):
+  (bukan ES module). URUTAN load penting; nomor 05 sengaja bolong (file cloud lama dihapus,
+  tag `<script>`-nya pun sudah dibuang dari index.html — jangan dipasang lagi):
   01-state, 02-gamify-data, 03-notes, 04-srs-toast, 06-media, 07-categories,
   08-theme-io, 09-image-inputs, 10-render-edit, 11-panel-forms, 12-card-actions,
   13-review, 14-simulation, 15-stats, 16-ai, 17-main (hanya listener DOMContentLoaded).
@@ -95,6 +96,9 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     Optimasi yang dipakai: `.qcard{content-visibility:auto;contain-intrinsic-size:auto 220px}`.
 13. Hover guard berlaku juga di blok desktop (media query nested `@media(hover:hover)` di dalam
     `@media(min-width:1024px)`) — transform :hover tanpa guard "nyangkut" di layar sentuh besar.
+14. `#sim-nav-container` (grid nomor simulasi) default `display:none` di CSS; hanya `display:block`
+    saat `#sec-review.sim-active`. Bila dibiarkan elemen kosong tetap fixed bottom dengan
+    `border-top`, muncul garis tipis putih melintang di layar (setelah selesai ujian dsb.).
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →
@@ -115,6 +119,12 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
   dibuat transparan via flood-fill (072a04e).
 - Layout desktop responsif ≥1024px: sidebar kiri ganti bottom-nav, konten 1080px (30f6180).
   List 2-kolom CSS columns DIBATALKAN karena lag (a619fa8) → lihat anti-regresi #12.
+- Simulasi CAT BKN-style: grid nomor + prev/next + lompat + ragen (37de85e); posisi nav grid
+  sempat sidebar kanan sticky (104efe5) lalu DIPUTUSKAN pindah ke bawah konten full-width karena
+  mengapit kolom soal jadi sempit; mode-switch (Latihan/Simulasi) disembunyikan saat sesi berjalan
+  (a91582a). Bagian kosong container diasir dengan `display:none` default (50fd6cb) — lihat anti-regresi #14.
+- Cleanup: tag `<script 05-cloud.js>` dibuang dari index.html (404 tiap load), font yatim
+  `.woff2` dihapus (50fd6cb).
 
 ## Cara Kerja dengan User
 - Bahasa komunikasi: Indonesia. User bukan programmer, tapi tester yang teliti —
