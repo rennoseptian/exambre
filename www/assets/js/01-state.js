@@ -6,8 +6,15 @@ const LETTERS=['A','B','C','D','E'];
 /* escHtml: untuk TEKS PLAIN milik pengguna yang disisipkan ke innerHTML
    (judul, preview, kata kunci search, nama kategori, dsb). Berbeda dengan
    sanitizeHtml() yang menyaring HTML kaya — di sini teks harus tampil apa
-   adanya, hanya "&", "<", ">" yang jadi entity. */
-function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+   adanya, hanya "&", "<", ">" yang jadi entity.
+   '"' ikut di-escape supaya aman dipakai di nilai atribut bertanda kutip
+   (tidak mengubah tampilan di konteks teks). */
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+/* jsStr: escape untuk literal string JS di dalam atribut onclick, mis.
+   onclick="fCat('${escHtml(jsStr(k))}',this)" — jsStr dulu (backslash + kutip
+   tunggal), baru escHtml (kutip ganda attribute delimiter). Urutan dibalik
+   justru merusak. */
+function jsStr(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 const ALLOWED_TAGS=/^(b|i|u|strong|em|br|ul|ol|li|p|code|img|span|div)$/i;
 const SAFE_URL=/^(https?:|data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,)/i;
 const URL_ATTRS=new Set(['src','href','action','formaction','xlink:href']);

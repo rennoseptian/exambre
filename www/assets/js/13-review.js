@@ -31,12 +31,12 @@ function startReview(forceAll){
 function renderRev(){
   if(revIdx>=revList.length){renderRevSummary();return;}
   const q=revList[revIdx];revDone=false;
-  const catStyle=catBadgeStyle(q.cat);const catName=cats[q.cat]?(cats[q.cat].name||q.cat):q.cat;
+  const catStyle=catBadgeStyle(q.cat);const catName=escHtml(cats[q.cat]?(cats[q.cat].name||q.cat):q.cat);
   const pct=Math.round((revIdx/revList.length)*100);
   document.getElementById('rev-content').innerHTML=`
     <div class="rev-prog"><div class="rev-progf" style="width:${pct}%"></div></div>
     <div class="rnav">
-      <div style="display:flex;gap:6px;align-items:center"><span class="badge" style="${catStyle}">${catName}</span>${q.bab?`<span class="badge-bab">${q.bab}</span>`:''}</div>
+      <div style="display:flex;gap:6px;align-items:center"><span class="badge" style="${catStyle}">${catName}</span>${q.bab?`<span class="badge-bab">${escHtml(q.bab)}</span>`:''}</div>
       <span style="font-size:13px;color:var(--text2)">${revIdx+1} / ${revList.length}</span>
     </div>
     <div class="rcard">

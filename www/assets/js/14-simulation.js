@@ -211,7 +211,7 @@ function updateSimPersoalBar(){
 function renderSimQuestion(){
   if(!simState||simState.finished)return;
   const q=simState.questions[simState.idx];
-  const catStyle=catBadgeStyle(q.cat);const catName=cats[q.cat]?(cats[q.cat].name||q.cat):q.cat;
+  const catStyle=catBadgeStyle(q.cat);const catName=escHtml(cats[q.cat]?(cats[q.cat].name||q.cat):q.cat);
   const pct=Math.round((simState.idx/simState.questions.length)*100);
   const selectedAns=simState.answers[q.id];
   const flagged=simState.flags.has(q.id);
@@ -235,7 +235,7 @@ function renderSimQuestion(){
   document.getElementById('rev-content').innerHTML=`
     ${timerHtml}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="display:flex;gap:6px;align-items:center"><span class="badge" style="${catStyle}">${catName}</span>${q.bab?`<span class="badge-bab">${q.bab}</span>`:''}</div>
+      <div style="display:flex;gap:6px;align-items:center"><span class="badge" style="${catStyle}">${catName}</span>${q.bab?`<span class="badge-bab">${escHtml(q.bab)}</span>`:''}</div>
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:12px;color:var(--text2)">${answeredCount}/${simState.questions.length} dijawab</span>
         <button onclick="endSimulationEarly()" style="font-size:11px;color:var(--danger-ink);background:none;border:none;cursor:pointer;font-weight:600">Selesai</button>

@@ -42,7 +42,7 @@ function onboardCreateCat(){
 
 function renderQCard(q,i){
   const catStyle=catBadgeStyle(q.cat);
-  const catName=cats[q.cat]?(cats[q.cat].name||q.cat):q.cat;
+  const catName=escHtml(cats[q.cat]?(cats[q.cat].name||q.cat):q.cat);
   // FIX BUG #4: filter opsi kosong
   const validOpts=(q.opts||[]).filter((o,oi)=>LETTERS[oi]&&(o&&o.trim()&&o!=='<br>'));
   const hasImgs=validOpts.some(o=>o&&o.includes('<img'))||Object.keys(q.optImgs||{}).length>0;
@@ -51,7 +51,7 @@ function renderQCard(q,i){
       <div class="qmeta-left">
         <span style="font-size:11px;color:var(--text2)">${i+1}.</span>
         <span class="badge" style="${catStyle}">${catName}</span>
-        ${q.bab?`<span class="badge-bab">${q.bab}</span>`:''}
+        ${q.bab?`<span class="badge-bab">${escHtml(q.bab)}</span>`:''}
         ${q.mastered?'<span class="bM"><i class="ti ti-check" style="font-size:10px"></i> Dikuasai</span>':''}
       </div>
       <div class="qacts nopr">
@@ -105,15 +105,15 @@ function buildInlineEditHTML(q){
   return`<div class="inline-edit-title"><i class="ti ti-pencil"></i> Edit Soal</div>
     <div class="g2">
       <div class="field"><label>Kategori</label><select id="e-cat-${q.id}" onchange="updateBabSelectEdit(${q.id})">
-        ${getCatKeys().map(k=>`<option value="${k}"${q.cat===k?' selected':''}>${cats[k].name||k}</option>`).join('')}
+        ${getCatKeys().map(k=>`<option value="${escHtml(k)}"${q.cat===k?' selected':''}>${escHtml(cats[k].name||k)}</option>`).join('')}
       </select></div>
       <div class="field"><label>Sub-Bab</label><select id="e-bab-${q.id}">
-        ${(cats[q.cat]?cats[q.cat].babs:[]).map(b=>`<option value="${b}"${q.bab===b?' selected':''}>${b}</option>`).join('')}
+        ${(cats[q.cat]?cats[q.cat].babs:[]).map(b=>`<option value="${escHtml(b)}"${q.bab===b?' selected':''}>${escHtml(b)}</option>`).join('')}
       </select></div>
     </div>
-    <div class="field"><label>Pertanyaan</label><textarea id="e-q-${q.id}" rows="3">${q.q}</textarea></div>
+    <div class="field"><label>Pertanyaan</label><textarea id="e-q-${q.id}" rows="3">${escHtml(q.q)}</textarea></div>
     <div class="field"><label>Pilihan Jawaban (A–E)</label>
-      ${LETTERS.map(l=>`<div class="opt-row-wrap" style="margin-bottom:6px"><div class="opt-lbl">${l}</div><div class="opt-row-inner"><div class="opt-ce" id="e-opt-${q.id}-${l}" contenteditable="true" spellcheck="false" data-ph="Pilihan ${l}">${(q.opts&&q.opts[LETTERS.indexOf(l)])||''}</div><div class="opt-ce-hint"><i class="ti ti-photo" style="font-size:10px;vertical-align:-1px"></i> Ctrl+V paste gambar</div></div></div>`).join('')}
+      ${LETTERS.map(l=>`<div class="opt-row-wrap" style="margin-bottom:6px"><div class="opt-lbl">${l}</div><div class="opt-row-inner"><div class="opt-ce" id="e-opt-${q.id}-${l}" contenteditable="true" spellcheck="false" data-ph="Pilihan ${l}">${sanitizeHtml((q.opts&&q.opts[LETTERS.indexOf(l)])||'')}</div><div class="opt-ce-hint"><i class="ti ti-photo" style="font-size:10px;vertical-align:-1px"></i> Ctrl+V paste gambar</div></div></div>`).join('')}
     </div>
     <div class="g2">
       <div class="field"><label>Jawaban saya (salah)</label><select id="e-wrong-${q.id}">${LETTERS.map(l=>`<option value="${l}"${q.wrong===l?' selected':''}>${l}</option>`).join('')}</select></div>
