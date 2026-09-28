@@ -81,7 +81,7 @@ function parseRichContent(html,plainText){
       const rawTxt=(el.innerText||el.textContent||'').trimStart();
       const txt=rawTxt.replace(/^[A-E][.\):\s]\s*/,'').trim();
       const idx=LETTERS.indexOf(l);if(idx<0)return;
-      if(img){opts[idx]=txt?`${txt}<br><img src="${img.src}" style="max-height:100px;border-radius:4px">`:`<img src="${img.src}" style="max-height:100px;border-radius:4px">`;optImgsRich[l]=img.src;}
+      if(img){opts[idx]=txt?`${txt}<br><img src="${escHtml(img.src)}" style="max-height:100px;border-radius:4px">`:`<img src="${escHtml(img.src)}" style="max-height:100px;border-radius:4px">`;optImgsRich[l]=img.src;}
       else opts[idx]=txt;
     });
     const clone=tmp.cloneNode(true);

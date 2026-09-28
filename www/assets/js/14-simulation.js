@@ -243,11 +243,11 @@ function renderSimQuestion(){
     </div>
     <div class="rcard">
       <p class="rq">${sanitizeHtml(q.q)}</p>
-      ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${ei.src}" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${ei.src}')">`;}).join('')+'</div>':''}
+      ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${escHtml(ei.src)}" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${escHtml(jsStr(ei.src))}')">`;}).join('')+'</div>':''}
       <div class="ropts">${(q.opts||[]).map((o,i)=>{
         if(!LETTERS[i]||!o||!o.trim()||o==='<br>')return'';const l=LETTERS[i];
         const safeO=sanitizeHtml(o);const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
-        const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${imgSrc}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">`:'';
+        const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${escHtml(imgSrc)}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">`:'';
         const displayHtml=safeO.replace(/<img([^>]*)style="[^"]*"([^>]*)>/gi,'<img$1style="max-height:100px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px"$2>');
         return`<button class="ropt${selectedAns===l?' sel':''}" onclick="selectSimAnswer(${q.id},'${l}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
       }).join('')}</div>

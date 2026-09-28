@@ -84,11 +84,11 @@ function renderImgList(qid,imgs){
   if(!imgs||!imgs.length)return'';
   return`<div class="qimgs-section">`+imgs.map((img)=>{
     const ei=typeof img==='string'?{src:img}:img;
-    return`<img src="${ei.src}" alt="" style="max-height:200px;max-width:100%;object-fit:contain;border-radius:var(--radius);border:0.5px solid var(--border);cursor:pointer;display:block" onclick="openLB('${ei.src}')">`;
+    return`<img src="${escHtml(ei.src)}" alt="" style="max-height:200px;max-width:100%;object-fit:contain;border-radius:var(--radius);border:0.5px solid var(--border);cursor:pointer;display:block" onclick="openLB('${escHtml(jsStr(ei.src))}')">`;
   }).join('')+'</div>';
 }
 function renderExpBlock(q){
-  const eimgsHtml=q.eimgs&&q.eimgs.length?'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'+q.eimgs.map((img,ii)=>{const ei=typeof img==='string'?{src:img}:img;return`<div class="img-stored-item"><img src="${ei.src}" alt="" style="max-height:200px;max-width:100%;object-fit:contain;border-radius:var(--radius);border:0.5px solid var(--border);cursor:pointer;display:block" onclick="openLB('${ei.src}')"><button class="rm-img-btn" onclick="rmStoredEimg(${q.id},${ii})" aria-label="Hapus gambar"><i class="ti ti-trash" style="font-size:12px"></i></button></div>`;}).join('')+'</div>':'';
+  const eimgsHtml=q.eimgs&&q.eimgs.length?'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'+q.eimgs.map((img,ii)=>{const ei=typeof img==='string'?{src:img}:img;return`<div class="img-stored-item"><img src="${escHtml(ei.src)}" alt="" style="max-height:200px;max-width:100%;object-fit:contain;border-radius:var(--radius);border:0.5px solid var(--border);cursor:pointer;display:block" onclick="openLB('${escHtml(jsStr(ei.src))}')"><button class="rm-img-btn" onclick="rmStoredEimg(${q.id},${ii})" aria-label="Hapus gambar"><i class="ti ti-trash" style="font-size:12px"></i></button></div>`;}).join('')+'</div>':'';
   const genBtn=`<div style="margin-top:8px"><button id="gen-exp-btn-${q.id}" class="btn btn-s" onclick="generateExp(${q.id})" style="font-size:12px;gap:5px" aria-label="Generate penjelasan AI untuk soal ini"><i class="ti ti-sparkles" style="color:var(--accent)"></i> Generate Penjelasan</button></div>`;
   if(q.expHtml){
     return`<div class="exp-block"><div class="exp-label"><i class="ti ti-bulb" style="font-size:11px;vertical-align:-1px"></i> Pembahasan</div>

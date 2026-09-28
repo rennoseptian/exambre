@@ -23,7 +23,7 @@ function renderImgArea(areaId){
 }
 function renderScaleWrap(areaId,idx,img){
   return`<div class="img-stored-item" id="sw-${areaId}-${idx}">
-    <img src="${img.src}" alt="" style="max-height:200px;max-width:100%;object-fit:contain" onclick="openLB('${img.src}')">
+    <img src="${escHtml(img.src)}" alt="" style="max-height:200px;max-width:100%;object-fit:contain" onclick="openLB('${escHtml(jsStr(img.src))}')">
     <button class="rm-img-btn" onclick="rmAreaImg('${areaId}',${idx})" aria-label="Hapus gambar"><i class="ti ti-trash" style="font-size:12px"></i></button>
   </div>`;
 }
@@ -96,9 +96,9 @@ function renderOptImgScaled(html,qid,letter,legacyImgSrc){
   let content=html||'';
   content=content.replace(/<img([^>]*)>/gi,(match,attrs)=>{
     const srcM=attrs.match(/src=["']([^"']+)["']/i);const src=srcM?srcM[1]:'';if(!src)return match;
-    return`<img src="${src}" style="max-height:120px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin:3px 0;cursor:pointer" onclick="openLB('${src}')">`;
+    return`<img src="${escHtml(src)}" style="max-height:120px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin:3px 0;cursor:pointer" onclick="openLB('${escHtml(jsStr(src))}')">`;
   });
-  if(!html&&legacyImgSrc){content=`<img src="${legacyImgSrc}" style="max-height:120px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin:3px 0;cursor:pointer" onclick="openLB('${legacyImgSrc}')">`;}
+  if(!html&&legacyImgSrc){content=`<img src="${escHtml(legacyImgSrc)}" style="max-height:120px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin:3px 0;cursor:pointer" onclick="openLB('${escHtml(jsStr(legacyImgSrc))}')">`;}
   return content;
 }
 
