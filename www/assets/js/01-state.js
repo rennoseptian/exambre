@@ -15,6 +15,16 @@ function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/<
    tunggal), baru escHtml (kutip ganda attribute delimiter). Urutan dibalik
    justru merusak. */
 function jsStr(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+/* safeColor: hanya izinkan #RGB / #RRGGBB (3-digit dinormalkan ke 6-digit supaya
+   aman kalau caller menempelkan alpha seperti +"22"). Warna kategori bisa datang
+   dari file import (JSON bebas) lalu masuk ke style="..." — string sembarang di
+   sana bisa memecah atribut dan menyuntik event handler. */
+function safeColor(v,fallback){
+  const h=String(v==null?'':v).trim();
+  if(/^#[0-9a-f]{6}$/i.test(h))return h;
+  if(/^#[0-9a-f]{3}$/i.test(h))return '#'+h.slice(1).split('').map(c=>c+c).join('');
+  return fallback||'#eeeeee';
+}
 const ALLOWED_TAGS=/^(b|i|u|strong|em|br|ul|ol|li|p|code|img|span|div)$/i;
 const SAFE_URL=/^(https?:|data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,)/i;
 const URL_ATTRS=new Set(['src','href','action','formaction','xlink:href']);

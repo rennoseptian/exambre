@@ -119,6 +119,13 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     disisipkan mentah. `sanitizeHtml()` hanya untuk HTML kaya (opsian/pembahasan), sedangkan
     teks polos (judul catatan, preview, kata kunci search, nama kategori, sub-bab) harus
     di-*escape* supaya `&`, `<`, `>` tampil apa adanya dan tag tidak jadi elemen nyata.
+    Tambahan: (a) `escHtml()` juga escape `"` supaya aman di nilai atribut; (b) string JS di
+    dalam `onclick` WAJIB `escHtml(jsStr(k))` — `jsStr` dulu (backslash + kutip tunggal),
+    baru `escHtml` (kutip ganda = pembatas atribut), urutan terbalik merusak; (c) WARNA yang
+    masuk `style="..."` WAJIB lewat `safeColor()` (hanya `#RGB`/`#RRGGBB`, 3-digit
+    dinormalkan ke 6-digit) — `migrateCatColors()` TIDAK memvalidasi warna, dan file import
+    bisa menyuntikkan `red" onmouseover="alert(1)`. Opsi jawaban di contenteditable form edit
+    pakai `sanitizeHtml()` (bukan `escHtml`) supaya `<img>` hasil paste tetap hidup.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →

@@ -1,6 +1,6 @@
 /* ── CATEGORY ── */
 function getCatKeys(){return Object.keys(cats);}
-function catBadgeStyle(k){const c=cats[k];if(!c)return'background:#eee;color:#333';return`background:${c.color};color:${c.textColor}`;}
+function catBadgeStyle(k){const c=cats[k];if(!c)return'background:#eee;color:#333';const bg=safeColor(c.color,'#eeeeee');return`background:${bg};color:${c.textColor?safeColor(c.textColor):autoTextColor(bg)}`;}
 function initCatScroll(scrollEl){
   if(!scrollEl)return;
   const wrap=scrollEl.closest('.cats-wrap');
@@ -28,7 +28,9 @@ function buildCatTabs(){
   el.innerHTML=`<button class="ctab${curCat==='ALL'?' on':''}" role="tab" aria-selected="${curCat==='ALL'}" onclick="fCat('ALL',this)">Semua <span style="opacity:.6;font-size:10px">${allCount}</span></button>`
     +getCatKeys().map(k=>{
       const cnt=qs.filter(q=>q.cat===k).length;
-      return`<button class="ctab${k===curCat?' on':''}" role="tab" aria-selected="${k===curCat}" onclick="fCat('${k}',this)" style="${curCat===k?'':'background:'+cats[k].color+';color:'+(cats[k].textColor||autoTextColor(cats[k].color))}">${cats[k].name||k} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
+      const bg=safeColor(cats[k].color,'#eeeeee');
+      const fg=cats[k].textColor?safeColor(cats[k].textColor):autoTextColor(bg);
+      return`<button class="ctab${k===curCat?' on':''}" role="tab" aria-selected="${k===curCat}" onclick="fCat('${escHtml(jsStr(k))}',this)" style="${curCat===k?'':'background:'+bg+';color:'+fg}">${escHtml(cats[k].name||k)} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
     }).join('');
   initCatScroll(document.getElementById('cat-tabs'));
   initCatScroll(document.getElementById('note-cat-tabs'));
@@ -37,7 +39,7 @@ function populateCatSelects(){
   ['p-cat','m-cat'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     const prev=sel.value;
-    sel.innerHTML=getCatKeys().map(k=>`<option value="${k}">${cats[k].name||k}</option>`).join('');
+    sel.innerHTML=getCatKeys().map(k=>`<option value="${escHtml(k)}">${escHtml(cats[k].name||k)}</option>`).join('');
     if(prev&&cats[prev])sel.value=prev;
   });
   updateBabSelect('p-bab','p-cat');updateBabSelect('m-bab','m-cat');
@@ -46,13 +48,13 @@ function updateBabSelect(babId,catId){
   const catSel=document.getElementById(catId),babSel=document.getElementById(babId);
   if(!catSel||!babSel)return;
   const c=cats[catSel.value];
-  babSel.innerHTML=(c?c.babs:[]).map(b=>`<option value="${b}">${b}</option>`).join('');
+  babSel.innerHTML=(c?c.babs:[]).map(b=>`<option value="${escHtml(b)}">${escHtml(b)}</option>`).join('');
 }
 function updateBabFilter(){
   const sel=document.getElementById('filter-bab');if(!sel)return;
   let opts='<option value="all">Semua bab</option>';
   const src=curCat!=='ALL'&&cats[curCat]?cats[curCat].babs:[...new Set(qs.map(q=>q.bab).filter(Boolean))].sort();
-  src.forEach(b=>{opts+=`<option value="${b}">${b}</option>`;});
+  src.forEach(b=>{opts+=`<option value="${escHtml(b)}">${escHtml(b)}</option>`;});
   sel.innerHTML=opts;sel.value=curBab;
 }
 function populateAnswerSelects(wId,cId){

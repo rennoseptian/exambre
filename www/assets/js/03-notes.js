@@ -2,7 +2,7 @@
 function getNoteCatById(id){return noteCats.find(c=>c.id===id);}
 function buildNoteCatSelect(){
   const sel=document.getElementById('note-editor-cat');if(!sel)return;
-  sel.innerHTML='<option value="">Tanpa kategori</option>'+noteCats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  sel.innerHTML='<option value="">Tanpa kategori</option>'+noteCats.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
 }
 function renderNoteCatTabs(){
   const el=document.getElementById('note-cat-tabs');if(!el)return;
@@ -11,7 +11,9 @@ function renderNoteCatTabs(){
   el.innerHTML=`<button class="ctab${curNoteCat==='ALL'?' on':''}" role="tab" aria-selected="${curNoteCat==='ALL'}" onclick="fNoteCat('ALL',this)">Semua <span style="opacity:.6;font-size:10px">${allCount}</span></button>`
     +noteCats.map(c=>{
       const cnt=notes.filter(n=>n.catId===c.id).length;
-      return`<button class="ctab${curNoteCat===c.id?' on':''}" role="tab" aria-selected="${curNoteCat===c.id}" onclick="fNoteCat('${c.id}',this)" style="${curNoteCat===c.id?'':'background:'+c.color+';color:'+(c.textColor||autoTextColor(c.color))}">${c.name} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
+      const bg=safeColor(c.color,'#7C3AED');
+      const fg=c.textColor?safeColor(c.textColor):autoTextColor(bg);
+      return`<button class="ctab${curNoteCat===c.id?' on':''}" role="tab" aria-selected="${curNoteCat===c.id}" onclick="fNoteCat('${escHtml(jsStr(c.id))}',this)" style="${curNoteCat===c.id?'':'background:'+bg+';color:'+fg}">${escHtml(c.name)} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
     }).join('');
 }
 function fNoteCat(id,btn){curNoteCat=id;renderNoteCatTabs();renderNotes();}
@@ -36,7 +38,9 @@ function renderNotes(){
   }
   el.innerHTML=list.map(n=>{
     const cat=getNoteCatById(n.catId);
-    const catBadge=cat?`<span class="note-cat-badge" style="background:${cat.color}22;color:${cat.textColor||autoTextColor(cat.color)};border-color:${cat.color}55">${cat.name}</span>`:'';
+    const badgeBg=cat?safeColor(cat.color,'#7C3AED'):'';
+    const badgeFg=cat?(cat.textColor?safeColor(cat.textColor):autoTextColor(badgeBg)):'';
+    const catBadge=cat?`<span class="note-cat-badge" style="background:${badgeBg}22;color:${badgeFg};border-color:${badgeBg}55">${escHtml(cat.name)}</span>`:'';
     const d=n.updatedAt?new Date(n.updatedAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
     const preview=(n.bodyText||'').slice(0,140);
     return`<div class="note-card" onclick="openNoteEditor(${n.id})">
@@ -120,9 +124,9 @@ function renderNoteCatModalContent(){
   if(!noteCats.length){el.innerHTML='<p style="font-size:12px;color:var(--text2);margin-bottom:8px">Belum ada kategori catatan.</p>';return;}
   el.innerHTML='<div class="note-cats-list">'+noteCats.map(c=>`
     <div class="note-cat-item">
-      <span class="note-cat-color-dot" style="background:${c.color}"></span>
-      <span class="note-cat-item-name">${c.name}</span>
-      <button class="ibtn del" onclick="removeNoteCat('${c.id}')" aria-label="Hapus kategori catatan"><i class="ti ti-trash" style="font-size:13px"></i></button>
+      <span class="note-cat-color-dot" style="background:${safeColor(c.color,'#7C3AED')}"></span>
+      <span class="note-cat-item-name">${escHtml(c.name)}</span>
+      <button class="ibtn del" onclick="removeNoteCat('${escHtml(jsStr(c.id))}')" aria-label="Hapus kategori catatan"><i class="ti ti-trash" style="font-size:13px"></i></button>
     </div>`).join('')+'</div>';
 }
 function addNoteCat(){
