@@ -326,7 +326,7 @@ function renderSimSummary(){
     const c=r.perCat[k];const pct=c.total?Math.round(c.correct/c.total*100):0;
     const nm=cats[k]?cats[k].name:k;
     return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:12.5px">${nm}</span>
+      <span style="font-size:12.5px">${escHtml(nm)}</span>
       <span style="font-size:12.5px;font-weight:700;color:${pct>=80?'var(--success)':pct>=55?'var(--accent)':'var(--danger)'}">${c.correct}/${c.total} (${pct}%)</span>
     </div>`;
   }).join('');
@@ -340,7 +340,7 @@ function renderSimSummary(){
         <p style="font-size:12.5px;line-height:1.5;flex:1">${i+1}. ${sanitizeHtml(q.q)}</p>
         <span class="badge" style="background:${stbg};color:${stcolor};flex-shrink:0">${stlabel}</span>
       </div>
-      <p style="font-size:11.5px;color:var(--text2);margin-top:4px">Jawabanmu: <b>${ans||'—'}</b> · Jawaban benar: <b>${q.correct}</b></p>
+      <p style="font-size:11.5px;color:var(--text2);margin-top:4px">Jawabanmu: <b>${ans||'—'}</b> · Jawaban benar: <b>${escHtml(q.correct)}</b></p>
     </div>`;
   }).join('');
   document.getElementById('rev-content').innerHTML=`
