@@ -152,7 +152,7 @@ function persist(){
     if(e&&(e.name==='QuotaExceededError'||e.code===22)){
       showToast('Penyimpanan penuh! Hapus beberapa gambar besar.','warn');
     }else{
-      showToast('Gagal menyimpan: '+(e&&e.message?e.message:'error tidak dikenal'),'warn');
+      showToast('Gagal menyimpan: '+escHtml(e&&e.message?e.message:'error tidak dikenal'),'warn');
       console.error('persist() error:',e);
     }
   }

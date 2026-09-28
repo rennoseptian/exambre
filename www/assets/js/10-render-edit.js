@@ -36,7 +36,7 @@ function onboardCreateCat(){
   buildCatTabs();
   populateCatSelects();
   render();
-  showToast('Kategori "'+name+'" berhasil dibuat!','ok');
+  showToast('Kategori "'+escHtml(name)+'" berhasil dibuat!','ok');
   togglePanel();
 }
 

@@ -67,7 +67,7 @@ async function cekModelProvider(btn){
     }
     showToast(ids.length+' model tersedia — klik salah satu untuk mengisi kolom Model','ok',4000);
   }catch(e){
-    showToast('Gagal mengambil daftar model: '+e.message,'warn',4500);
+    showToast('Gagal mengambil daftar model: '+escHtml(e.message),'warn',4500);
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-list-check"></i> Cek Daftar Model';}}
 }
 async function callCustomAI(prompt,json){
@@ -302,7 +302,7 @@ async function scanImageToQuestion(inputEl) {
     else if (msg === 'RATE_LIMIT')  showToast('Terlalu banyak request. Tunggu 1 menit lalu coba lagi.', 'warn', 5000);
     else if (msg === 'BAD_KEY')     showToast('API key tidak valid. Periksa kembali di menu Lainnya.', 'warn', 5000);
     else if (msg === 'FORMAT_ERROR') showToast('Gagal membaca format soal. Coba ambil foto lebih jelas.', 'warn', 5000);
-    else showToast('Gagal memindai gambar: ' + msg, 'warn', 5000);
+    else showToast('Gagal memindai gambar: ' + escHtml(msg), 'warn', 5000);
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -401,7 +401,7 @@ Jangan gunakan tag lain. Jawab langsung tanpa preamble.`;
     if(e.message==='NO_KEY'){showToast('Masukkan Gemini API key dulu di menu Lainnya','warn',5000);}
     else if(e.message==='RATE_LIMIT'){showToast('Terlalu banyak request. Tunggu 1 menit lalu coba lagi.','warn',5000);}
     else if(e.message==='BAD_KEY'){showToast('API key tidak valid. Periksa kembali di menu Lainnya.','warn',5000);}
-    else{showToast('Gagal generate: '+e.message,'warn',5000);}
+    else{showToast('Gagal generate: '+escHtml(e.message),'warn',5000);}
   }
 }
 
@@ -602,7 +602,7 @@ async function runNoteToQ(){
     if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa di menu Lainnya.','warn',5000);
     else if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
     else if(msg==='FORMAT_ERROR')showToast('Format balasan AI tidak terbaca. Coba lagi.','warn',5000);
-    else showToast('Gagal membuat soal: '+msg,'warn',5000);
+    else showToast('Gagal membuat soal: '+escHtml(msg),'warn',5000);
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Generate';}
   }
@@ -676,7 +676,7 @@ async function scanBatchToQuestions(inputEl){
     if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
     else if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa di menu Lainnya.','warn',5000);
     else if(msg==='FORMAT_ERROR')showToast('Format balasan AI tidak terbaca. Foto lebih jelas & coba lagi.','warn',5000);
-    else showToast('Gagal memindai: '+msg,'warn',5000);
+    else showToast('Gagal memindai: '+escHtml(msg),'warn',5000);
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-file-text"></i> Scan Halaman — Banyak Soal Sekaligus';}
     if(inputEl)inputEl.value='';
@@ -835,7 +835,7 @@ async function buatVariasi(qid,btn){
     const msg=e.message||'';
     if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
     else if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa Lainnya.','warn',5000);
-    else showToast('Gagal membuat variasi: '+msg,'warn',5000);
+    else showToast('Gagal membuat variasi: '+escHtml(msg),'warn',5000);
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-arrows-shuffle"></i>';}}
 }
 function simpanVariasi(){
@@ -896,7 +896,7 @@ async function saranKategoriBatch(btn){
   }catch(e){
     const msg=e.message||'';
     if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar.','warn',5000);
-    else showToast('Gagal menganalisis: '+msg,'warn',5000);
+    else showToast('Gagal menganalisis: '+escHtml(msg),'warn',5000);
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Sarankan';}}
 }
 async function saranKategoriTunggal(){
@@ -920,9 +920,9 @@ async function saranKategoriTunggal(){
     if(sel){sel.value=key;updateBabSelect('p-bab','p-cat');}
     const bs=document.getElementById('p-bab');
     if(bs&&d.subbab&&[...bs.options].some(o=>o.value===d.subbab))bs.value=d.subbab;
-    showToast('✨ Saran: '+((cats[key]&&cats[key].name)||key)+(d.subbab?' · '+d.subbab:''),'ok');
+    showToast('✨ Saran: '+escHtml((cats[key]&&cats[key].name)||key)+(d.subbab?' · '+escHtml(d.subbab):''),'ok');
   }catch(e){
-    showToast('Gagal menyarankan: '+(e.message||''),'warn',5000);
+    showToast('Gagal menyarankan: '+escHtml(e.message||''),'warn',5000);
   }
 }
 

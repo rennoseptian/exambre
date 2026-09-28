@@ -41,7 +41,7 @@ async function exportData(){
         showToast('File backup dibuat, tapi plugin Share belum ada untuk menyimpannya','warn',5000);
       }
     }catch(e){
-      showToast('Gagal export: '+(e&&e.message?e.message:'error tidak dikenal'),'warn',5000);
+      showToast('Gagal export: '+escHtml(e&&e.message?e.message:'error tidak dikenal'),'warn',5000);
       console.error('exportData error:',e);
     }
     return;
@@ -91,7 +91,7 @@ async function importDataNative(){
   }catch(e){
     const msg=(e&&e.message)||'';
     if(/cancel|dismiss/i.test(msg))return; // user cancelled picker
-    showToast('Gagal membuka file: '+msg,'warn',5000);
+    showToast('Gagal membuka file: '+escHtml(msg),'warn',5000);
     console.error('importDataNative error:',e);
   }
 }

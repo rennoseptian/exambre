@@ -97,7 +97,7 @@ function loadData(){
 }
 function persistNotes(){
   try{localStorage.setItem(NK,JSON.stringify({notes,cats:noteCats,nid:noteNid}));}
-  catch(e){showToast('Gagal menyimpan catatan: '+(e&&e.message?e.message:'error'),'warn');}
+  catch(e){showToast('Gagal menyimpan catatan: '+escHtml(e&&e.message?e.message:'error'),'warn');}
 }
 
 
