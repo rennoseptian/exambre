@@ -110,6 +110,10 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     simulasi lama padahal teks konfirmasi menjanjikan SEMUA data hilang. Key lain
     (`exambre-theme`, `exambre_gemini_key`, `CAI_KEY`, `SFX_KEY`, `exambre_exam_date`)
     adalah pengaturan/rahasia dan TIDAK boleh ikut terhapus — tiap punya tombol reset sendiri.
+17. Grid nomor simulasi di MOBILE wajib punya `max-height:34vh` + `overflow-y:auto`, dan tombolnya
+    dikecilkan 38px→34px. Tanpa itu 100+ soal membuat kontainer `position:fixed` setinggi ~480px
+    yang menutupi soal. WAJIB di dalam `@media(max-width:1023px)` — kalau ditaruh di rule dasar,
+    panel statis desktop (blok `min-width:1024px`) ikut terkunci dan grid terpotong.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →
