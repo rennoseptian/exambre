@@ -38,6 +38,152 @@ function saveCustomAI(){
 }
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
 
+/* ── AI REQUEST LAYER: timeout, klasifikasi error, retry 503, cooldown per provider ── */
+const AI_CD_KEY='exambre_ai_cooldown';          /* pengaturan/scratch — TIDAK ikut dihapus clearAllData */
+const AI_TMO=45000;                             /* 45 detik; tanpa ini spinner bisa menggantung selamanya */
+const GEM_MODEL='gemini-3.5-flash';
+const GEM_MODEL_LITE='gemini-3.5-flash-lite';  /* fallback saat 503/overload */
+const AI_RETRY_DELAYS=[0,1500,4000,9000,18000]; /* total ~32 dtk */
+const AI_RETRYABLE=['OVERLOADED','NETWORK','TIMEOUT']; /* 429 SENGAJA TIDAK di sini — retry cuma memperpanjang throttle */
+
+/* Cooldown = kunci lokal agar tidak menembak server yang sedang menolak.
+   AI_CD_MAX hanya batas KUNCI (15 mnt) — durasi yang dilaporkan server tetap disimpan utuh
+   untuk ditampilkan, supaya user tidak diberi tahu "15 menit" padahal resetnya besok. */
+const AI_CD_MAX=15*60000;
+function _aiCds(){try{const o=JSON.parse(localStorage.getItem(AI_CD_KEY)||'{}');return(o&&typeof o==='object'&&!Array.isArray(o))?o:{};}catch(e){return {};}}
+function aiCooldownLeft(p){return Math.max(0,(Number(_aiCds()[p])||0)-Date.now());}
+function aiSetCooldown(p,ms){const o=_aiCds();o[p]=Date.now()+Math.max(1000,Math.min(ms||0,AI_CD_MAX));try{localStorage.setItem(AI_CD_KEY,JSON.stringify(o));}catch(e){}}
+function aiClearCooldown(p){const o=_aiCds();if(!(p in o))return;delete o[p];try{localStorage.setItem(AI_CD_KEY,JSON.stringify(o));}catch(e){}}
+function aiCooldownLabel(ms){
+  const s=Math.max(0,Math.ceil((Number(ms)||0)/1000));
+  if(s<60)return s+' detik';
+  const m=Math.ceil(s/60);
+  if(m<60)return m+' menit';
+  const h=Math.floor(m/60),r=m%60;
+  if(h<24)return h+' jam'+(r?' '+r+' menit':'');
+  return Math.ceil(h/24)+' hari';
+}
+function aiProviderLabel(p){return p==='groq'?'Provider kustom (Groq)':'Gemini';}
+
+/* Durasi majemuk gaya Groq: "6m0s", "1h2m3s", "1.5s", "250ms" → total ms.
+   Guard regex memastikan SELURUH string adalah rangkaian komponen yang valid, jadi
+   exec() pasti membaca semuanya. Jangan_andalkan lastIndex: setelah loop selesai
+   lastIndex di-reset ke 0, bukan panjang yang sudah dikonsumsi. */
+function _aiDurMs(t){
+  const s=String(t==null?'':t).trim();
+  if(!/^(?:\d+(?:\.\d+)?(?:ms|h|m|s))+$/.test(s))return null;
+  const u={ms:1,s:1000,m:60000,h:3600000},re=/(\d+(?:\.\d+)?)(ms|h|m|s)/g;
+  let tot=0,m;
+  while((m=re.exec(s)))tot+=parseFloat(m[1])*u[m[2]];
+  return tot>0?tot:null;
+}
+/* Retry-After (detik / HTTP-date) + header reset Groq ("6m0s" / epoch) → ms.
+   TIDAK di-cap di sini: nilai mentah dipakai untuk teks "reset dalam …". */
+function _aiRetryMs(res,def){
+  const H=res&&res.headers&&res.headers.get;
+  if(!H)return def;
+  const cap=24*3600000;
+  const ra=H.call(res.headers,'retry-after');
+  if(ra){const n=parseFloat(ra);
+    if(isFinite(n)&&n>0)return Math.min(n*1000,cap);
+    const d=Date.parse(ra);if(!isNaN(d))return Math.max(1000,Math.min(d-Date.now(),cap));}
+  const xr=H.call(res.headers,'x-ratelimit-reset-requests')||H.call(res.headers,'x-ratelimit-reset-tokens');
+  if(xr){const t=xr.trim();
+    const dur=_aiDurMs(t);
+    if(dur!==null)return Math.min(dur,cap);
+    if(/^\d+(\.\d+)?$/.test(t)){const v=parseFloat(t),ms=v<1e11?v*1000:v,delta=ms-Date.now();
+      if(isFinite(delta)&&delta>0)return Math.min(delta,cap);}}
+  return def;
+}
+/* Sinyal overload di dalam body — Google balas 503, tapi beberapa proxy hanya teks */
+const AI_OVERLOAD=/high demand|overload|spikes in demand|resource[ _-]?exhausted|capacity|temporarily unavailable|try again later|rate limit|too many requests|quota exceeded/i;
+const AI_200_OVERLOAD=/currently experiencing high demand|Spikes in demand are usually temporary/i;
+
+function aiClassify(res,body){
+  const st=(res&&res.status)||0;
+  const msg=String((body&&(body.error&&(body.error.message||body.error.status))||(body&&body.message))||((res&&res.statusText)||''));
+  if(st===429)return{code:'RATE_LIMIT',msg,retryMs:_aiRetryMs(res,60000)};
+  if(st===401||st===403)return{code:'BAD_KEY',msg,retryMs:0};
+  if(st===400)return{code:/api[ _-]?key/i.test(msg)?'BAD_KEY':'BAD_REQUEST',msg,retryMs:0}; /* Gemini 400 = key rusak ATAU parameter salah */
+  if(st===404)return{code:'NOT_FOUND',msg,retryMs:0};
+  if(st===408||st===500||st===502||st===503||st===504)return{code:'OVERLOADED',msg,retryMs:_aiRetryMs(res,8000)};
+  if(st>=400)return{code:'HTTP_ERROR',msg,retryMs:0};
+  if(AI_OVERLOAD.test(msg))return{code:'OVERLOADED',msg,retryMs:8000};
+  return{code:null,msg,retryMs:0};
+}
+function _aiErr(code,extra){const e=new Error(code);if(extra)Object.assign(e,extra);return e;}
+
+/* Semua request AI wajib lewat sini: cek cooldown → timeout → retry 5xx → klasifikasi.
+   maxTries=1 dipakai untuk percobaan model cadangan supaya total tunggu tidak berlipat. */
+async function aiFetch(url,opts,pv,maxTries){
+  pv=pv||'gemini';
+  const tries=Math.max(1,Math.min(maxTries||AI_RETRY_DELAYS.length,AI_RETRY_DELAYS.length));
+  const left=aiCooldownLeft(pv);
+  if(left>0)throw _aiErr('COOLDOWN',{provider:pv,cooldown:left});
+  let last={code:'NETWORK',msg:'',retryMs:0},n=0;
+  while(n<tries){
+    if(AI_RETRY_DELAYS[n])await new Promise(r=>setTimeout(r,AI_RETRY_DELAYS[n]));
+    n++;
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),AI_TMO);
+    let res;
+    try{
+      res=await fetch(url,Object.assign({},opts,{signal:ctrl.signal}));
+    }catch(err){
+      clearTimeout(timer);
+      const aborted=err&&err.name==='AbortError';
+      last={code:aborted?'TIMEOUT':'NETWORK',msg:aborted?'Waktu tunggu '+Math.round(AI_TMO/1000)+' detik habis':'Tidak ada koneksi ke server',retryMs:0};
+      if(n>=tries)break;
+      continue;
+    }
+    clearTimeout(timer);
+    if(res.ok){aiClearCooldown(pv);return res;}
+    const body=await res.json().catch(()=>null);
+    last=aiClassify(res,body);
+    if(!last.code||AI_RETRYABLE.indexOf(last.code)===-1)break;
+    if(n>=tries)break;
+  }
+  /* Cooldown hanya dari klasifikasi FINAL — jangan dipasang di tengah loop, kalau tidak
+     503 yang sempat muncul lalu gagal NETWORK akan meninggalkan kunci cooldown yang menyesatkan. */
+  if(last.code==='RATE_LIMIT')aiSetCooldown(pv,last.retryMs||60000);
+  else if(last.code==='OVERLOADED')aiSetCooldown(pv,last.retryMs||30000);
+  throw _aiErr(last.code||'NETWORK',{provider:pv,detail:last.msg||'',retryMs:last.retryMs||0});
+}
+
+/* Bentuk balasan: OpenAI-compat (choices[0].message.content) vs Gemini (candidates[0].content.parts[0].text) */
+function aiText(res,shape){
+  return res.json().then(d=>{
+    let t='';
+    if(shape==='openai')t=(d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
+    else{
+      const c=d&&d.candidates&&d.candidates[0];
+      if(c&&c.finishReason&&/SAFETY|RECITATION|BLOCKLIST|PROHIBITED/i.test(c.finishReason))t='';
+      else t=(c&&c.content&&c.content.parts&&c.content.parts[0]&&c.content.parts[0].text)||'';
+      if(t&&AI_200_OVERLOAD.test(t))throw _aiErr('OVERLOADED',{provider:'gemini',detail:String(t).slice(0,160)});
+    }
+    if(!String(t).trim())throw _aiErr('EMPTY_RESPONSE');
+    return String(t).trim();
+  });
+}
+function _gemUrl(model,key){return 'https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key;}
+const _gemHead={'Content-Type':'application/json'};
+/* 503 "high demand" sering per-model, bukan per-kuota. Coba model lebih kecil satu kali
+   (kuota tetap akun yang sama) sebelum menyerah. Callerعادkan error aslinya kalau tetap gagal. */
+async function gemFetch(key,buildBody){
+  try{
+    const res=await aiFetch(_gemUrl(GEM_MODEL,key),{method:'POST',headers:_gemHead,body:JSON.stringify(buildBody(GEM_MODEL))},'gemini');
+    return await aiText(res,'gemini');
+  }catch(e){
+    if(e.message!=='OVERLOADED'||GEM_MODEL_LITE===GEM_MODEL)throw e;
+    console.warn('Gemini overload, coba '+GEM_MODEL_LITE+':',e.detail||'');
+    /* PENTING: cooldown di provider yang sama sengaja dibuka dulu. Kalau tidak, aiFetch
+       akan langsung melempar COOLDOWN dan fallback flash-lite tidak pernah terpakai. */
+    aiClearCooldown('gemini');
+    const res=await aiFetch(_gemUrl(GEM_MODEL_LITE,key),{method:'POST',headers:_gemHead,body:JSON.stringify(buildBody(GEM_MODEL_LITE))},'gemini',1);
+    return await aiText(res,'gemini');
+  }
+}
+
 async function cekModelProvider(btn){
   const g=id=>(document.getElementById(id)||{}).value||'';
   const baseUrl=g('cai-url').trim().replace(/\/+$/,'');
@@ -46,7 +192,9 @@ async function cekModelProvider(btn){
   if(!key){showToast('Isi API key dulu (atau simpan provider dulu)','warn');return;}
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Memuat...';}
   try{
-    const res=await fetch(baseUrl+'/models',{headers:{'Authorization':'Bearer '+key}});
+    /* Provider id terpisah ('groq-list'): daftar model cuma diagnostik, tidak boleh
+       mengunci cooldown generate yang dipakai user. */
+    const res=await aiFetch(baseUrl+'/models',{headers:{'Authorization':'Bearer '+key}},'groq-list');
     if(res.status===401)throw new Error('API key tidak valid');
     if(!res.ok)throw new Error('HTTP '+res.status);
     const d=await res.json();
@@ -75,27 +223,23 @@ async function callCustomAI(prompt,json){
     const c=getCustomAI();
     const body={model:c.model,messages:[{role:'user',content:prompt}],temperature:useJson?0.3:0.4,max_tokens:2048};
     if(useJson)body.response_format={type:'json_object'};
-    const res=await fetch(c.baseUrl+'/chat/completions',{
+    const res=await aiFetch(c.baseUrl+'/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
       body:JSON.stringify(body)
-    });
-    if(!res.ok){
-      let msg=res.statusText;
-      try{const e=await res.json();msg=(e.error&&(e.error.message||e.error.code))||msg;}catch(_){}
-      if(res.status===429)throw new Error('RATE_LIMIT');
-      if(res.status===401||res.status===403)throw new Error('BAD_KEY');
-      throw new Error(msg);
-    }
-    const d=await res.json();
-    const t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
-    if(!t)throw new Error('EMPTY_RESPONSE');
-    return String(t).trim();
+    },'groq');
+    return await aiText(res,'openai');
   };
   try{
     return await attempt(true);
   }catch(e){
-    if(json&&!['RATE_LIMIT','BAD_KEY','NO_KEY'].includes(e.message)){
+    /* Format-parse hanya gagal karena JSON, bukan karena rate/network — jadi aman diulang tanpa json:true */
+    /* Retry TANPA json:true dicoba untuk error yang mungkin disebabkan response_format
+       (BAD_REQUEST dari provider, EMPTY_RESPONSE, FORMAT-ish). DICUALKAN: 429/COOLDOWN
+       (retry cuma memperpanjang throttle), BAD_KEY & NOT_FOUND (percuma), serta
+       OVERLOADED/NETWORK/TIMEOUT (sudah ditangani retry+jeda di aiFetch — mengulang di sini
+       akan menembak provider dua kali dalam satu permintaan). */
+    if(json&&!['RATE_LIMIT','BAD_KEY','NO_KEY','NOT_FOUND','COOLDOWN','OVERLOADED','NETWORK','TIMEOUT'].includes(e.message)){
       return await attempt(false);
     }
     throw e;
@@ -107,48 +251,89 @@ async function callAI(prompt,json){
   try{
     return await callCustomAI(prompt,json);
   }catch(e){
-    console.warn('Provider kustom gagal, mencoba fallback Gemini:',e.message);
-    if(localStorage.getItem('exambre_gemini_key')){
-      return await callGemini(prompt,json);
-    }
+    /* Fallback TIDAK diam-diam lagi: pakai provider lain justru membakar kuota dua provider
+       sekaligus dan menutupi provider mana yang sebenarnya bermasalah. Caller yang-au-toggle
+       lewat aiOfferFallback() sebelum mengulang. */
+    console.warn('Provider kustom gagal:',aiProviderLabel(e.provider||'groq'),'—',e.message,e.detail||'');
     throw e;
   }
+}
+
+/* Tawarkan pindah provider HANYA untuk error yang memang bisa diperbaiki provider lain
+   (429/503/timeout/jaringan). Key/jaringan rusak TIDAK layak dicoba ke provider lain. */
+const AI_FALLBACKABLE=['RATE_LIMIT','OVERLOADED','TIMEOUT','NETWORK','COOLDOWN'];
+function aiCanFallback(e){return AI_FALLBACKABLE.indexOf((e&&e.message)||'')!==-1;}
+function aiAltProvider(p){return(p||'')==='groq'?'gemini':'groq';}
+function aiAltReady(p){return p==='gemini'?!!localStorage.getItem('exambre_gemini_key'):!!getCustomAI();}
+/* Modality: true = hanya Gemini yang bisa (scan foto), jadi tak ada tawaran pindah */
+function aiOfferFallback(e,fn,visionOnly){
+  const p=(e&&e.provider)||'groq';
+  const alt=aiAltProvider(p);
+  if(!aiCanFallback(e))return false;
+  if(!aiAltReady(alt)||visionOnly)return false;
+  const left=(e.message==='COOLDOWN')?(e.cooldown||0):(e.retryMs||0);
+  const pem=aiProviderLabel(p);
+  const srv=(e&&e.retryMs)||0;
+  const ket=e.message==='RATE_LIMIT'
+    ? pem+' kehabisan kuota. Batas kuota berlaku per menit/produk, jadi menunggu sebentar tidak selalu membantu.'
+    : pem+' sedanglibat/ penuh. Semua fitur AI akan gagal sampai recover.';
+  let sisa='';
+  if(srv>AI_CD_MAX)sisa=' Reset kuota diperkirakan '+aiCooldownLabel(srv)+' lagi — jauh lebih lama dari sebentar.';
+  else if(left>0)sisa=' Tersedia lagi dalam '+aiCooldownLabel(left)+'.';
+  showConfirm({
+    icon:'⚠️',
+    title:'AI '+pem+' bermasalah',
+    body:ket+sisa+' Mau coba pakai '+aiProviderLabel(alt)+' untuk permintaan ini?',
+    actionLabel:'Coba lewat '+aiProviderLabel(alt),
+    actionClass:'btn-p',
+    onConfirm:()=>{aiClearCooldown(p);fn();}
+  });
+  return true;
+}
+/* Pesan error seragam untuk semua fitur (ganti 8 mapper yang sebelumnya berbeda-beda).
+   aiErrLabel = teks saja (untuk bubble inline), aiErrToast = versi toast. */
+function aiErrLabel(msg,e){
+  const m=String(msg||'');
+  const cdG=aiCooldownLeft('gemini'),cdR=aiCooldownLeft('groq');
+  const hint=()=>{
+    const srv=(e&&e.retryMs)||0;
+    if(srv>AI_CD_MAX)return ' Batas kuota server reportedly jauh lebih lama (perkiraan '+aiCooldownLabel(srv)+') — fitur AI akan tetap gagal sampai kuota benar-benar reset.';
+    return ' Batas reset per menit, jadi coba lagi setelah '+aiCooldownLabel(cdR||cdG||60000)+'.';
+  };
+  if(m==='NO_KEY')return 'Masukkan Gemini API key dulu di menu Lainnya';
+  if(m==='RATE_LIMIT')return 'Kuota AI habis sebentar.'+hint();
+  if(m==='OVERLOADED')return 'Server AI sedang sibuk. Sudah dicoba ulang otomatis, masih belum tersedia.';
+  if(m==='TIMEOUT')return 'Server AI tidak merespons dalam 45 detik. Coba lagi.';
+  if(m==='NETWORK')return 'Tidak ada koneksi ke server AI. Periksa internet lalu coba lagi.';
+  if(m==='BAD_KEY')return 'API key tidak valid. Periksa di menu Lainnya.';
+  if(m==='BAD_REQUEST')return 'Permintaan ditolak server (model/parameter tidak cocok). Periksa pengaturan AI di Lainnya.';
+  if(m==='NOT_FOUND')return 'Model tidak ditemukan di provider ini. Periksa nama model di Lainnya.';
+  if(m==='COOLDOWN')return 'AI masih cooldown '+aiCooldownLabel(cdG||cdR)+'. Sabar sebentar ya.';
+  if(m==='FORMAT_ERROR')return 'Format balasan AI tidak terbaca. Foto lebih jelas & coba lagi.';
+  if(m==='EMPTY_RESPONSE')return 'Balasan AI kosong. Coba lagi.';
+  return m;
+}
+function aiErrToast(msg,prefix,e){
+  const m=String(msg||'');
+  if(m==='RATE_LIMIT'||m==='OVERLOADED'||m==='TIMEOUT'||m==='NETWORK'||m==='BAD_KEY'||m==='BAD_REQUEST'||m==='NOT_FOUND'||m==='COOLDOWN'||m==='NO_KEY'||m==='FORMAT_ERROR'||m==='EMPTY_RESPONSE')
+    return showToast(aiErrLabel(m,e),'warn',6000);
+  return showToast((prefix?prefix+': ':'Gagal: ')+escHtml(m),'warn',5000);
 }
 
 async function callAIChat(systemText,hist){
   const c=getCustomAI();
   if(c){
-    const res=await fetch(c.baseUrl+'/chat/completions',{
+    const res=await aiFetch(c.baseUrl+'/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
       body:JSON.stringify({model:c.model,messages:[{role:'system',content:systemText},...hist.map(h=>({role:h.r==='user'?'user':'assistant',content:h.t}))],temperature:0.5,max_tokens:1024})
-    });
-    if(!res.ok){
-      if(res.status===429)throw new Error('RATE_LIMIT');
-      if(res.status===401||res.status===403)throw new Error('BAD_KEY');
-      throw new Error(res.statusText);
-    }
-    const d=await res.json();
-    const t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
-    if(!t)throw new Error('EMPTY_RESPONSE');
-    return String(t).trim();
+    },'groq');
+    return await aiText(res,'openai');
   }
   const key=localStorage.getItem('exambre_gemini_key');
   if(!key)throw new Error('NO_KEY');
   const contents=hist.map((h,i)=>({role:h.r==='user'?'user':'model',parts:[{text:i===0?(systemText+'\n\nPertanyaan user: '+h.t):h.t}]}));
-  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key='+key,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({contents,generationConfig:{temperature:0.5,maxOutputTokens:1024}})
-  });
-  if(!res.ok){
-    if(res.status===429)throw new Error('RATE_LIMIT');
-    if(res.status===400)throw new Error('BAD_KEY');
-    throw new Error(res.statusText);
-  }
-  const d=await res.json();
-  const t=d&&d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;
-  if(!t)throw new Error('EMPTY_RESPONSE');
-  return t.trim();
+  return await gemFetch(key,()=>({contents,generationConfig:{temperature:0.5,maxOutputTokens:1024}}));
 }
 
 /* Feature 1.2 — Gemini API Key Management */
@@ -178,25 +363,10 @@ function saveGeminiKey(){
 async function callGemini(prompt,json){
   const key=localStorage.getItem('exambre_gemini_key');
   if(!key)throw new Error('NO_KEY');
-  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key='+key,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      contents:[{parts:[{text:prompt}]}],
-      generationConfig:Object.assign({temperature:json?0.3:0.4,maxOutputTokens:2048},json?{response_mime_type:'application/json'}:{})
-    })
-  });
-  if(!res.ok){
-    const err=await res.json().catch(()=>({}));
-    const msg=err?.error?.message||res.statusText;
-    if(res.status===429)throw new Error('RATE_LIMIT');
-    if(res.status===400)throw new Error('BAD_KEY');
-    throw new Error(msg);
-  }
-  const data=await res.json();
-  const text=data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if(!text)throw new Error('EMPTY_RESPONSE');
-  return text.trim();
+  return await gemFetch(key,()=>({
+    contents:[{parts:[{text:prompt}]}],
+    generationConfig:Object.assign({temperature:json?0.3:0.4,maxOutputTokens:2048},json?{response_mime_type:'application/json'}:{})
+  }));
 }
 
 /* Feature 1.1b — Gemini Vision API call */
@@ -204,12 +374,7 @@ async function callGeminiVision(base64, mimeType) {
   const key = localStorage.getItem('exambre_gemini_key');
   if (!key) throw new Error('NO_KEY');
 
-  const res = await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=' + key,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+  return await gemFetch(key,()=>({
         contents: [{
           parts: [
             {
@@ -222,21 +387,7 @@ async function callGeminiVision(base64, mimeType) {
           ]
         }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
-      })
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    if (res.status === 429) throw new Error('RATE_LIMIT');
-    if (res.status === 400) throw new Error('BAD_KEY');
-    throw new Error(err?.error?.message || res.statusText);
-  }
-
-  const data = await res.json();
-  const text2 = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text2) throw new Error('EMPTY_RESPONSE');
-  return text2.trim();
+    }));
 }
 
 /* Feature 1.1c — Scan image → auto-fill form */
@@ -298,11 +449,8 @@ async function scanImageToQuestion(inputEl) {
 
   } catch (e) {
     const msg = e.message || '';
-    if (msg === 'NO_KEY')           showToast('Masukkan Gemini API key dulu di menu Lainnya', 'warn', 5000);
-    else if (msg === 'RATE_LIMIT')  showToast('Terlalu banyak request. Tunggu 1 menit lalu coba lagi.', 'warn', 5000);
-    else if (msg === 'BAD_KEY')     showToast('API key tidak valid. Periksa kembali di menu Lainnya.', 'warn', 5000);
-    else if (msg === 'FORMAT_ERROR') showToast('Gagal membaca format soal. Coba ambil foto lebih jelas.', 'warn', 5000);
-    else showToast('Gagal memindai gambar: ' + escHtml(msg), 'warn', 5000);
+    if (aiOfferFallback(e, () => scanImageToQuestion(inputEl), true)) return;
+    aiErrToast(msg, '', e);
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -399,9 +547,8 @@ Jangan gunakan tag lain. Jawab langsung tanpa preamble.`;
       if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Generate Penjelasan';}
     });
     if(e.message==='NO_KEY'){showToast('Masukkan Gemini API key dulu di menu Lainnya','warn',5000);}
-    else if(e.message==='RATE_LIMIT'){showToast('Terlalu banyak request. Tunggu 1 menit lalu coba lagi.','warn',5000);}
-    else if(e.message==='BAD_KEY'){showToast('API key tidak valid. Periksa kembali di menu Lainnya.','warn',5000);}
-    else{showToast('Gagal generate: '+escHtml(e.message),'warn',5000);}
+    else if(aiOfferFallback(e,()=>generateExp(qId)))return;
+    else aiErrToast(e.message,'Gagal generate',e);
   }
 }
 
@@ -598,11 +745,8 @@ async function runNoteToQ(){
     if(added){checkBadges();updateDueBadge();renderGami();}
     showToast(added?`✨ ${added} soal berhasil dibuat dari catatan!`:'Tidak ada soal valid yang dihasilkan — coba lagi.',added?'ok':'warn',5000);
   }catch(e){
-    const msg=e.message||'';
-    if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa di menu Lainnya.','warn',5000);
-    else if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
-    else if(msg==='FORMAT_ERROR')showToast('Format balasan AI tidak terbaca. Coba lagi.','warn',5000);
-    else showToast('Gagal membuat soal: '+escHtml(msg),'warn',5000);
+    if(aiOfferFallback(e,()=>runNoteToQ()))return;
+    aiErrToast(e.message,'Gagal membuat soal',e);
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Generate';}
   }
@@ -625,27 +769,13 @@ function _extractJSON(raw){
 async function callGeminiVisionBatch(base64,mime){
   const key=localStorage.getItem('exambre_gemini_key');
   if(!key)throw new Error('NO_KEY');
-  const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key='+key,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
+  return await gemFetch(key,()=>({
       contents:[{parts:[
         {inlineData:{mimeType:mime,data:base64}},
         {text:`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`}
       ]}],
       generationConfig:{temperature:0.1,maxOutputTokens:8192,response_mime_type:'application/json'}
-    })
-  });
-  if(!res.ok){
-    if(res.status===429)throw new Error('RATE_LIMIT');
-    if(res.status===400)throw new Error('BAD_KEY');
-    let msg=res.statusText;
-    try{const e=await res.json();msg=(e.error&&e.error.message)||msg;}catch(_){}
-    throw new Error(msg);
-  }
-  const data=await res.json();
-  const text=data&&data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text;
-  if(!text)throw new Error('EMPTY_RESPONSE');
-  return text.trim();
+    }));
 }
 async function scanBatchToQuestions(inputEl){
   const file=inputEl&&inputEl.files&&inputEl.files[0];if(!file)return;
@@ -672,11 +802,8 @@ async function scanBatchToQuestions(inputEl){
     if(catSel)catSel.innerHTML=getCatKeys().map(k=>`<option value="${escHtml(k)}">${escHtml((cats[k]&&cats[k].name)||k)}</option>`).join('');
     document.getElementById('batch-modal').classList.add('on');
   }catch(e){
-    const msg=e.message||'';
-    if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
-    else if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa di menu Lainnya.','warn',5000);
-    else if(msg==='FORMAT_ERROR')showToast('Format balasan AI tidak terbaca. Foto lebih jelas & coba lagi.','warn',5000);
-    else showToast('Gagal memindai: '+escHtml(msg),'warn',5000);
+    if(aiOfferFallback(e,()=>scanBatchToQuestions(inputEl),true))return;
+    aiErrToast(e.message,'Gagal memindai',e);
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-file-text"></i> Scan Halaman — Banyak Soal Sekaligus';}
     if(inputEl)inputEl.value='';
@@ -788,7 +915,12 @@ async function sendTutor(){
     window._tutor.view.push({r:'ai',h:clean});
   }catch(e){
     const msg=e.message||'';
-    load.innerHTML='<span style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar — coba beberapa menit lagi.':msg==='BAD_KEY'?'API key tidak valid. Periksa Lainnya.':'Gagal: '+escHtml(msg))+'</span>';
+    if(aiCanFallback(e)&&aiAltReady(aiAltProvider(e.provider))){
+      load.innerHTML='<span style="color:var(--danger-ink)">'+escHtml(aiProviderLabel(e.provider)+' bermasalah — '+escHtml(aiErrLabel(msg,e)))+'</span>';
+      if(!aiOfferFallback(e,()=>sendTutor()))return;
+      return;
+    }
+    load.innerHTML='<span style="color:var(--danger-ink)">'+escHtml(aiErrLabel(msg,e))+'</span>';
   }finally{if(btn)btn.disabled=false;}
 }
 
@@ -832,11 +964,10 @@ async function buatVariasi(qid,btn){
       +(it.pembahasan?'<div class="exp-block" style="font-size:12.5px">'+sanitizeHtml(it.pembahasan)+'</div>':'');
     document.getElementById('variasi-modal').classList.add('on');
   }catch(e){
-    const msg=e.message||'';
-    if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar. Coba lagi beberapa menit.','warn',5000);
-    else if(msg==='BAD_KEY')showToast('API key tidak valid. Periksa Lainnya.','warn',5000);
-    else showToast('Gagal membuat variasi: '+escHtml(msg),'warn',5000);
+    if(aiOfferFallback(e,()=>buatVariasi(qid,btn)))return;
+    aiErrToast(e.message,'Gagal membuat variasi',e);
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-arrows-shuffle"></i>';}}
+
 }
 function simpanVariasi(){
   const v=window._vari;if(!v)return;
@@ -894,9 +1025,8 @@ async function saranKategoriBatch(btn){
     renderBatchPreview();
     showToast('✨ '+Object.keys(assign).length+' soal dikelompokkan'+(made?', '+made+' kategori baru dibuat':'')+' — cek label di tiap baris','ok',4500);
   }catch(e){
-    const msg=e.message||'';
-    if(msg==='RATE_LIMIT')showToast('Kuota AI habis sebentar.','warn',5000);
-    else showToast('Gagal menganalisis: '+escHtml(msg),'warn',5000);
+    if(aiOfferFallback(e,()=>saranKategoriBatch(btn)))return;
+    aiErrToast(e.message,'Gagal menganalisis',e);
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Sarankan';}}
 }
 async function saranKategoriTunggal(){
@@ -922,7 +1052,7 @@ async function saranKategoriTunggal(){
     if(bs&&d.subbab&&[...bs.options].some(o=>o.value===d.subbab))bs.value=d.subbab;
     showToast('✨ Saran: '+escHtml((cats[key]&&cats[key].name)||key)+(d.subbab?' · '+escHtml(d.subbab):''),'ok');
   }catch(e){
-    showToast('Gagal menyarankan: '+escHtml(e.message||''),'warn',5000);
+    if(!aiOfferFallback(e,()=>saranKategoriTunggal()))aiErrToast(e.message,'Gagal menyarankan',e);
   }
 }
 
@@ -984,8 +1114,8 @@ async function analisisPola(btn){
         +(d.micro_lesson?'<div class="exp-block" style="margin-top:10px"><div class="exp-label">Micro Lesson</div><div class="exp-content">'+sanitizeHtml(String(d.micro_lesson))+'</div></div>':'');
     }
   }catch(e){
-    const msg=e.message||'';
-    if(wrap)wrap.innerHTML='<div class="tbub ai" style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar.':msg==='BAD_KEY'?'API key tidak valid.':'Gagal: '+escHtml(msg))+'</div>';
+    if(wrap)wrap.innerHTML='<div class="tbub ai" style="color:var(--danger-ink)">'+escHtml(aiErrLabel(e.message,e))+'</div>';
+    if(aiCanFallback(e)&&aiAltReady(aiAltProvider(e.provider)))aiOfferFallback(e,()=>analisisPola(btn));
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-wand"></i> Analisis Sekarang';}}
 }
 

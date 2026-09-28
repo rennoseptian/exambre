@@ -146,6 +146,36 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     import) + `d.subbab` (dari AI). Pesan error `e.message`/`msg` juga di-escape karena untuk
     provider AI kustom teksnya bisa berasal dari server.
 
+## Lapisan Request AI (`16-ai.js`)
+Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh
+`fetch()` langsung. Satu-satunya `fetch` langsung di file itu adalah isi `aiFetch` sendiri.
+- `providerId`: `'groq'` (provider kustom), `'gemini'`, `'groq-list'` (daftar model — id
+  terpisah SENGAJA agar diagnostik tidak mengunci cooldown generate).
+- Token error stabil, dipakai `e.message`: `RATE_LIMIT` `OVERLOADED` `TIMEOUT` `NETWORK`
+  `BAD_KEY` `BAD_REQUEST` `NOT_FOUND` `COOLDOWN` `EMPTY_RESPONSE` `NO_KEY` `FORMAT_ERROR`.
+- `400` TIDAK boleh disamakan `BAD_KEY`. Gemini membalas `400` untuk key rusak **dan** untuk
+  request/parameter salah → `aiClassify()` membedakan lewat isi pesan (`/api[ _-]?key/i`).
+  Menyamakan keduanya membuat "thinkingLevel tidak didukung" tampil sebagai "key tidak valid".
+- `503` "high demand" = `OVERLOADED` dan di-retry (backoff `0/1.5/4/9/18 dtk`). `429`
+  SENGAJA tidak di-retry — retry hanya memperpanjang throttle, durasi diambil dari
+  `Retry-After` / `x-ratelimit-reset-*` Groq.
+- Cooldown per provider di `exambre_ai_cooldown` (kunci lokal maks **15 mnt**), sedangkan
+  durasi yang dilaporkan server disimpan utuh untuk teks — supaya user tidak pernah diberi tahu
+  "cobak lagi 15 menit" padahal resetnya besok. Teks durasi lewat `aiCooldownLabel()`
+  (detik/menit/jam/hari).
+- `gemFetch()` mencoba `gemini-3.5-flash-lite` **satu kali** saat `OVERLOADED`. WAJIB
+  `aiClearCooldown('gemini')` sebelum percobaan itu — kalau tidak, `aiFetch` langsung
+  melempar `COOLDOWN` dan fallback tidak pernah terpakai. Bug ini sudah pernah terjadi.
+- `callAI()` TIDAK boleh fallback ke provider lain diam-diam (membakar kuota dua provider
+  sekaligus + menutupi provider mana yang bermasalah). Penawarnya `aiOfferFallback(e, fn,
+  visionOnly)` → `showConfirm`; `visionOnly=true` untuk scan foto karena cuma Gemini vision.
+  `callAIChat()` tunduk aturan yang sama.
+- Tidak ada mapper pesan manual per fitur lagi: pakai `aiErrToast(msg, prefix, e)` atau
+  `aiErrLabel(msg, e)` (versi teks untuk bubble inline). Kode yang belum dikenal tetap
+  diteruskan mentah, jadi `_aiErr`/error tak terduga tidak menghasilkan pesan kosong.
+- Uji: `/tmp/opencode/test-ai.js` (152 assertions, `fetch` tiruan). Wajib dijalankan tiap
+  menyentuh `16-ai.js` — ia sudah menangkap 3 bug nyata yang lolos `node --check`.
+
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →
   fase 3 Store terpusat (f5a1712). Fase 4 (ES modules murni/bundler) OPSIONAL — hanya jika benar-benar dibutuhkan.
