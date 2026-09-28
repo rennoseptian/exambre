@@ -138,6 +138,13 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     ikut di-escape karena prompt-injection bisa menyuntikkan HTML.
     Cara verifikasi cepat: invariant "jumlah kutip mentah di dalam satu tag = 2 × jumlah
     atribut". Kalau kutip melebihi hitungan itu, ada atribut asing yang bocor.
+20. `showToast()`/`showToastWithUndo()` memakai `innerHTML` **secara sengaja** (toast "Buka"
+    di `16-ai.js:756` memang berisi `<a onclick>`), jadi JANGAN "dibetulkan" jadi `textContent`
+    — yang wajib di-escape adalah data yang disisipkan ke pesan toast. `showConfirm()` berbeda:
+    icon/title/body/label lewat `textContent`, jadi aman apa adanya (jangan escape dua kali).
+    Vektor nyata yang sudah ditutup: `16-ai.js` "✨ Saran:" memuat `cats[key].name` (dari
+    import) + `d.subbab` (dari AI). Pesan error `e.message`/`msg` juga di-escape karena untuk
+    provider AI kustom teksnya bisa berasal dari server.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →
