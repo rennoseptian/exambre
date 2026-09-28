@@ -105,6 +105,11 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     `lastDeleted=null` — soal yang dihapus pertama hilang permanen. Durasi toast hapus juga
     WAJIB 8 dtk (bukan default 4 dtk): tiap hapus butuh dialog konfirmasi, jadi dua hapus
     berturut-turut makan >4 dtk dan toast pertama lenyap sebelum sempat diklik.
+16. `clearAllData()` WAJIB menghapus tiga key data: `SK`, `NK`, **dan `SIMHISTK`**
+    (`exambre_sim_history`). Tanpa `SIMHISTK`, tab Riwayat & badge masih menampilkan sesi
+    simulasi lama padahal teks konfirmasi menjanjikan SEMUA data hilang. Key lain
+    (`exambre-theme`, `exambre_gemini_key`, `CAI_KEY`, `SFX_KEY`, `exambre_exam_date`)
+    adalah pengaturan/rahasia dan TIDAK boleh ikut terhapus — tiap punya tombol reset sendiri.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →

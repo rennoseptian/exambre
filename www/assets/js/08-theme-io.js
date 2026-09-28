@@ -123,6 +123,8 @@ function clearAllData(){
     showConfirm({icon:'⛔',title:'Konfirmasi sekali lagi',body:'Semua data akan hilang permanen dari perangkat ini. Lanjutkan?',actionLabel:'Ya, Hapus Semuanya',onConfirm:()=>{
       try{localStorage.removeItem(SK);}catch(e){}
       try{localStorage.removeItem(NK);}catch(e){}
+      // Riwayat simulasi juga data — tanpa ini tab Riwayat & badge masih tampil sesi lama
+      try{localStorage.removeItem(SIMHISTK);}catch(e){}
       showToast('Semua data dihapus. Memuat ulang...','ok');
       setTimeout(()=>location.reload(),800);
     }});
