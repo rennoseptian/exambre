@@ -12,6 +12,10 @@ function getCustomAI(){
 function loadCustomAI(){
   const c=getCustomAI();
   ['cai-url','cai-model','cai-key'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  /* Di-render SEBELUM cek status: kontrol reasoning berdiri sendiri dan model aktif ikut
+     berubah tiap provider kustom disimpan/dihapus. Kalau AFTER early-return, widgetnya
+     diam-diam tidak muncul saat elemen status tidak ada. */
+  renderReasonChips();
   const st=document.getElementById('custom-ai-status');if(!st)return;
   const keyInp=document.getElementById('cai-key');
   if(c){
@@ -169,19 +173,42 @@ function _gemUrl(model,key){return 'https://generativelanguage.googleapis.com/v1
 const _gemHead={'Content-Type':'application/json'};
 /* 503 "high demand" sering per-model, bukan per-kuota. Coba model lebih kecil satu kali
    (kuota tetap akun yang sama) sebelum menyerah. Callerعادkan error aslinya kalau tetap gagal. */
-async function gemFetch(key,buildBody){
-  try{
-    const res=await aiFetch(_gemUrl(GEM_MODEL,key),{method:'POST',headers:_gemHead,body:JSON.stringify(buildBody(GEM_MODEL))},'gemini');
+async function gemFetch(key,buildBody,forJson){
+  const call=async(model,tries)=>{
+    const body=buildBody(model);
+    /* thinkingConfig hanya untuk model yang kapabilitasnya terverifikasi (reasonCap);
+       model lain → applyReason tidak mengirim apa pun. */
+    applyReason(body,model,forJson,'thinkingLevel');
+    const res=await aiFetch(_gemUrl(model,key),{method:'POST',headers:_gemHead,body:JSON.stringify(body)},'gemini',tries);
     return await aiText(res,'gemini');
-  }catch(e){
-    if(e.message!=='OVERLOADED'||GEM_MODEL_LITE===GEM_MODEL)throw e;
-    console.warn('Gemini overload, coba '+GEM_MODEL_LITE+':',e.detail||'');
-    /* PENTING: cooldown di provider yang sama sengaja dibuka dulu. Kalau tidak, aiFetch
-       akan langsung melempar COOLDOWN dan fallback flash-lite tidak pernah terpakai. */
+  };
+  /* Fallback flash-lite. WAJIB aiClearCooldown dulu: kalau tidak, aiFetch langsung
+     melempar COOLDOWN dan percobaan lite tidak pernah terpakai. */
+  const tryLite=async err=>{
+    if(err.message!=='OVERLOADED'||GEM_MODEL_LITE===GEM_MODEL)throw err;
+    console.warn('Gemini overload, coba '+GEM_MODEL_LITE+':',err.detail||'');
     aiClearCooldown('gemini');
-    const res=await aiFetch(_gemUrl(GEM_MODEL_LITE,key),{method:'POST',headers:_gemHead,body:JSON.stringify(buildBody(GEM_MODEL_LITE))},'gemini',1);
-    return await aiText(res,'gemini');
+    return await call(GEM_MODEL_LITE,1);
+  };
+  let e=null;
+  try{
+    return await call(GEM_MODEL);
+  }catch(x){e=x;}
+  /* 400 yang menyebut thinkingLevel = tabel REASON_CAP usang untuk model ini. Matikan
+     reasoning lalu ulangi TANPA parameter (satu kali). Error retry diteruskan ke tryLite
+     supaya jalur flash-lite di bawah tetap kepakai kalau hasilnya OVERLOADED. */
+  if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel|thinking level/i.test(e.detail)&&reasonCap(GEM_MODEL)&&!reasonOff(GEM_MODEL)){
+    reasonOffAdd(GEM_MODEL);
+    /* Flash-Lite ikut dimatikan: 400 come here means our table is stale, and the lite
+       model is from the same family. Keeping reasoning on there would just be
+       immediately 400 again on the fallback request. */
+    reasonOffAdd(GEM_MODEL_LITE);
+    console.warn('thinkingLevel tidak didukung',GEM_MODEL,'— dimatikan:',e.detail);
+    showToast('Tingkat reasoning tidak didukung model ini — dinonaktifkan otomatis.','warn',6000);
+    aiClearCooldown('gemini');
+    try{return await call(GEM_MODEL);}catch(x){e=x;}
   }
+  return await tryLite(e);
 }
 
 async function cekModelProvider(btn){
@@ -218,11 +245,110 @@ async function cekModelProvider(btn){
     showToast('Gagal mengambil daftar model: '+escHtml(e.message),'warn',4500);
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-list-check"></i> Cek Daftar Model';}}
 }
+/* ── Kontrol reasoning: hanya kirim parameter bila model mendukung ──
+   Dua provider memakai NAMA BERBEDA, dan level di luar daftar resmi akan kena HTTP 400
+   (Gemini "Not supported", Groq "Values outside a model's supported set are rejected").
+   Jadi daftar ini WAJIB konservatif: model tak dikenal → tidak kirim apa pun. */
+const REASON_KEY='exambre_reasoning';       /* auto|minimal|low|medium|high */
+const REASON_OFF_KEY='exambre_reasoning_off';/* model yang otomatis dimatikan setelah 400 */
+const REASON_LEVELS=[
+  {v:'minimal',label:'Minimal',hint:'paling cepat & paling hemat kuota'},
+  {v:'low',    label:'Rendah', hint:'cepat, cukup untuk soal biasa'},
+  {v:'medium', label:'Sedang', hint:'seimbang (default model)'},
+  {v:'high',   label:'Tinggi', hint:'paling akurat, paling boros kuota'},
+];
+/* levels diurutkan dari paling rendah — levels[0] dipakai otomatis untuk fitur JSON.
+   SENGAJA sempit: hanya model yang kapabilitasnya sudah DIVERIFIKASI. Model Gemini lain
+   (3.1/3.7/pro) tidak boleh nebak — level yang tak didukung kena 400 dan membakar kuota. */
+const REASON_CAP=[
+  {re:/gpt-oss-(20b|120b)|qwen3\.8-27b/i,field:'reasoning_effort',levels:['low','medium','high']},
+  {re:/qwen3\.6-27b/i,                    field:'reasoning_effort',levels:['none','default']},
+  {re:/^gemini-3\.5-flash/i,              field:'thinkingLevel',   levels:['minimal','low','medium','high']},
+];
+function reasonOffList(){try{const a=JSON.parse(localStorage.getItem(REASON_OFF_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function reasonOff(model){return reasonOffList().indexOf(String(model||''))!==-1;}
+function reasonOffAdd(model){
+  const a=reasonOffList(),id=String(model||'');
+  if(!id||a.indexOf(id)!==-1)return;
+  a.push(id);try{localStorage.setItem(REASON_OFF_KEY,JSON.stringify(a.slice(-20)));}catch(e){}
+}
+function reasonOffClear(){
+  try{localStorage.removeItem(REASON_OFF_KEY);}catch(e){}
+  renderReasonChips();
+  showToast('Kendali reasoning diaktifkan lagi','ok',4000);
+}
+/* Kapabilitas murni dari model ID. SENGAJA tidak consulting reasonOff(): model yang
+   reasoning-nya dimatikan masih model reasoning, jadi max_completion_tokens tetap perlu. */
+function reasonCap(model){
+  const id=String(model||'');
+  if(!id)return null;
+  for(const c of REASON_CAP)if(c.re.test(id))return c;
+  return null;   /* model tak dikenal / tanpa reasoning → JANGAN kirim parameter */
+}
+function reasonChoice(){
+  const v=localStorage.getItem(REASON_KEY)||'auto';
+  return REASON_LEVELS.some(l=>l.v===v)?v:'auto';
+}
+function setReasonChoice(v){
+  localStorage.setItem(REASON_KEY,REASON_LEVELS.some(l=>l.v===v)?v:'auto');
+  renderReasonChips();
+}
+/* Model aktif = provider kustom bila ada, else Gemini */
+function reasonActiveModel(){const c=getCustomAI();return c?c.model:GEM_MODEL;}
+/* Level yang akan dikirim. forJson → dipaksa ke levels[0] (terendah) karena token
+   reasoning yang banyak menaikkan peluang JSON rusak → FORMAT_ERROR → retry → boros. */
+function reasonLevel(model,forJson){
+  const cap=reasonCap(model);
+  if(!cap||reasonOff(model))return null;
+  const lv=reasonChoice();
+  if(forJson)return{field:cap.field,value:cap.levels[0],cap};
+  if(lv==='auto'||cap.levels.indexOf(lv)===-1)return null;
+  return{field:cap.field,value:lv,cap};
+}
+/* Sisipkan parameter reasoning ke body request sesuai bentuk tiap provider.
+   Gemini: generationConfig.thinkingConfig.thinkingLevel (bukan thinkingLevel langsung).
+   Groq/OpenAI: reasoning_effort di root, DAN max_tokens → max_completion_tokens
+   karena max_tokens deprecated untuk model reasoning (token reasoning memakan
+   jatah itu → jawaban terpotong → EMPTY_RESPONSE). */
+function applyReason(body,model,forJson,genField){
+  const cap=reasonCap(model);if(!cap)return null;
+  /* max_tokens deprecated untuk model reasoning → pakai max_completion_tokens TEPAKUT
+     model-nya reasoning, terlepas dari apakah kita mengirim level atau tidak. Kalau hanya
+     ikut level, mode 'auto' akan diam-diam kembali ke max_tokens yang bisa memotong jawaban. */
+  if(cap.field==='reasoning_effort'&&body.max_tokens!==undefined){body.max_completion_tokens=body.max_tokens;delete body.max_tokens;}
+  const r=reasonLevel(model,forJson);if(!r)return null;
+  if(r.field==='reasoning_effort')body.reasoning_effort=r.value;
+  else if(genField){
+    body.generationConfig=body.generationConfig||{};
+    body.generationConfig.thinkingConfig=Object.assign({},body.generationConfig.thinkingConfig);
+    body.generationConfig.thinkingConfig[genField]=r.value;
+  }
+  return r.value;
+}
+function reasonUIHtml(){
+  const model=reasonActiveModel(),cap=reasonCap(model);
+  if(!cap)return'<p style="font-size:11.5px;color:var(--text3);margin-top:8px">Model <b>'+escHtml(model||'—')+'</b> tidak punya kendali reasoning, jadi tidak ada parameter yang dikirim.</p>';
+  if(reasonOff(model))return'<p style="font-size:11.5px;color:var(--text3);margin-top:8px">Kendali reasoning untuk <b>'+escHtml(model)+'</b> dinonaktifkan otomatis karena server menolaknya (kemungkinan model/level ini tidak mendukung).</p>'
+    +'<button class="btn btn-s btn-sm" style="margin-top:8px" onclick="reasonOffClear()"><i class="ti ti-refresh"></i> Aktifkan lagi</button>';
+  const cur=reasonChoice();
+  const chips=REASON_LEVELS.filter(l=>cap.levels.indexOf(l.v)!==-1).map(l=>
+    '<button class="ctab ctab-sm'+(cur===l.v?' on':'')+'" onclick="setReasonChoice(\''+l.v+'\')" title="'+escHtml(l.hint)+'">'+l.label+'</button>').join('');
+  const auto='<button class="ctab ctab-sm'+(cur==='auto'?' on':'')+'" onclick="setReasonChoice(\'auto\')" title="biarkan model memakai default-nya">Otomatis</button>';
+  return'<div style="display:flex;flex-wrap:wrap;gap:6px">'+auto+chips+'</div>'
+    +'<p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.5">Terapkan ke <b>'+escHtml(model)+'</b> lewat <code>'+cap.field+'</code>. '
+    +'Fitur scan/JSON otomatis memakai level terendah demi hasil JSON valid. '
+    +'Tinggi paling akurat tapi paling cepat menghabiskan kuota.</p>';
+}
+function renderReasonChips(){
+  const box=document.getElementById('reason-box');if(box)box.innerHTML=reasonUIHtml();
+}
+
 async function callCustomAI(prompt,json){
   const attempt=async useJson=>{
     const c=getCustomAI();
     const body={model:c.model,messages:[{role:'user',content:prompt}],temperature:useJson?0.3:0.4,max_tokens:2048};
     if(useJson)body.response_format={type:'json_object'};
+    applyReason(body,c.model,useJson,null);
     const res=await aiFetch(c.baseUrl+'/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
@@ -231,9 +357,19 @@ async function callCustomAI(prompt,json){
     return await aiText(res,'openai');
   };
   try{
-    return await attempt(true);
+    return await attempt(json);
   }catch(e){
-    /* Format-parse hanya gagal karena JSON, bukan karena rate/network — jadi aman diulang tanpa json:true */
+    /* 400 yang menyebut reasoning = tabel REASON_CAP usang untuk model ini (atau level tak
+       didukung). Matikan untuk model ini lalu ulangi TANPA parameter — hanya sekali. */
+    if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel/i.test(e.detail)){
+      const c=getCustomAI();
+      if(c&&reasonCap(c.model)&&!reasonOff(c.model)){
+        reasonOffAdd(c.model);
+        console.warn('Reasoning tidak didukung model',c.model,'— dimatikan untuk model ini:',e.detail);
+        showToast('Tingkat reasoning tidak didukung model ini — dinonaktifkan otomatis untuk model tersebut.','warn',6000);
+        return await attempt(json);
+      }
+    }
     /* Retry TANPA json:true dicoba untuk error yang mungkin disebabkan response_format
        (BAD_REQUEST dari provider, EMPTY_RESPONSE, FORMAT-ish). DICUALKAN: 429/COOLDOWN
        (retry cuma memperpanjang throttle), BAD_KEY & NOT_FOUND (percuma), serta
@@ -245,6 +381,7 @@ async function callCustomAI(prompt,json){
     throw e;
   }
 }
+
 async function callAI(prompt,json){
   const c=getCustomAI();
   if(!c)return callGemini(prompt,json);
@@ -297,7 +434,7 @@ function aiErrLabel(msg,e){
   const cdG=aiCooldownLeft('gemini'),cdR=aiCooldownLeft('groq');
   const hint=()=>{
     const srv=(e&&e.retryMs)||0;
-    if(srv>AI_CD_MAX)return ' Batas kuota server reportedly jauh lebih lama (perkiraan '+aiCooldownLabel(srv)+') — fitur AI akan tetap gagal sampai kuota benar-benar reset.';
+    if(srv>AI_CD_MAX)return ' Batas kuota di server ternyata jauh lebih lama (perkiraan '+aiCooldownLabel(srv)+') — fitur AI akan tetap gagal sampai kuota benar-benar reset.';
     return ' Batas reset per menit, jadi coba lagi setelah '+aiCooldownLabel(cdR||cdG||60000)+'.';
   };
   if(m==='NO_KEY')return 'Masukkan Gemini API key dulu di menu Lainnya';
@@ -333,7 +470,7 @@ async function callAIChat(systemText,hist){
   const key=localStorage.getItem('exambre_gemini_key');
   if(!key)throw new Error('NO_KEY');
   const contents=hist.map((h,i)=>({role:h.r==='user'?'user':'model',parts:[{text:i===0?(systemText+'\n\nPertanyaan user: '+h.t):h.t}]}));
-  return await gemFetch(key,()=>({contents,generationConfig:{temperature:0.5,maxOutputTokens:1024}}));
+  return await gemFetch(key,()=>({contents,generationConfig:{temperature:0.5,maxOutputTokens:1024}}),false);
 }
 
 /* Feature 1.2 — Gemini API Key Management */
@@ -366,7 +503,7 @@ async function callGemini(prompt,json){
   return await gemFetch(key,()=>({
     contents:[{parts:[{text:prompt}]}],
     generationConfig:Object.assign({temperature:json?0.3:0.4,maxOutputTokens:2048},json?{response_mime_type:'application/json'}:{})
-  }));
+  }),json);
 }
 
 /* Feature 1.1b — Gemini Vision API call */
@@ -387,7 +524,7 @@ async function callGeminiVision(base64, mimeType) {
           ]
         }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
-    }));
+    }),true);
 }
 
 /* Feature 1.1c — Scan image → auto-fill form */
@@ -775,7 +912,7 @@ async function callGeminiVisionBatch(base64,mime){
         {text:`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`}
       ]}],
       generationConfig:{temperature:0.1,maxOutputTokens:8192,response_mime_type:'application/json'}
-    }));
+    }),true);
 }
 async function scanBatchToQuestions(inputEl){
   const file=inputEl&&inputEl.files&&inputEl.files[0];if(!file)return;

@@ -161,7 +161,7 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   `Retry-After` / `x-ratelimit-reset-*` Groq.
 - Cooldown per provider di `exambre_ai_cooldown` (kunci lokal maks **15 mnt**), sedangkan
   durasi yang dilaporkan server disimpan utuh untuk teks — supaya user tidak pernah diberi tahu
-  "cobak lagi 15 menit" padahal resetnya besok. Teks durasi lewat `aiCooldownLabel()`
+  "coba lagi 15 menit" padahal resetnya besok. Teks durasi lewat `aiCooldownLabel()`
   (detik/menit/jam/hari).
 - `gemFetch()` mencoba `gemini-3.5-flash-lite` **satu kali** saat `OVERLOADED`. WAJIB
   `aiClearCooldown('gemini')` sebelum percobaan itu — kalau tidak, `aiFetch` langsung
@@ -173,8 +173,35 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
 - Tidak ada mapper pesan manual per fitur lagi: pakai `aiErrToast(msg, prefix, e)` atau
   `aiErrLabel(msg, e)` (versi teks untuk bubble inline). Kode yang belum dikenal tetap
   diteruskan mentah, jadi `_aiErr`/error tak terduga tidak menghasilkan pesan kosong.
-- Uji: `/tmp/opencode/test-ai.js` (152 assertions, `fetch` tiruan). Wajib dijalankan tiap
-  menyentuh `16-ai.js` — ia sudah menangkap 3 bug nyata yang lolos `node --check`.
+- Kontrol reasoning (`16-ai.js`): key `exambre_reasoning` = `auto|minimal|low|medium|high`.
+  Dua provider memakai NAMA BERBEDA — Groq `reasoning_effort`, Gemini
+  `generationConfig.thinkingConfig.thinkingLevel`. WAJIB kirim HANYA lewat `applyReason()`.
+  - `REASON_CAP` didaftar dari model ID. Model tak dikenal → `reasonCap()` null → TIDAK kirim
+    apa pun. Level di luar daftar resmi provider kena HTTP 400, jadi daftar ini harus konservatif.
+    Untuk Gemini HANYA varian `gemini-3.5-flash*` yang terverifikasi punya `thinkingLevel` —
+    JANGAN longgarkan ke `/^gemini-3/` (3.1/3.7/pro belum terverifikasi → 400 = kuota terbuang).
+  - `reasonOff()` (key `exambre_reasoning_off`) = model yang otomatis dimatikan setelah 400.
+    Auto-disable hanya berlaku ke PARAMETER reasoning — `max_completion_tokens` tetap dikirim
+    karena `max_tokens` deprecated untuk model reasoning apa pun pilihan level-nya.
+    `reasonCap()` SENGAJA tidak membaca `reasonOff()`; hanya `reasonLevel()` yang menghormati
+    jadi model mati tetap tahu harus pakai `max_completion_tokens`.
+    Auto-disable Gemini ikut mematikan `GEM_MODEL_LITE` (keluarga sama → 400 lagi di fallback).
+  - `max_tokens` → `max_completion_tokens` HANYA untuk model bereasoning; jangan ikut dikembalikan
+    ke `max_tokens` saat auto-disable (jawaban bisa terpotong → `EMPTY_RESPONSE`).
+  - Fitur JSON (scan/variasi/saran) dipaksa ke `cap.levels[0]` (terendah): token reasoning
+    banyak → JSON rusak → `FORMAT_ERROR` → retry → kuota terbuang.
+  - `callCustomAI()` retry setelah auto-disable WAJIB `attempt(json)` — JANGAN `attempt(true)`.
+    `json` yang takyfalsy — mis. "generate pembahasan" yang minta HTML mentah — akan dipaksa
+    `response_format:json_object` → hasil terbungkus `{"p":"<p>…"}` → masuk `sanitizeHtml()`
+    sebagai teks sampah. Bug ini sudah terjadi.
+  - Jalur auto-disable `gemFetch()` tidak boleh `return await call(...)` langsung: kalau
+    percobaan kedua jadi `OVERLOADED`, fallback flash-lite tidak pernah kepakai. Error retry
+    diteruskan ke `tryLite()`.
+- Uji: `/tmp/opencode/test-ai.js` (260 assertions, `fetch` tiruan). Wajib dijalankan tiap
+  menyentuh `16-ai.js` — ia sudah menangkap 9 bug nyata yang lolos `node --check`.
+  Panggilan yang harusnya sukses dibungkus `settle()` supaya satu seksi rusak tidak
+  me-crash dan menyembunyikan seksi berikutnya. Mutasi balik ke `attempt(true)`,
+  `return await call(GEM_MODEL)`, atau `/^gemini-3/i` harus memunculkan `✗`.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →
