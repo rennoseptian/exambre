@@ -11,16 +11,17 @@ function getCustomAI(){
 }
 function loadCustomAI(){
   const c=getCustomAI();
-  ['cai-url','cai-model','cai-key'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['cai-url','cai-model','cai-key','cai-vmodel'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   /* Di-render SEBELUM cek status: kontrol reasoning berdiri sendiri dan model aktif ikut
      berubah tiap provider kustom disimpan/dihapus. Kalau AFTER early-return, widgetnya
      diam-diam tidak muncul saat elemen status tidak ada. */
   renderReasonChips();
   const st=document.getElementById('custom-ai-status');if(!st)return;
-  const keyInp=document.getElementById('cai-key');
+  const keyInp=document.getElementById('cai-key'),vmInp=document.getElementById('cai-vmodel');
   if(c){
     const urlEl=document.getElementById('cai-url'),mEl=document.getElementById('cai-model');
     if(urlEl)urlEl.value=c.baseUrl;if(mEl)mEl.value=c.model;
+    if(vmInp)vmInp.value=c.visionModel||'';
     if(keyInp)keyInp.placeholder='Tersimpan ('+c.key.slice(-4)+') — kosongkan jika tak ingin mengganti';
     st.textContent='✅ Aktif: '+c.model+' @ '+c.baseUrl.replace(/^https?:\/\//,'')+' · key ••••'+c.key.slice(-4);
     st.style.color='var(--success)';
@@ -29,18 +30,47 @@ function loadCustomAI(){
     st.textContent='Belum ada provider kustom (memakai Gemini).';
     st.style.color='var(--text3)';
   }
+  /* Selalu beri tahu provider mana yang dipakai scan — kalau ini ambigu, user tidak bisa
+     menebak kenapa foto tetap dikirim ke Google padahal provider kustomnya aktif. */
+  if(vmInp&&!vmInp.placeholder)vmInp.placeholder=VISION_MODEL_DEFAULT;
+  if(vmInp)vmInp.title=visionReadyMsg();
 }
 function saveCustomAI(){
   const g=id=>(document.getElementById(id)||{}).value||'';
   const baseUrl=g('cai-url').trim().replace(/\/+$/,''),model=g('cai-model').trim(),keyIn=g('cai-key').trim();
+  const visionModel=g('cai-vmodel').trim();
   const prev=getCustomAI();
   const key=keyIn||((prev&&prev.key)||'');
   if(!baseUrl||!model||!key){showToast(prev?'Isi Base URL & Model (key lama tetap dipakai jika kolom key dibiarkan kosong)':'Lengkapi Base URL, Model, dan API key','warn');return;}
   if(!/^https?:\/\//i.test(baseUrl)){showToast('Base URL harus diawali http:// atau https://','warn');return;}
-  localStorage.setItem(CAI_KEY,JSON.stringify({baseUrl,model,key}));
-  loadCustomAI();showToast('Provider AI kustom aktif ✨','ok');
+  localStorage.setItem(CAI_KEY,JSON.stringify({baseUrl,model,key,visionModel}));
+  loadCustomAI();
+  showToast(visionModel?'Provider AI kustom aktif ✨ — scan pakai '+visionModel:'Provider AI kustom aktif ✨ (scan tetap Gemini)','ok',visionModel?5000:3000);
 }
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
+
+/* ── Model VISION untuk scan foto ──
+   Default: Llama 4 Scout — DocVQA 94.4 (OCR dokumen, persis kasus scan soal) dan
+   mendukung Bahasa Indonesia. Disimpan DI DALAM config provider yang sama, bukan key
+   terpisah, jadi satu blok "Simpan Provider" saja yang perlu diklik.
+   PENTING: visionModel kosong = scan tetap pakai Gemini. Jangan default-kan diam-diam
+   ke Groq — foto soal user akan ikut terkirim ke provider lain tanpa diminta. */
+const VISION_MODEL_DEFAULT='meta-llama/llama-4-scout-17b-16e-instruct';
+function getVisionModel(){
+  const c=getCustomAI();if(!c)return null;
+  const m=String(c.visionModel||'').trim();
+  return m||null;
+}
+/* Provider mana yang akan dipakai scan. Groq butuh visionModel; Gemini butuh key. */
+function visionProvider(){
+  if(getVisionModel())return 'groq';
+  return localStorage.getItem('exambre_gemini_key')?'gemini':'';
+}
+function visionReadyMsg(){
+  return getVisionModel()
+    ? 'Scan foto memakai '+getVisionModel()+' @ '+aiProviderLabel('groq')+'.'
+    : 'Scan foto memakai Gemini.';
+}
 
 /* ── AI REQUEST LAYER: timeout, klasifikasi error, retry 503, cooldown per provider ── */
 const AI_CD_KEY='exambre_ai_cooldown';          /* pengaturan/scratch — TIDAK ikut dihapus clearAllData */
@@ -445,12 +475,27 @@ const AI_FALLBACKABLE=['RATE_LIMIT','OVERLOADED','TIMEOUT','NETWORK','COOLDOWN']
 function aiCanFallback(e){return AI_FALLBACKABLE.indexOf((e&&e.message)||'')!==-1;}
 function aiAltProvider(p){return(p||'')==='groq'?'gemini':'groq';}
 function aiAltReady(p){return p==='gemini'?!!localStorage.getItem('exambre_gemini_key'):!!getCustomAI();}
-/* Modality: true = hanya Gemini yang bisa (scan foto), jadi tak ada tawaran pindah */
-function aiOfferFallback(e,fn,visionOnly){
+/* Kesiapan ALTERNATIF untuk modality tertentu. Scan butuh lebih dari sekadar credential:
+   Groq hanya bisa jadi cadangan scan bila visionModel-nya terisi. Tanpa cek ini, user yang
+   punya Groq text-model saja akan ditawari pindah scan ke sana lalu gagal NO_KEY. */
+function aiAltReadyModality(p,mod){
+  if(mod!=='vision')return aiAltReady(p);
+  return p==='gemini'?!!localStorage.getItem('exambre_gemini_key'):!!getVisionModel();
+}
+/* Petunjuk singkat kalau tidak ada provider yang bisa scan. Pesan WAJIB menyebut cara
+   mengaktifkan yang paling relevan, bukan asal "masukkan Gemini key" — scan bisa juga
+   lewat provider kustom, jadi user tanpa Gemini key bukan berarti tidak bisa scan. */
+function visionReadyHint(){
+  return getCustomAI()
+    ? 'Isi "Model Vision" di Lainnya (mis. '+VISION_MODEL_DEFAULT+') untuk scan lewat '+aiProviderLabel('groq')+', atau masukkan Gemini API key.'
+    : 'Masukkan Gemini API key di Lainnya, atau aktifkan provider kustom + Model Vision.';
+}
+/* modality: 'text' (default) | 'vision'. null/undefined = text, jadi call site lama aman. */
+function aiOfferFallback(e,fn,modality){
   const p=(e&&e.provider)||'groq';
   const alt=aiAltProvider(p);
   if(!aiCanFallback(e))return false;
-  if(!aiAltReady(alt)||visionOnly)return false;
+  if(!aiAltReadyModality(alt,modality))return false;
   const left=(e.message==='COOLDOWN')?(e.cooldown||0):(e.retryMs||0);
   const pem=aiProviderLabel(p);
   const srv=(e&&e.retryMs)||0;
@@ -563,25 +608,68 @@ async function callGemini(prompt,json){
 }
 
 /* Feature 1.1b — Gemini Vision API call */
-async function callGeminiVision(base64, mimeType) {
-  const key = localStorage.getItem('exambre_gemini_key');
-  if (!key) throw new Error('NO_KEY');
+/* Instruksi scan — SATU sumber untuk Gemini & Groq vision. JANGAN diduplikasi per
+   provider: _extractJSON() hanya berhasil kalau keduanya dapat format JSON sama persis. */
+const VISION_PROMPT_SINGLE=`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak semua informasi dari gambar soal ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Jika field tidak ada di gambar, isi dengan string kosong "".\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas.\n- Untuk "pembahasan": format menggunakan HTML dasar: <p> paragraf, <b> tebal, <ol><li> daftar bernomor. Jangan gunakan tag lain.\n- Untuk "jawaban", tulis HANYA SATU HURUF KAPITAL (A, B, C, D, atau E) — TANPA titik, tanpa tanda kurung, tanpa teks lain. Contoh benar: "B". Contoh SALAH: "B. Sadar Berbangsa", "(B)", "b".
+- Cari jawaban benar dari: warna hijau, tanda centang (✓), lingkaran terisi, atau kata Benar/Kunci/Answer di gambar.\n- Cari jawaban SALAH dari: warna merah/pink, tanda silang (✗), atau kata Jawaban Saya di gambar.\n\nFORMAT JSON:\n{\n  "soal": "teks lengkap soal termasuk nomor jika ada",\n  "A": "teks pilihan A",\n  "B": "teks pilihan B",\n  "C": "teks pilihan C",\n  "D": "teks pilihan D",\n  "E": "teks pilihan E",\n  "jawaban": "SATU HURUF jawaban BENAR (hijau/centang), kosong jika tidak ada",\n  "jawaban_saya": "SATU HURUF jawaban yang DIPILIH PENGGUNA (ada label: Jawaban kamu adalah X, Jawaban anda X, atau pilihan berwarna merah/pink), kosong jika tidak ada",\n  "pembahasan": "pembahasan dalam format HTML dasar jika ada di gambar, kosong jika tidak"\n}`;
+const VISION_PROMPT_BATCH=`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`;
 
+/* Gemini vision: inlineData. maxOut berbeda per fitur (batch butuh JSON 5x soal). */
+async function gemVisionAsk(base64,mime,prompt,maxOut){
+  const key=localStorage.getItem('exambre_gemini_key');
+  if(!key)throw new Error('NO_KEY');
   return await gemFetch(key,()=>({
-        contents: [{
-          parts: [
-            {
-              inlineData: { mimeType: mimeType, data: base64 }
-            },
-            {
-              text: `Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak semua informasi dari gambar soal ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Jika field tidak ada di gambar, isi dengan string kosong "".\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas.\n- Untuk "pembahasan": format menggunakan HTML dasar: <p> paragraf, <b> tebal, <ol><li> daftar bernomor. Jangan gunakan tag lain.\n- Untuk "jawaban", tulis HANYA SATU HURUF KAPITAL (A, B, C, D, atau E) — TANPA titik, tanpa tanda kurung, tanpa teks lain. Contoh benar: "B". Contoh SALAH: "B. Sadar Berbangsa", "(B)", "b".
-- Cari jawaban benar dari: warna hijau, tanda centang (✓), lingkaran terisi, atau kata Benar/Kunci/Answer di gambar.\n- Cari jawaban SALAH dari: warna merah/pink, tanda silang (✗), atau kata Jawaban Saya di gambar.\n\nFORMAT JSON:\n{\n  "soal": "teks lengkap soal termasuk nomor jika ada",\n  "A": "teks pilihan A",\n  "B": "teks pilihan B",\n  "C": "teks pilihan C",\n  "D": "teks pilihan D",\n  "E": "teks pilihan E",\n  "jawaban": "SATU HURUF jawaban BENAR (hijau/centang), kosong jika tidak ada",\n  "jawaban_saya": "SATU HURUF jawaban yang DIPILIH PENGGUNA (ada label: Jawaban kamu adalah X, Jawaban anda X, atau pilihan berwarna merah/pink), kosong jika tidak ada",\n  "pembahasan": "pembahasan dalam format HTML dasar jika ada di gambar, kosong jika tidak"\n}`
-            }
-          ]
-        }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
-    }),true);
+    contents:[{parts:[{inlineData:{mimeType:mime,data:base64}},{text:prompt}]}],
+    generationConfig:{temperature:0.1,maxOutputTokens:maxOut,response_mime_type:'application/json'}
+  }),true);
 }
+/* Provider kustom (OpenAI-compatible) vision: content array + image_url data-URI.
+   Batas Groq: request base64 maks 4MB. compressImg(1400px,0.85) jauh di bawah itu, tapi
+   tetap diguard supaya errornya jelas, bukan 400 misterius dari provider. */
+const GROQ_IMG_MAX=3*1024*1024;
+async function callCustomAIVision(base64,mime,prompt){
+  const c=getCustomAI();
+  if(!c||!getVisionModel())throw new Error('NO_KEY');
+  const vm=getVisionModel();
+  if(base64.length>GROQ_IMG_MAX)throw new Error('Foto masih '+(Math.round(base64.length/1024/1024*10)/10)+'MB setelah kompres — melebihi batas 3MB '+aiProviderLabel('groq')+' untuk scan.');
+  const attempt=async()=>{
+    const body={model:vm,messages:[{role:'user',content:[
+      {type:'text',text:prompt},
+      {type:'image_url',image_url:{url:'data:'+(mime||'image/jpeg')+';base64,'+base64}}
+    ]}],temperature:0.1,max_tokens:4096,response_format:{type:'json_object'}};
+    /* applyReason juga di sini: vision model bisa berupa model reasoning, dan Groq mewajibkan
+       max_completion_tokens untuk model begitu. */
+    applyReason(body,vm,true,null);
+    const res=await aiFetch(c.baseUrl+'/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify(body)
+    },'groq');
+    return await aiText(res,'openai');
+  };
+  try{
+    return await attempt();
+  }catch(e){
+    /* Sama seperti callCustomAI: 400 yang menyebut reasoning = REASON_CAP usang untuk model
+       ini. Matikan untuk model itu lalu ulangi sekali. Scan HANYA fallback ke Gemini atas
+       permintaan user, jadi error fatal di sini tidak boleh diam-diam pindah provider. */
+    if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel/i.test(e.detail)&&reasonCap(vm)&&!reasonOff(vm)){
+      reasonOffAdd(vm);
+      console.warn('Reasoning tidak didukung vision model',vm,'— dimatikan untuk model ini:',e.detail);
+      showToast('Reasoning tidak didukung model vision ini — dinonaktifkan otomatis.','warn',6000);
+      return await attempt();
+    }
+    throw e;
+  }
+}
+/* Router scan: Groq vision bila visionModel terisi, kalau tidak → Gemini (perilaku lama).
+   Groq gagal → aiOfferFallback() menawarkan pindah ke Gemini SECARA EKSPLISIT, bukan
+   diam-diam, supaya satu klik tidak membakar kuota dua provider. */
+async function visionScan(base64,mime,prompt,maxOut){
+  if(getVisionModel())return await callCustomAIVision(base64,mime,prompt);
+  return await gemVisionAsk(base64,mime,prompt,maxOut);
+}
+
 
 /* Feature 1.1c — Scan image → auto-fill form */
 function showScanPreview(src) {
@@ -603,8 +691,12 @@ async function scanImageToQuestion(inputEl) {
   const file = inputEl && inputEl.files && inputEl.files[0];
   if (!file) return;
 
-  if (!localStorage.getItem('exambre_gemini_key')) {
-    showToast('Masukkan Gemini API key dulu di Lainnya → AI Penjelasan', 'warn', 5000);
+  /* Guard credential SESUAI provider yang akan dipakai. Dulu selalu Gemini — sekarang scan
+     bisa lewat Groq vision, jadi user yang HANYA punya Groq key (dan tidak punya Gemini key)
+     tidak lagi ditolak di depan despite everything siap. */
+  const vp=visionProvider();
+  if(!vp) {
+    showToast(visionReadyHint(), 'warn', 5000);
     inputEl.value = '';
     return;
   }
@@ -625,8 +717,10 @@ async function scanImageToQuestion(inputEl) {
     showScanPreview(dataUrl);
 
     const base64 = dataUrl.split(',')[1];
-    const mimeType = file.type || 'image/jpeg';
-    const rawResponse = await callGeminiVision(base64, mimeType);
+    /* MIME WAJIB image/jpeg: dataUrl hasil compressImg() SELALU JPEG (toDataURL('image/jpeg')),
+       sedangkan file.type bisa image/png atau image/webp. Kirim mismatch → provider menolak
+       bytes yang bukan format yang diklaim. */
+    const rawResponse = await visionScan(base64, 'image/jpeg', VISION_PROMPT_SINGLE, 2048);
 
     const clean = rawResponse.replace(/```json?|```/gi, '').trim();
 
@@ -642,7 +736,7 @@ async function scanImageToQuestion(inputEl) {
 
   } catch (e) {
     const msg = e.message || '';
-    if (aiOfferFallback(e, () => scanImageToQuestion(inputEl), true)) return;
+    if (aiOfferFallback(e, () => scanImageToQuestion(inputEl), 'vision')) return;
     aiErrToast(msg, '', e);
   } finally {
     if (btn) {
@@ -959,20 +1053,10 @@ function _extractJSON(raw){
   }
   throw new Error('FORMAT_ERROR');
 }
-async function callGeminiVisionBatch(base64,mime){
-  const key=localStorage.getItem('exambre_gemini_key');
-  if(!key)throw new Error('NO_KEY');
-  return await gemFetch(key,()=>({
-      contents:[{parts:[
-        {inlineData:{mimeType:mime,data:base64}},
-        {text:`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`}
-      ]}],
-      generationConfig:{temperature:0.1,maxOutputTokens:4096,response_mime_type:'application/json'}
-    }),true);
-}
+
 async function scanBatchToQuestions(inputEl){
   const file=inputEl&&inputEl.files&&inputEl.files[0];if(!file)return;
-  if(!localStorage.getItem('exambre_gemini_key')){showToast('Scan foto memakai Gemini — masukkan API key dulu di Lainnya','warn',5000);inputEl.value='';return;}
+  if(!visionProvider()){showToast(visionReadyHint(),'warn',5000);inputEl.value='';return;}
   const btn=document.getElementById('batch-img-btn');
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Memindai halaman...';}
   try{
@@ -983,7 +1067,7 @@ async function scanBatchToQuestions(inputEl){
     const dataUrl=await compressImg(file,1400,0.85);
     if(!dataUrl)throw new Error('Gagal membaca gambar');
     const base64=dataUrl.split(',')[1];
-    const raw=await callGeminiVisionBatch(base64,file.type||'image/jpeg');
+    const raw=await visionScan(base64,'image/jpeg',VISION_PROMPT_BATCH,4096);
     let data=_extractJSON(raw);
     const arr=Array.isArray(data)?data:(data.questions||[]);
     const items=[];
@@ -1001,7 +1085,7 @@ async function scanBatchToQuestions(inputEl){
     if(catSel)catSel.innerHTML=getCatKeys().map(k=>`<option value="${escHtml(k)}">${escHtml((cats[k]&&cats[k].name)||k)}</option>`).join('');
     document.getElementById('batch-modal').classList.add('on');
   }catch(e){
-    if(aiOfferFallback(e,()=>scanBatchToQuestions(inputEl),true))return;
+    if(aiOfferFallback(e,()=>scanBatchToQuestions(inputEl),'vision'))return;
     aiErrToast(e.message,'Gagal memindai',e);
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-file-text"></i> Scan Halaman — Banyak Soal Sekaligus';}

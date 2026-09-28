@@ -51,7 +51,8 @@ Dispatcher: `callAI(prompt, json?)` → provider kustom jika tersedia, else Gemi
 Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback ke Gemini (console.warn tercatat).
 `callAIChat(systemText, hist)` untuk chat multi-turn sungguhan (tutor).
 - Provider kustom: format OpenAI-compatible `/chat/completions`; config di Lainnya
-  (baseUrl+model+key, disimpan `exambre_custom_ai`). Scan foto TETAP Gemini (vision).
+  (baseUrl+model+key+**visionModel**, disimpan `exambre_custom_ai`). Model vision TERPISAH
+  karena model teks (cth `openai/gpt-oss-120b`) tidak bisa membaca gambar — lihat "Scan foto".
 - Mode JSON: kirim `json=true` → Gemini dapat `response_mime_type:'application/json'`,
   OpenAI-compatible dapat `response_format:{type:'json_object'}`. Selalu gunakan untuk
   fitur yang butuh JSON.
@@ -168,7 +169,8 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   melempar `COOLDOWN` dan fallback tidak pernah terpakai. Bug ini sudah pernah terjadi.
 - `callAI()` TIDAK boleh fallback ke provider lain diam-diam (membakar kuota dua provider
   sekaligus + menutupi provider mana yang bermasalah). Penawarnya `aiOfferFallback(e, fn,
-  visionOnly)` → `showConfirm`; `visionOnly=true` untuk scan foto karena cuma Gemini vision.
+  modality)` → `showConfirm`; modality `'text'` (default) atau `'vision'`. WAJIB pakai
+  `'vision'` di kedua scan, karena Groq vision dan Gemini sekarang saling bisa jadi cadangan.
   `callAIChat()` tunduk aturan yang sama.
 - Tidak ada mapper pesan manual per fitur lagi: pakai `aiErrToast(msg, prefix, e)` atau
   `aiErrLabel(msg, e)` (versi teks untuk bubble inline). Kode yang belum dikenal tetap
@@ -200,6 +202,24 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
 - Scan foto WAJIB lewat `compressImg(file,1400,0.85)` — JANGAN `FileReader.readAsDataURL`
   mentah. Foto HP 12MP ≈ 15.000 token gambar (w*h/768); 1400px ≈ 2.500. Kirim mentah
   = menghabiskan kuota token per menit → 429 hampir tiap scan (bug yang pernah dikeluhkan user).
+- **Routing scan** (`visionScan()`): `visionModel` terisi → `callCustomAIVision()` (Groq
+  OpenAI-compatible), kalau kosong → `gemVisionAsk()` (Gemini).
+  `getVisionModel()` WAJIB mengembalikan `null` untuk string kosong — kalau di-default-kan,
+  foto soal user diam-diam terkirim ke provider yang tidak ia pilih (biaya + privasi).
+  Konsekuensi: config lama tanpa `visionModel` tetap scan ke Gemini, dan user yang HANYA
+  punya Groq key TIDAK lagi ditolak guard `exambre_gemini_key` (guard WAJIB `visionProvider()`).
+- Prompt scan WAJIB satu sumber: `VISION_PROMPT_SINGLE` / `VISION_PROMPT_BATCH`. Jangan
+  diduplikasi per provider — `_extractJSON()` hanya berhasil kalau keduanya dapat format sama.
+- MIME ke WAJIB `image/jpeg` (hasil `compressImg()` selalu JPEG via `toDataURL`), BUKAN
+  `file.type` — file aslinya bisa png/webp dan mismatch ditolak provider.
+- `GROQ_IMG_MAX` (3MB base64) wajib dijaga: kompres 1400px biasanya ~500KB, tapi tanpa guard
+  errornya jadi 400 misterius dari provider.
+- `callCustomAIVision()` WAJIB punya jalur auto-disable reasoning yang sama dengan
+  `callCustomAI()` (400 yang menyebut reasoning → ulangi sekali tanpa parameter). Scan TIDAK
+  boleh fallback diam-diam ke Gemini di dalam fungsi ini; itu urusan `aiOfferFallback()` di
+  pemanggilnya, sesuai aturan global.
+- Fallback scan: `aiOfferFallback(e,()=>scan...(inputEl),'vision')`. `aiAltReadyModality()`
+  WAJIB dipakai supaya Groq tanpa `visionModel` TIDAK ikut ditawarkan (lalu gagal NO_KEY).
 - 429 Gemini: Google TIDAK pernah mengirim header Retry, jadi durasi asli hanya ada di
   `error.details[].RetryInfo.retryDelay` → WAJIB diparse `_aiQuota()`. `quotaId`
   (`…PerDay` vs `…PerMinute`) ikut dibawa ke error. Dulu durasi dikira 60 dtk dan pesannya
@@ -210,7 +230,7 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   dan tidak boleh kontradiktif ("hari ini tidak akan berhasil" padahal reset-nya hari ini juga).
   Jam reset = tengah malam Pasifik → `_nextPTMidnight()` (pakai `Intl` timezone agar aman DST),
   ditampilkan `toLocaleString('id-ID')` sesuai jam device.
-- Uji: `/tmp/opencode/test-ai.js` (290 assertions, `fetch` tiruan). Wajib dijalankan tiap
+- Uji: `/tmp/opencode/test-ai.js` (359 assertions, `fetch` tiruan). Wajib dijalankan tiap
   menyentuh `16-ai.js` — ia sudah menangkap 13 bug nyata yang lolos `node --check`.
   Panggilan yang harusnya sukses dibungkus `settle()` supaya satu seksi rusak tidak
   me-crash dan menyembunyikan seksi berikutnya. Mutasi balik ke `attempt(true)`,
