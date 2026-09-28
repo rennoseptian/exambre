@@ -103,10 +103,37 @@ function _aiRetryMs(res,def){
 const AI_OVERLOAD=/high demand|overload|spikes in demand|resource[ _-]?exhausted|capacity|temporarily unavailable|try again later|rate limit|too many requests|quota exceeded/i;
 const AI_200_OVERLOAD=/currently experiencing high demand|Spikes in demand are usually temporary/i;
 
+/* Metadata kuota dari body 429 Gemini. Retry-After TIDAK pernah dikirim Google, jadi tanpa
+   parsing ini kita selalu menebak "1 menit" — padahal kuota HARIAN (…PerDay) juga balas 429
+   dengan bentuk sama. Bentuk: error.details[].RetryInfo.retryDelay + QuotaFailure.quotaId. */
+function _aiQuota(body){
+  const out={retryMs:0,quotaId:''};
+  const det=body&&body.error&&body.error.details;
+  if(!Array.isArray(det))return out;
+  det.forEach(d=>{
+    if(!d||typeof d!=='object')return;
+    const t=String(d['@type']||'');
+    if(t.indexOf('RetryInfo')!==-1&&d.retryDelay!=null){
+      const raw=String(d.retryDelay);
+      const dur=_aiDurMs(raw);
+      if(dur!==null)out.retryMs=dur;
+      else if(/^\d+(\.\d+)?$/.test(raw))out.retryMs=parseFloat(raw)*1000;
+    }
+    if(t.indexOf('QuotaFailure')!==-1&&Array.isArray(d.violations)&&d.violations.length){
+      const q=String((d.violations[0]||{}).quotaId||'');
+      if(q)out.quotaId=q;
+    }
+  });
+  return out;
+}
+
 function aiClassify(res,body){
   const st=(res&&res.status)||0;
   const msg=String((body&&(body.error&&(body.error.message||body.error.status))||(body&&body.message))||((res&&res.statusText)||''));
-  if(st===429)return{code:'RATE_LIMIT',msg,retryMs:_aiRetryMs(res,60000)};
+  if(st===429){
+    const q=_aiQuota(body);
+    return{code:'RATE_LIMIT',msg,retryMs:q.retryMs||_aiRetryMs(res,60000),quotaId:q.quotaId};
+  }
   if(st===401||st===403)return{code:'BAD_KEY',msg,retryMs:0};
   if(st===400)return{code:/api[ _-]?key/i.test(msg)?'BAD_KEY':'BAD_REQUEST',msg,retryMs:0}; /* Gemini 400 = key rusak ATAU parameter salah */
   if(st===404)return{code:'NOT_FOUND',msg,retryMs:0};
@@ -151,7 +178,7 @@ async function aiFetch(url,opts,pv,maxTries){
      503 yang sempat muncul lalu gagal NETWORK akan meninggalkan kunci cooldown yang menyesatkan. */
   if(last.code==='RATE_LIMIT')aiSetCooldown(pv,last.retryMs||60000);
   else if(last.code==='OVERLOADED')aiSetCooldown(pv,last.retryMs||30000);
-  throw _aiErr(last.code||'NETWORK',{provider:pv,detail:last.msg||'',retryMs:last.retryMs||0});
+  throw _aiErr(last.code||'NETWORK',{provider:pv,detail:last.msg||'',retryMs:last.retryMs||0,quotaId:last.quotaId||''});
 }
 
 /* Bentuk balasan: OpenAI-compat (choices[0].message.content) vs Gemini (candidates[0].content.parts[0].text) */
@@ -434,8 +461,14 @@ function aiErrLabel(msg,e){
   const cdG=aiCooldownLeft('gemini'),cdR=aiCooldownLeft('groq');
   const hint=()=>{
     const srv=(e&&e.retryMs)||0;
-    if(srv>AI_CD_MAX)return ' Batas kuota di server ternyata jauh lebih lama (perkiraan '+aiCooldownLabel(srv)+') — fitur AI akan tetap gagal sampai kuota benar-benar reset.';
-    return ' Batas reset per menit, jadi coba lagi setelah '+aiCooldownLabel(cdR||cdG||60000)+'.';
+    const q=String((e&&e.quotaId)||'');
+    /* Gemini tidak pernah mengirim Retry-Header, jadi durasi asalnya hanya dari
+       RetryInfo.retryDelay. Kalau tidak ada, JANGAN menebak "per menit" — kuota harian
+       juga balas 429 dengan bentuk identik, dan tebakan itu membuat user menunggu
+       sia-sia padahal resetnya besok. */
+    if(/perday|daily/i.test(q))return ' Ini kuota HARIAN yang habis, jadi mencoba lagi hari ini tidak akan berhasil — reset besok.';
+    if(srv>0)return ' Batas kuota di server perkiraan '+aiCooldownLabel(srv)+' lagi.';
+    return ' Batas kuota biasanya pulih dalam hitungan menit, tapi server tidak memberi tahu sisa waktunya. Coba lagi sebentar.';
   };
   if(m==='NO_KEY')return 'Masukkan Gemini API key dulu di menu Lainnya';
   if(m==='RATE_LIMIT')return 'Kuota AI habis sebentar.'+hint();
@@ -560,15 +593,15 @@ async function scanImageToQuestion(inputEl) {
   }
 
   try {
-    // Read file — capture both full dataUrl (for preview) and base64 (for API)
-    const { base64, dataUrl } = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => resolve({ dataUrl: e.target.result, base64: e.target.result.split(',')[1] });
-      reader.onerror = () => reject(new Error('Gagal membaca gambar'));
-      reader.readAsDataURL(file);
-    });
-    showScanPreview(dataUrl); // tampilkan preview gambar asli
+    /* WAJIB kompres sebelum kirim — file HP mentah bisa ~15.000 token gambar dan langsung
+       menghabiskan kuota token per menit (429). compressImg() capped ~2.500 token.
+       Preview memakai hasil kompres juga: tidak ada bedanya di layar, dan tidak menahan
+       gambar mentah 5MB di memori. */
+    const dataUrl = await compressImg(file, 1400, 0.85);
+    if (!dataUrl) throw new Error('Gagal membaca gambar');
+    showScanPreview(dataUrl);
 
+    const base64 = dataUrl.split(',')[1];
     const mimeType = file.type || 'image/jpeg';
     const rawResponse = await callGeminiVision(base64, mimeType);
 
@@ -911,7 +944,7 @@ async function callGeminiVisionBatch(base64,mime){
         {inlineData:{mimeType:mime,data:base64}},
         {text:`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`}
       ]}],
-      generationConfig:{temperature:0.1,maxOutputTokens:8192,response_mime_type:'application/json'}
+      generationConfig:{temperature:0.1,maxOutputTokens:4096,response_mime_type:'application/json'}
     }),true);
 }
 async function scanBatchToQuestions(inputEl){
@@ -920,7 +953,13 @@ async function scanBatchToQuestions(inputEl){
   const btn=document.getElementById('batch-img-btn');
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Memindai halaman...';}
   try{
-    const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=()=>rej(new Error('Gagal membaca gambar'));r.readAsDataURL(file);});
+    /* WAJIB kompres sebelum kirim. File HP bisa 12MP → ~15.000 token gambar (w*h/768),
+       padahal compressImg() capped ~2.500 token. Kirim mentah = menghabiskan kuota token per
+       menit tiap kali, sehingga scan hampir selalu kena 429. 1400px masih cukup terbaca
+       untuk teks kecil soal, 0.85 supaya huruf kecil tidak pecah. */
+    const dataUrl=await compressImg(file,1400,0.85);
+    if(!dataUrl)throw new Error('Gagal membaca gambar');
+    const base64=dataUrl.split(',')[1];
     const raw=await callGeminiVisionBatch(base64,file.type||'image/jpeg');
     let data=_extractJSON(raw);
     const arr=Array.isArray(data)?data:(data.questions||[]);

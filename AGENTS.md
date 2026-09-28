@@ -197,8 +197,17 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   - Jalur auto-disable `gemFetch()` tidak boleh `return await call(...)` langsung: kalau
     percobaan kedua jadi `OVERLOADED`, fallback flash-lite tidak pernah kepakai. Error retry
     diteruskan ke `tryLite()`.
-- Uji: `/tmp/opencode/test-ai.js` (260 assertions, `fetch` tiruan). Wajib dijalankan tiap
-  menyentuh `16-ai.js` — ia sudah menangkap 9 bug nyata yang lolos `node --check`.
+- Scan foto WAJIB lewat `compressImg(file,1400,0.85)` — JANGAN `FileReader.readAsDataURL`
+  mentah. Foto HP 12MP ≈ 15.000 token gambar (w*h/768); 1400px ≈ 2.500. Kirim mentah
+  = menghabiskan kuota token per menit → 429 hampir tiap scan (bug yang pernah dikeluhkan user).
+- 429 Gemini: Google TIDAK pernah mengirim header Retry, jadi durasi asli hanya ada di
+  `error.details[].RetryInfo.retryDelay` → WAJIB diparse `_aiQuota()`. `quotaId`
+  (`…PerDay` vs `…PerMinute`) ikut dibawa ke error. Dulu durasi dikira 60 dtk dan pesannya
+  hard-coded "reset per menit" — berbohong saat yang sebenarnya kuota harian yang habis.
+  `aiErrLabel()` tidak boleh menampilkan cooldown LOKAL sebagai "sisa kuota": itu kunci kita
+  sendiri (cap 15 mnt), bukan jawaban server. `COOLDOWN` boleh, karena itu memang kunci kita.
+- Uji: `/tmp/opencode/test-ai.js` (283 assertions, `fetch` tiruan). Wajib dijalankan tiap
+  menyentuh `16-ai.js` — ia sudah menangkap 12 bug nyata yang lolos `node --check`.
   Panggilan yang harusnya sukses dibungkus `settle()` supaya satu seksi rusak tidak
   me-crash dan menyembunyikan seksi berikutnya. Mutasi balik ke `attempt(true)`,
   `return await call(GEM_MODEL)`, atau `/^gemini-3/i` harus memunculkan `✗`.
