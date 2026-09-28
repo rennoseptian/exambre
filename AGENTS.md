@@ -202,13 +202,18 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
 - Scan foto WAJIB lewat `compressImg(file,1400,0.85)` — JANGAN `FileReader.readAsDataURL`
   mentah. Foto HP 12MP ≈ 15.000 token gambar (w*h/768); 1400px ≈ 2.500. Kirim mentah
   = menghabiskan kuota token per menit → 429 hampir tiap scan (bug yang pernah dikeluhkan user).
-- Model vision default Groq = `qwen/qwen3.6-27b` (multimodal + JSON Object Mode, dan
-  `REASON_CAP` sudah punya entri `qwen3\.6-27b` dengan level `['none','default']` → scan JSON
-  otomatis `reasoning_effort:'none'`, thinking mati, JSON tidak kacau). JANGAN pakai
-  `meta-llama/llama-4-scout-17b-16e-instruct`: Groq **deprecated** model itu per 17 Juli 2026
-  sehingga request-nya 404 `NOT_FOUND` dan user mengira app rusak. `openai/gpt-oss-*` juga
-  text-only. Katalog tiap provider berubah cepat — pakai tombol "Cek Daftar Model" sebagai
-  rujukan, jangan hardcode dari ingatan.
+- Model vision default Groq = `qwen/qwen3.8-27b` (multimodal 27B, 131K context, JSON mode,
+  tunable reasoning effort; `REASON_CAP` punya entri `qwen3\.8-27b` level
+  `['low','medium','high']` → scan JSON dipaksa ke `levels[0]='low'`).
+- **JANGAN hardcode ID model dari ingatan.** Groq mengganti katalog 2× dalam 2026:
+  `meta-llama/llama-4-scout-17b-16e-instruct` mati 17 Jul 2026, `qwen/qwen3.6-27b` mati
+  **14 Sep 2026** (digantikan 3.8-27b). Keduanya free/dev-tier saja — tier enterprise
+  tidak terkena, jadi `RETIRED_MODELS` hanya memberi saran, TIDAK memblokir. ID mati →
+  404 `NOT_FOUND` → user mengira app rusak. Sumber kebenaran = tombol "Cek Daftar Model"
+  (menarik daftar LIVE dari provider). `openai/gpt-oss-*` text-only.
+- `RETIRED_MODELS` (peta model mati → pengganti) dibaca `loadCustomAI()` untuk menandai
+  status provider dengan warna `--warn`. Entry `REASON_CAP` untuk model mati **TETAP
+  disimpan** (enterprise masih bisa akses).
 - **Routing scan** (`visionScan()`): `visionModel` terisi → `callCustomAIVision()` (Groq
   OpenAI-compatible), kalau kosong → `gemVisionAsk()` (Gemini).
   `getVisionModel()` WAJIB mengembalikan `null` untuk string kosong — kalau di-default-kan,
@@ -238,7 +243,7 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   dan tidak boleh kontradiktif ("hari ini tidak akan berhasil" padahal reset-nya hari ini juga).
   Jam reset = tengah malam Pasifik → `_nextPTMidnight()` (pakai `Intl` timezone agar aman DST),
   ditampilkan `toLocaleString('id-ID')` sesuai jam device.
-- Uji: `/tmp/opencode/test-ai.js` (363 assertions, `fetch` tiruan). Wajib dijalankan tiap
+- Uji: `/tmp/opencode/test-ai.js` (374 assertions, `fetch` tiruan). Wajib dijalankan tiap
   menyentuh `16-ai.js` — ia sudah menangkap 13 bug nyata yang lolos `node --check`.
   Panggilan yang harusnya sukses dibungkus `settle()` supaya satu seksi rusak tidak
   me-crash dan menyembunyikan seksi berikutnya. Mutasi balik ke `attempt(true)`,

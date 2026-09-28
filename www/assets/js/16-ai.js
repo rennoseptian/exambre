@@ -34,6 +34,17 @@ function loadCustomAI(){
      menebak kenapa foto tetap dikirim ke Google padahal provider kustomnya aktif. */
   if(vmInp&&!vmInp.placeholder)vmInp.placeholder=VISION_MODEL_DEFAULT;
   if(vmInp)vmInp.title=visionReadyMsg();
+  /* Model yang tersimpan sudah dihapus provider → 404 terus-menerus. Kasih penggantinya
+     di status SEBELUM user scan, jadi tidak perlu mencari sendiri lewat error 404 yang membingungkan. */
+  if(c){
+    const bad=[['model teks',c.model],['model vision',c.visionModel]]
+      .filter(x=>x[1]&&RETIRED_MODELS[String(x[1]).trim()]);
+    if(bad.length){
+      const first=bad[0];
+      st.textContent='⚠️ '+first[0]+' "'+first[1]+'" sudah dihapus provider (rozak → 404). Ganti ke "'+RETIRED_MODELS[String(first[1]).trim()]+'" atau cek daftar model terbaru.';
+      st.style.color='var(--warn)';
+    }
+  }
 }
 function saveCustomAI(){
   const g=id=>(document.getElementById(id)||{}).value||'';
@@ -50,15 +61,27 @@ function saveCustomAI(){
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
 
 /* ── Model VISION untuk scan foto ──
-   Default: Qwen3.6-27B — multimodal (vision+text) + JSON Object Mode + Reasoning, jadi
-   cocok untuk OCR soal dan aman dipakai response_format.
-   JANGAN pakai Llama 4 Scout: Groq DEPRECATED meta-llama/llama-4-scout-17b-16e-instruct
-   per 17 Juli 2026 → request-nya 404 NOT_FOUND dan user mengira app rusak.
+   Default: Qwen3.8-27B — successor langsung qwen3.6-27b (multimodal 27B, 131K context,
+   thinking + instruct mode, tunable reasoning effort, tool use, JSON mode).
+   JANGAN hardcode dari ingatan: Groq mengganti katalog beberapa kali dalam 2026 —
+   llama-4-scout mati 17 Jul, qwen3.6-27b mati 14 Sep. ID mati → 404 dan user mengira
+   app rusak. Sumber kebenaran tetap tombol "Cek Daftar Model" (menarik daftar live).
    Disimpan DI DALAM config provider yang sama, bukan key terpisah, jadi tetap satu blok
    "Simpan Provider" yang perlu diklik.
    PENTING: visionModel kosong = scan tetap pakai Gemini. Jangan default-kan diam-diam
    ke Groq — foto soal user akan ikut terkirim ke provider lain tanpa diminta. */
-const VISION_MODEL_DEFAULT='qwen/qwen3.6-27b';
+const VISION_MODEL_DEFAULT='qwen/qwen3.8-27b';
+/* Model yang sudah DIHAPUS provider → 404 NOT_FOUND. Dipakai untuk memberi saran
+   penggantinya, TIDAK untuk memblokir: deprecation Groq tidak berlaku untuk tier
+   enterprise, jadi model yang "mati" bisa saja masih hidup di akun user. */
+const RETIRED_MODELS={
+  'qwen/qwen3.6-27b':'qwen/qwen3.8-27b',
+  'meta-llama/llama-4-scout-17b-16e-instruct':'qwen/qwen3.8-27b',
+  'meta-llama/llama-4-maverick-17b-128e-instruct':'openai/gpt-oss-120b',
+  'qwen/qwen3-32b':'openai/gpt-oss-120b',
+  'llama-3.3-70b-versatile':'openai/gpt-oss-120b',
+  'llama-3.1-8b-instant':'openai/gpt-oss-20b'
+};
 function getVisionModel(){
   const c=getCustomAI();if(!c)return null;
   const m=String(c.visionModel||'').trim();
