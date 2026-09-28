@@ -101,8 +101,10 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     `border-top`, muncul garis tipis putih melintang di layar (setelah selesai ujian dsb.).
 15. Undo hapus soal WAJIB per-toast lewat closure (`showToastWithUndo('...',()=>{snap})` di
     `delQ`), BUKAN slot global `lastDeleted` + `onclick="undoDel()"`. Dua toast hapus bisa hidup
-    bersamaan (4 dtk) sehingga undo di toast lama memulihkan soal yang SALAH lalu mengunci
-    `lastDeleted=null` — soal yang dihapus pertama hilang permanen.
+    bersamaan sehingga undo di toast lama memulihkan soal yang SALAH lalu mengunci
+    `lastDeleted=null` — soal yang dihapus pertama hilang permanen. Durasi toast hapus juga
+    WAJIB 8 dtk (bukan default 4 dtk): tiap hapus butuh dialog konfirmasi, jadi dua hapus
+    berturut-turut makan >4 dtk dan toast pertama lenyap sebelum sempat diklik.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →

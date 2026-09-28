@@ -16,7 +16,7 @@ function delQ(id){
       if(lastDeleted&&lastDeleted.id===snap.id)lastDeleted=null;
       qs.sort((a,b)=>a.id-b.id);persist();render();
       showToast('✅ Soal dipulihkan!','ok');
-    });
+    },8000);
   }});
 }
 function undoDel(){
