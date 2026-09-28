@@ -125,7 +125,19 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     masuk `style="..."` WAJIB lewat `safeColor()` (hanya `#RGB`/`#RRGGBB`, 3-digit
     dinormalkan ke 6-digit) — `migrateCatColors()` TIDAK memvalidasi warna, dan file import
     bisa menyuntikkan `red" onmouseover="alert(1)`. Opsi jawaban di contenteditable form edit
-    pakai `sanitizeHtml()` (bukan `escHtml`) supaya `<img>` hasil paste tetap hidup.
+     pakai `sanitizeHtml()` (bukan `escHtml`) supaya `<img>` hasil paste tetap hidup.
+19. `processImportJson()` TIDAK memvalidasi isi file backup — seluruh `data.qs` dan `data.cats`
+    dipakai apa adanya. Jadi SEMUA nilai dari storage/import wajib dianggap tidak dipercaya,
+    termasuk yang secara intuitif "pasti aman": (a) `src` gambar di `q.qimgs`/`q.eimgs`/
+    `q.optImgs`/`imgAreas` WAJIB `escHtml(...)`, dan kalau ikut masuk `onclick="openLB('...')"`
+    WAJIB `escHtml(jsStr(...))` — vektor nyata `x" onerror="alert(1)` lewat file backup;
+    (b) TIADA `<option>` boleh dirender dengan nilai mentah — `updateBabSelectEdit()` pernah
+    terlewat padahal tiga situs sub-bab lain sudah diamankan; select kategori di `16-ai.js`,
+    chip kategori simulasi, `catLbl` riwayat, dan nama kategori di `15-stats.js` juga mentah;
+    (c) teks dari respons AI (`r.label`, `it.jawaban`) dan preview hasil parse-paste (`r.q`)
+    ikut di-escape karena prompt-injection bisa menyuntikkan HTML.
+    Cara verifikasi cepat: invariant "jumlah kutip mentah di dalam satu tag = 2 × jumlah
+    atribut". Kalau kutip melebihi hitungan itu, ada atribut asing yang bocor.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →

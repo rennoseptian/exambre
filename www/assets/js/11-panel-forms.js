@@ -106,7 +106,7 @@ function showParsedPreview(r){
   const hasContent=r.q||r.opts.some(Boolean);
   if(!hasContent){out.style.display='none';return;}
   let html='<div style="background:var(--bg2);border-radius:var(--radius);padding:10px 14px;font-size:13px">';
-  if(r.q)html+=`<div style="display:flex;gap:8px;margin-bottom:5px"><span style="font-size:11px;color:var(--text2);min-width:70px;flex-shrink:0;font-weight:600">Soal</span><span>${r.q.substring(0,120)}${r.q.length>120?'...':''}</span></div>`;
+  if(r.q)html+=`<div style="display:flex;gap:8px;margin-bottom:5px"><span style="font-size:11px;color:var(--text2);min-width:70px;flex-shrink:0;font-weight:600">Soal</span><span>${escHtml(r.q.substring(0,120))}${r.q.length>120?'...':''}</span></div>`;
   if(r.qImgsFromPaste&&r.qImgsFromPaste.length)html+=`<div style="display:flex;gap:8px;margin-bottom:5px"><span style="font-size:11px;color:var(--text2);min-width:70px;flex-shrink:0;font-weight:600">Gambar soal</span><span style="color:var(--accent)">🖼 ${r.qImgsFromPaste.length} gambar</span></div>`;
   const optsD=r.opts.map((o,i)=>{if(!o)return'';const l=LETTERS[i];const hasImg=(r.optImgsRich&&r.optImgsRich[l])||o.includes('<img');return`<span style="margin-right:8px"><b>${l}.</b>${hasImg?' 🖼':''}</span>`;}).filter(Boolean);
   if(optsD.length)html+=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px"><span style="font-size:11px;color:var(--text2);min-width:70px;flex-shrink:0;font-weight:600">Pilihan (${optsD.length})</span><span>${optsD.join('')}</span></div>`;

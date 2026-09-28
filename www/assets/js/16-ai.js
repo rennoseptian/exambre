@@ -445,7 +445,7 @@ function renderWeaknessSection(){
       :'<p style="font-size:11px;color:var(--text3);margin:4px 0 0">Belum pernah dijawab</p>';
     return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:13px;font-weight:600;color:var(--text)">${d.name}</span>
+        <span style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(d.name)}</span>
         <span style="font-size:12px;color:${pct===null?'var(--text3)':pct>=70?'var(--success)':pct>=40?'var(--accent)':'var(--warn)'};font-weight:700">${pct!==null?pct+'%':'—'}</span>
       </div>${bar}
       <div style="display:flex;gap:12px;margin-top:4px">
@@ -543,7 +543,7 @@ function renderReadinessWidget(){
         </svg>
       </div>
       <div style="flex:1">
-        <div style="font-size:18px;font-weight:800;color:${color};margin-bottom:4px">${r.label}</div>
+        <div style="font-size:18px;font-weight:800;color:${color};margin-bottom:4px">${escHtml(r.label)}</div>
         <div style="font-size:12px;color:var(--text2);line-height:1.8">
           📅 ${r.daysLeft} hari menuju ujian<br>
           ✅ ${r.mastered}/${r.total} soal dikuasai<br>
@@ -693,7 +693,7 @@ function renderBatchPreview(){
       <input type="checkbox" ${it._sel?'checked':''} ${it.ok?'':'disabled'} onchange="_bt(${i},this.checked)">
       <span style="flex:1">${escHtml((i+1)+'. '+it.soal.slice(0,120))}${it.ok?'':' <b style="color:var(--danger-ink)">tidak valid</b>'}</span>
       ${tag}
-      <b style="flex-shrink:0">${it.jawaban||'—'}</b>
+      <b style="flex-shrink:0">${escHtml(it.jawaban||'—')}</b>
     </label>`;}).join('');
   updateBatchCount();
 }
