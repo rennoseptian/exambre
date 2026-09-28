@@ -99,6 +99,10 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
 14. `#sim-nav-container` (grid nomor simulasi) default `display:none` di CSS; hanya `display:block`
     saat `#sec-review.sim-active`. Bila dibiarkan elemen kosong tetap fixed bottom dengan
     `border-top`, muncul garis tipis putih melintang di layar (setelah selesai ujian dsb.).
+15. Undo hapus soal WAJIB per-toast lewat closure (`showToastWithUndo('...',()=>{snap})` di
+    `delQ`), BUKAN slot global `lastDeleted` + `onclick="undoDel()"`. Dua toast hapus bisa hidup
+    bersamaan (4 dtk) sehingga undo di toast lama memulihkan soal yang SALAH lalu mengunci
+    `lastDeleted=null` — soal yang dihapus pertama hilang permanen.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →

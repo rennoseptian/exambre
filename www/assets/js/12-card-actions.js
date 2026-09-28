@@ -2,11 +2,21 @@
 function delQ(id){
   const q=qs.find(x=>x.id===id);if(!q)return;
   showConfirm({icon:'🗑️',title:'Hapus soal?',body:'Soal ini akan dihapus permanen.',actionLabel:'Hapus',onConfirm:()=>{
-    lastDeleted={...q,opts:[...(q.opts||[])],qimgs:[...(q.qimgs||[])],eimgs:[...(q.eimgs||[])]};
+    const snap={...q,opts:[...(q.opts||[])],qimgs:[...(q.qimgs||[])],eimgs:[...(q.eimgs||[])]};
+    lastDeleted=snap;
     qs=qs.filter(q=>q.id!==id);
     pendingDeletes.push(id);
     persist();render();
-    showToast('Soal dihapus. <a onclick="undoDel()">Undo</a>','warn',4000);
+    // Undo WAJIB per-toast (closure snap), bukan lewat slot global lastDeleted:
+    // dua toast bisa hidup bersamaan sehingga global salah memulihkan soal.
+    showToastWithUndo('Soal dihapus.',()=>{
+      if(qs.some(x=>x.id===snap.id))return;
+      qs.push(snap);
+      pendingDeletes=pendingDeletes.filter(i=>i!==snap.id);
+      if(lastDeleted&&lastDeleted.id===snap.id)lastDeleted=null;
+      qs.sort((a,b)=>a.id-b.id);persist();render();
+      showToast('✅ Soal dipulihkan!','ok');
+    });
   }});
 }
 function undoDel(){
