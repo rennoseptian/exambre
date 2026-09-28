@@ -48,7 +48,7 @@ function renderStatsPage(){
     html+=`<div class="panel" style="border-color:#F09595;background:var(--red50);padding:14px 16px;margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
         <i class="ti ti-alert-triangle" style="color:var(--red800);font-size:17px"></i>
-        <span style="font-weight:700;color:var(--red800);font-size:13px">Perlu Fokus: ${c.name||weakest.k}</span>
+        <span style="font-weight:700;color:var(--red800);font-size:13px">Perlu Fokus: ${escHtml(c.name||weakest.k)}</span>
       </div>
       <p style="font-size:12px;color:var(--red800);opacity:.85;line-height:1.5">Akurasi cuma <b>${weakest.acc}%</b> dari ${weakest.att}x latihan — paling lemah dibanding kategori lain. Coba fokus latihan di sini dulu.</p>
     </div>`;
@@ -60,7 +60,7 @@ function renderStatsPage(){
     const accColor=r.acc===null?'var(--text3)':r.acc>=80?'var(--green800)':r.acc>=50?'var(--amber800)':'var(--red800)';
     return`<div class="panel" style="padding:16px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span class="badge" style="${catBadgeStyle(r.k)};font-size:12px">${c.name||r.k}</span>
+        <span class="badge" style="${catBadgeStyle(r.k)};font-size:12px">${escHtml(c.name||r.k)}</span>
         <span style="font-size:11px;color:var(--text2)">${r.total} soal</span>
       </div>
       <div class="prog" style="margin-bottom:10px"><div class="progf" style="width:${r.pct}%"></div></div>

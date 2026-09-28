@@ -92,10 +92,10 @@ function renderSimSetup(){
   const catsHtml=availCats.length?availCats.map(k=>{
     const c=cats[k]||{};const n=qs.filter(q=>q.cat===k).length;
     const on=simSelectedCats.has(k);
-    return`<button class="ctab${on?' on':''}" onclick="toggleSimCat('${k}')">${c.name||k} <span style="opacity:.6;font-size:10px">${n}</span></button>`;
+    return`<button class="ctab${on?' on':''}" onclick="toggleSimCat('${escHtml(jsStr(k))}')">${escHtml(c.name||k)} <span style="opacity:.6;font-size:10px">${n}</span></button>`;
   }).join(''):'<p style="font-size:12px;color:var(--text2)">Belum ada kategori dengan soal. Tambahkan soal dulu di tab Daftar Soal.</p>';
   const histHtml=simHistory.length?simHistory.slice(0,8).map((h,i)=>{
-    const catLbl=(!h.cats||h.cats.length>=availCats.length)?'Semua kategori':h.cats.map(k=>cats[k]?cats[k].name:k).join(', ');
+    const catLbl=(!h.cats||h.cats.length>=availCats.length)?'Semua kategori':escHtml(h.cats.map(k=>cats[k]?cats[k].name:k).join(', '));
     const d=new Date(h.date);
     const dateLbl=d.toLocaleDateString('id-ID',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
     const scoreColor=h.accPct>=80?'var(--success)':h.accPct>=55?'var(--accent)':'var(--danger)';

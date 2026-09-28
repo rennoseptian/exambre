@@ -158,7 +158,7 @@ function toggleInlineEdit(id){
 function updateBabSelectEdit(id){
   const catSel=document.getElementById('e-cat-'+id),babSel=document.getElementById('e-bab-'+id);
   if(!catSel||!babSel)return;
-  const c=cats[catSel.value];babSel.innerHTML=(c?c.babs:[]).map(b=>`<option value="${b}">${b}</option>`).join('');
+  const c=cats[catSel.value];babSel.innerHTML=(c?c.babs:[]).map(b=>`<option value="${escHtml(b)}">${escHtml(b)}</option>`).join('');
 }
 // FIX BUG #1: hapus double optImgs reset, hanya ekstrak dari HTML
 function saveEdit(id){

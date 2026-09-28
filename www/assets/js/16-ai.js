@@ -564,7 +564,7 @@ function openNoteToQ(noteId){
   window._n2qId=noteId;
   const info=document.getElementById('note2q-info');if(info)info.textContent='Sumber: '+(n.title||'(Tanpa judul)');
   const cs=document.getElementById('note2q-cat');
-  if(cs)cs.innerHTML=getCatKeys().map(k=>`<option value="${k}">${(cats[k]&&cats[k].name)||k}</option>`).join('');
+  if(cs)cs.innerHTML=getCatKeys().map(k=>`<option value="${escHtml(k)}">${escHtml((cats[k]&&cats[k].name)||k)}</option>`).join('');
   const modal=document.getElementById('note2q-modal');if(modal)modal.classList.add('on');
 }
 async function runNoteToQ(){
@@ -669,7 +669,7 @@ async function scanBatchToQuestions(inputEl){
     window._batchItems=items;
     renderBatchPreview();
     const catSel=document.getElementById('batch-cat');
-    if(catSel)catSel.innerHTML=getCatKeys().map(k=>`<option value="${k}">${(cats[k]&&cats[k].name)||k}</option>`).join('');
+    if(catSel)catSel.innerHTML=getCatKeys().map(k=>`<option value="${escHtml(k)}">${escHtml((cats[k]&&cats[k].name)||k)}</option>`).join('');
     document.getElementById('batch-modal').classList.add('on');
   }catch(e){
     const msg=e.message||'';
