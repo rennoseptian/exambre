@@ -50,12 +50,15 @@ function saveCustomAI(){
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
 
 /* ── Model VISION untuk scan foto ──
-   Default: Llama 4 Scout — DocVQA 94.4 (OCR dokumen, persis kasus scan soal) dan
-   mendukung Bahasa Indonesia. Disimpan DI DALAM config provider yang sama, bukan key
-   terpisah, jadi satu blok "Simpan Provider" saja yang perlu diklik.
+   Default: Qwen3.6-27B — multimodal (vision+text) + JSON Object Mode + Reasoning, jadi
+   cocok untuk OCR soal dan aman dipakai response_format.
+   JANGAN pakai Llama 4 Scout: Groq DEPRECATED meta-llama/llama-4-scout-17b-16e-instruct
+   per 17 Juli 2026 → request-nya 404 NOT_FOUND dan user mengira app rusak.
+   Disimpan DI DALAM config provider yang sama, bukan key terpisah, jadi tetap satu blok
+   "Simpan Provider" yang perlu diklik.
    PENTING: visionModel kosong = scan tetap pakai Gemini. Jangan default-kan diam-diam
    ke Groq — foto soal user akan ikut terkirim ke provider lain tanpa diminta. */
-const VISION_MODEL_DEFAULT='meta-llama/llama-4-scout-17b-16e-instruct';
+const VISION_MODEL_DEFAULT='qwen/qwen3.6-27b';
 function getVisionModel(){
   const c=getCustomAI();if(!c)return null;
   const m=String(c.visionModel||'').trim();
@@ -624,14 +627,15 @@ async function gemVisionAsk(base64,mime,prompt,maxOut){
   }),true);
 }
 /* Provider kustom (OpenAI-compatible) vision: content array + image_url data-URI.
-   Batas Groq: request base64 maks 4MB. compressImg(1400px,0.85) jauh di bawah itu, tapi
-   tetap diguard supaya errornya jelas, bukan 400 misterius dari provider. */
-const GROQ_IMG_MAX=3*1024*1024;
+   compressImg(1400px,0.85) menghasilkan ~500KB, jadi guard ini praktis tak tersentuh —
+   tujuannya hanya memberi pesan jelas bila ada jalur lain mengirim gambar besar, bukan
+   nuts-ini batas provider (tiap provider & model punya batas sendiri). */
+const GROQ_IMG_MAX=8*1024*1024;
 async function callCustomAIVision(base64,mime,prompt){
   const c=getCustomAI();
   if(!c||!getVisionModel())throw new Error('NO_KEY');
   const vm=getVisionModel();
-  if(base64.length>GROQ_IMG_MAX)throw new Error('Foto masih '+(Math.round(base64.length/1024/1024*10)/10)+'MB setelah kompres — melebihi batas 3MB '+aiProviderLabel('groq')+' untuk scan.');
+  if(base64.length>GROQ_IMG_MAX)throw new Error('Foto masih '+(Math.round(base64.length/1024/1024*10)/10)+'MB setelah kompres — melebihi batas 8MB untuk scan. Ambil foto dengan resolusi lebih kecil.');
   const attempt=async()=>{
     const body={model:vm,messages:[{role:'user',content:[
       {type:'text',text:prompt},
