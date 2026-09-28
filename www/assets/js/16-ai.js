@@ -67,6 +67,22 @@ function aiCooldownLabel(ms){
   if(h<24)return h+' jam'+(r?' '+r+' menit':'');
   return Math.ceil(h/24)+' hari';
 }
+/* Kapan kuota harian reset? Google: tengah malam waktu Pasifik. Hitung lewat
+   Intl timezone (menangani DST sendiri) lalu tampilkan di jam device user.
+   Return null kalau Intl tidak tersedia → pemanggil jatuh ke teks "reset besok". */
+function _nextPTMidnight(){
+  try{
+    const now=new Date();
+    const out={};
+    new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour12:false,
+      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})
+      .formatToParts(now).forEach(x=>{if(x.type!=='literal')out[x.type]=x.value;});
+    const h=(+out.hour)%24;
+    const sinceMid=h*3600000+(+out.minute)*60000+(+out.second)*1000+now.getMilliseconds();
+    return new Date(now.getTime()+(86400000-sinceMid));
+  }catch(e){return null;}
+}
+
 function aiProviderLabel(p){return p==='groq'?'Provider kustom (Groq)':'Gemini';}
 
 /* Durasi majemuk gaya Groq: "6m0s", "1h2m3s", "1.5s", "250ms" → total ms.
@@ -461,17 +477,24 @@ function aiErrLabel(msg,e){
   const cdG=aiCooldownLeft('gemini'),cdR=aiCooldownLeft('groq');
   const hint=()=>{
     const srv=(e&&e.retryMs)||0;
-    const q=String((e&&e.quotaId)||'');
     /* Gemini tidak pernah mengirim Retry-Header, jadi durasi asalnya hanya dari
        RetryInfo.retryDelay. Kalau tidak ada, JANGAN menebak "per menit" — kuota harian
        juga balas 429 dengan bentuk identik, dan tebakan itu membuat user menunggu
        sia-sia padahal resetnya besok. */
-    if(/perday|daily/i.test(q))return ' Ini kuota HARIAN yang habis, jadi mencoba lagi hari ini tidak akan berhasil — reset besok.';
     if(srv>0)return ' Batas kuota di server perkiraan '+aiCooldownLabel(srv)+' lagi.';
     return ' Batas kuota biasanya pulih dalam hitungan menit, tapi server tidak memberi tahu sisa waktunya. Coba lagi sebentar.';
   };
   if(m==='NO_KEY')return 'Masukkan Gemini API key dulu di menu Lainnya';
-  if(m==='RATE_LIMIT')return 'Kuota AI habis sebentar.'+hint();
+  if(m==='RATE_LIMIT'){
+    /* Kuota harian perlu perlakuan terpisah: "habis sebentar" + "coba lagi" menyesatkan,
+       padahal yang dibutuhkan user adalah menunggu sampai jam reset yang pasti. */
+    if(/perday|daily/i.test(String((e&&e.quotaId)||''))){
+      const at=_nextPTMidnight();
+      const jam=at?at.toLocaleString('id-ID',{weekday:'long',hour:'2-digit',minute:'2-digit'}):'';
+      return 'Kuota AI harian habis'+(jam?' — reset '+jam+'.':'.')+' Mencoba lagi sebelum itu tidak akan membantu.';
+    }
+    return 'Kuota AI habis sebentar.'+hint();
+  }
   if(m==='OVERLOADED')return 'Server AI sedang sibuk. Sudah dicoba ulang otomatis, masih belum tersedia.';
   if(m==='TIMEOUT')return 'Server AI tidak merespons dalam 45 detik. Coba lagi.';
   if(m==='NETWORK')return 'Tidak ada koneksi ke server AI. Periksa internet lalu coba lagi.';

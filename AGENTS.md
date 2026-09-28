@@ -206,8 +206,12 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   hard-coded "reset per menit" — berbohong saat yang sebenarnya kuota harian yang habis.
   `aiErrLabel()` tidak boleh menampilkan cooldown LOKAL sebagai "sisa kuota": itu kunci kita
   sendiri (cap 15 mnt), bukan jawaban server. `COOLDOWN` boleh, karena itu memang kunci kita.
-- Uji: `/tmp/opencode/test-ai.js` (283 assertions, `fetch` tiruan). Wajib dijalankan tiap
-  menyentuh `16-ai.js` — ia sudah menangkap 12 bug nyata yang lolos `node --check`.
+  Cabang kuota HARIAN terpisah: TIDAK boleh pakai frasa "habis sebentar"/"coba lagi" (menyesatkan)
+  dan tidak boleh kontradiktif ("hari ini tidak akan berhasil" padahal reset-nya hari ini juga).
+  Jam reset = tengah malam Pasifik → `_nextPTMidnight()` (pakai `Intl` timezone agar aman DST),
+  ditampilkan `toLocaleString('id-ID')` sesuai jam device.
+- Uji: `/tmp/opencode/test-ai.js` (290 assertions, `fetch` tiruan). Wajib dijalankan tiap
+  menyentuh `16-ai.js` — ia sudah menangkap 13 bug nyata yang lolos `node --check`.
   Panggilan yang harusnya sukses dibungkus `settle()` supaya satu seksi rusak tidak
   me-crash dan menyembunyikan seksi berikutnya. Mutasi balik ke `attempt(true)`,
   `return await call(GEM_MODEL)`, atau `/^gemini-3/i` harus memunculkan `✗`.
