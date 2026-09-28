@@ -609,7 +609,7 @@ async function runNoteToQ(){
 }
 
 /* Feature 4.3 — Batch scan multi-soal */
-function _escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
 function _extractJSON(raw){
   let t=String(raw||'').replace(/```json?|```/gi,'').trim();
   try{return JSON.parse(t);}catch(e){}
@@ -687,11 +687,11 @@ function renderBatchPreview(){
   const asg=window._batchAssign||{};
   wrap.innerHTML=(window._batchItems||[]).map((it,i)=>{
     const a=asg[i];
-    const tag=a?`<span style="flex-shrink:0;font-size:10px;font-weight:700;${catBadgeStyle(a.cat)}padding:3px 9px;border-radius:99px">${_escHtml(((cats[a.cat]&&cats[a.cat].name)||a.cat)+(a.bab?' · '+a.bab:''))}</span>`:'';
+    const tag=a?`<span style="flex-shrink:0;font-size:10px;font-weight:700;${catBadgeStyle(a.cat)}padding:3px 9px;border-radius:99px">${escHtml(((cats[a.cat]&&cats[a.cat].name)||a.cat)+(a.bab?' · '+a.bab:''))}</span>`:'';
     return`
     <label class="batch-row${it.ok?'':' inv'}">
       <input type="checkbox" ${it._sel?'checked':''} ${it.ok?'':'disabled'} onchange="_bt(${i},this.checked)">
-      <span style="flex:1">${_escHtml((i+1)+'. '+it.soal.slice(0,120))}${it.ok?'':' <b style="color:var(--danger-ink)">tidak valid</b>'}</span>
+      <span style="flex:1">${escHtml((i+1)+'. '+it.soal.slice(0,120))}${it.ok?'':' <b style="color:var(--danger-ink)">tidak valid</b>'}</span>
       ${tag}
       <b style="flex-shrink:0">${it.jawaban||'—'}</b>
     </label>`;}).join('');
@@ -749,8 +749,8 @@ function saveTutorToNotes(){
   if(!v.some(x=>x.r==='ai')){showToast('Belum ada jawaban tutor untuk disimpan','warn');return;}
   const q=qs.find(x=>x.id===window._tutor.qid);
   const qPlain=q?(q.q||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim():'';
-  let html='<p><b>Soal:</b> '+_escHtml(qPlain||'(soal tidak tersedia)')+'</p>';
-  v.forEach(x=>{html+=x.r==='user'?'<p><b>Tanya:</b> '+_escHtml(x.t)+'</p>':'<div><b>Tutor:</b>'+x.h+'</div>';});
+  let html='<p><b>Soal:</b> '+escHtml(qPlain||'(soal tidak tersedia)')+'</p>';
+  v.forEach(x=>{html+=x.r==='user'?'<p><b>Tanya:</b> '+escHtml(x.t)+'</p>':'<div><b>Tutor:</b>'+x.h+'</div>';});
   notes.push({id:noteNid++,title:'Tutor — '+(qPlain.slice(0,60)||'percakapan'),body:html,bodyText:html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim(),catId:'',createdAt:Date.now(),updatedAt:Date.now()});
   persistNotes();renderNotes();
   showToast('Disimpan ke Catatan. <a onclick="closeTutor();goSec(\'catatan\')">Buka</a>','ok',5000);
@@ -766,7 +766,7 @@ async function sendTutor(){
   const text=(inp&&inp.value||'').trim();if(!text)return;
   const q=qs.find(x=>x.id===window._tutor.qid);if(!q)return;
   inp.value='';
-  _tutorAdd('user',_escHtml(text));window._tutor.view.push({r:'user',t:text});
+  _tutorAdd('user',escHtml(text));window._tutor.view.push({r:'user',t:text});
   window._tutor.hist.push({r:'user',t:text});
   const load=_tutorAdd('ai','<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> menyusun jawaban…');
   const btn=document.getElementById('tutor-send');if(btn)btn.disabled=true;
@@ -788,7 +788,7 @@ async function sendTutor(){
     window._tutor.view.push({r:'ai',h:clean});
   }catch(e){
     const msg=e.message||'';
-    load.innerHTML='<span style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar — coba beberapa menit lagi.':msg==='BAD_KEY'?'API key tidak valid. Periksa Lainnya.':'Gagal: '+_escHtml(msg))+'</span>';
+    load.innerHTML='<span style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar — coba beberapa menit lagi.':msg==='BAD_KEY'?'API key tidak valid. Periksa Lainnya.':'Gagal: '+escHtml(msg))+'</span>';
   }finally{if(btn)btn.disabled=false;}
 }
 
@@ -825,9 +825,9 @@ async function buatVariasi(qid,btn){
     if(!it)throw new Error('EMPTY_RESPONSE');
     window._vari={it,srcId:qid};
     const body=document.getElementById('variasi-body');
-    if(body)body.innerHTML='<p style="font-weight:700;margin-bottom:8px">'+_escHtml(it.soal)+'</p>'
+    if(body)body.innerHTML='<p style="font-weight:700;margin-bottom:8px">'+escHtml(it.soal)+'</p>'
       +'<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px">'
-      +it.opts.map((o,i)=>o?'<div style="background:var(--bg2);border-radius:10px;padding:7px 11px;font-size:12.5px'+(LETTERS[i]===it.jawaban?';outline:1.5px solid var(--success);color:var(--success-ink);font-weight:600':'')+'"><b>'+LETTERS[i]+'.</b> '+_escHtml(o)+'</div>':'').join('')
+      +it.opts.map((o,i)=>o?'<div style="background:var(--bg2);border-radius:10px;padding:7px 11px;font-size:12.5px'+(LETTERS[i]===it.jawaban?';outline:1.5px solid var(--success);color:var(--success-ink);font-weight:600':'')+'"><b>'+LETTERS[i]+'.</b> '+escHtml(o)+'</div>':'').join('')
       +'</div>'
       +(it.pembahasan?'<div class="exp-block" style="font-size:12.5px">'+sanitizeHtml(it.pembahasan)+'</div>':'');
     document.getElementById('variasi-modal').classList.add('on');
@@ -975,9 +975,9 @@ async function analisisPola(btn){
     const d=_extractJSON(await callAI(prompt,true));
     if(wrap){
       const f=(d.fokus||[]).map(x=>'<div style="padding:9px 0;border-bottom:1px solid var(--border)">'
-        +'<div style="font-weight:800;font-size:12.5px">'+_escHtml(x.kategori||'')+'</div>'
-        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+_escHtml(x.masalah||'')+'</div>'
-        +(x.saran?'<div style="font-size:12px;margin-top:3px"><b>Saran:</b> '+_escHtml(x.saran)+'</div>':'')
+        +'<div style="font-weight:800;font-size:12.5px">'+escHtml(x.kategori||'')+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+escHtml(x.masalah||'')+'</div>'
+        +(x.saran?'<div style="font-size:12px;margin-top:3px"><b>Saran:</b> '+escHtml(x.saran)+'</div>':'')
         +'</div>').join('');
       wrap.innerHTML='<div style="background:var(--bg2);border-radius:var(--radius);padding:11px 13px;font-size:13px;line-height:1.6">'+sanitizeHtml(String(d.ringkasan||''))+'</div>'
         +(f?'<div style="margin-top:8px">'+f+'</div>':'')
@@ -985,7 +985,7 @@ async function analisisPola(btn){
     }
   }catch(e){
     const msg=e.message||'';
-    if(wrap)wrap.innerHTML='<div class="tbub ai" style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar.':msg==='BAD_KEY'?'API key tidak valid.':'Gagal: '+_escHtml(msg))+'</div>';
+    if(wrap)wrap.innerHTML='<div class="tbub ai" style="color:var(--danger-ink)">'+(msg==='RATE_LIMIT'?'Kuota AI habis sebentar.':msg==='BAD_KEY'?'API key tidak valid.':'Gagal: '+escHtml(msg))+'</div>';
   }finally{if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-wand"></i> Analisis Sekarang';}}
 }
 

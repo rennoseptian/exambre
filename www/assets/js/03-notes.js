@@ -31,7 +31,7 @@ function renderNotes(){
   const el=document.getElementById('note-list');if(!el)return;
   const list=getFilteredNotes();
   if(!list.length){
-    el.innerHTML='<div class="empty"><i class="ti ti-notebook"></i><p>'+(noteSearchQ?`Catatan dengan kata "<b>${noteSearchQ}</b>" tidak ditemukan.`:'Belum ada catatan.<br>Tulis rumus, ringkasan, atau apa pun yang membantu belajar.')+'</p>'+(noteSearchQ?'':'<button class="btn btn-note" style="margin-top:16px" onclick="openNoteEditor(null)"><i class="ti ti-plus"></i> Catatan Baru</button>')+'</div>';
+    el.innerHTML='<div class="empty"><i class="ti ti-notebook"></i><p>'+(noteSearchQ?`Catatan dengan kata "<b>${escHtml(noteSearchQ)}</b>" tidak ditemukan.`:'Belum ada catatan.<br>Tulis rumus, ringkasan, atau apa pun yang membantu belajar.')+'</p>'+(noteSearchQ?'':'<button class="btn btn-note" style="margin-top:16px" onclick="openNoteEditor(null)"><i class="ti ti-plus"></i> Catatan Baru</button>')+'</div>';
     return;
   }
   el.innerHTML=list.map(n=>{
@@ -40,9 +40,9 @@ function renderNotes(){
     const d=n.updatedAt?new Date(n.updatedAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
     const preview=(n.bodyText||'').slice(0,140);
     return`<div class="note-card" onclick="openNoteEditor(${n.id})">
-      <div class="note-card-header"><div class="note-card-title">${n.title||'(Tanpa judul)'}</div><button class="ibtn edit-btn" style="width:34px;height:34px;font-size:13px" title="Buat soal dari catatan ini" aria-label="Buat soal dari catatan ini" onclick="event.stopPropagation();openNoteToQ(${n.id})"><i class="ti ti-sparkles"></i></button></div>
+      <div class="note-card-header"><div class="note-card-title">${escHtml(n.title||'(Tanpa judul)')}</div><button class="ibtn edit-btn" style="width:34px;height:34px;font-size:13px" title="Buat soal dari catatan ini" aria-label="Buat soal dari catatan ini" onclick="event.stopPropagation();openNoteToQ(${n.id})"><i class="ti ti-sparkles"></i></button></div>
       <div class="note-meta">${catBadge}<span class="note-date">${d}</span></div>
-      <div class="note-card-preview">${preview||'<i style="color:var(--text3)">Kosong</i>'}</div>
+      <div class="note-card-preview">${preview?escHtml(preview):'<i style="color:var(--text3)">Kosong</i>'}</div>
     </div>`;
   }).join('');
 }

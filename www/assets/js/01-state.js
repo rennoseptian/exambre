@@ -3,6 +3,11 @@ const NK='exambre-notes-v1';
 const LETTERS=['A','B','C','D','E'];
 
 /* ── SANITIZE ── */
+/* escHtml: untuk TEKS PLAIN milik pengguna yang disisipkan ke innerHTML
+   (judul, preview, kata kunci search, nama kategori, dsb). Berbeda dengan
+   sanitizeHtml() yang menyaring HTML kaya — di sini teks harus tampil apa
+   adanya, hanya "&", "<", ">" yang jadi entity. */
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 const ALLOWED_TAGS=/^(b|i|u|strong|em|br|ul|ol|li|p|code|img|span|div)$/i;
 const SAFE_URL=/^(https?:|data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,)/i;
 const URL_ATTRS=new Set(['src','href','action','formaction','xlink:href']);

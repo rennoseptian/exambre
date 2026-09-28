@@ -114,6 +114,11 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     dikecilkan 38px→34px. Tanpa itu 100+ soal membuat kontainer `position:fixed` setinggi ~480px
     yang menutupi soal. WAJIB di dalam `@media(max-width:1023px)` — kalau ditaruh di rule dasar,
     panel statis desktop (blok `min-width:1024px`) ikut terkunci dan grid terpotong.
+18. Teks milik pengguna yang masuk `innerHTML` WAJIB lewat `escHtml()` (didefinisikan di
+    `01-state.js`, dipindah dari `_escHtml()` yang tadinya hanya di `16-ai.js`) — bukan
+    disisipkan mentah. `sanitizeHtml()` hanya untuk HTML kaya (opsian/pembahasan), sedangkan
+    teks polos (judul catatan, preview, kata kunci search, nama kategori, sub-bab) harus
+    di-*escape* supaya `&`, `<`, `>` tampil apa adanya dan tag tidak jadi elemen nyata.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →
