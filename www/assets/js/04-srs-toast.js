@@ -56,7 +56,7 @@ function showToast(msg,type='',dur=3000){
   setTimeout(()=>t.classList.add('on'),10);
   setTimeout(()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300);},dur);
 }
-function showToastWithUndo(msg,onUndo,dur=4000){
+function showToastWithUndo(msg,onUndo,dur=8000){
   const w=document.getElementById('toast-wrap');
   const t=document.createElement('div');
   t.className='toast ok';
