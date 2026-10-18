@@ -622,6 +622,20 @@ function saveGeminiKey(){
   if(val.length<20){showToast('API key terlalu pendek, pastikan menyalin key yang lengkap','warn',4000);return;}
   localStorage.setItem('exambre_gemini_key',val);loadGeminiKey();showToast('API key tersimpan','ok');
 }
+async function testGeminiKey(){
+  const key=localStorage.getItem('exambre_gemini_key');
+  if(!key){showToast('Simpan API key dulu sebelum test','warn',4000);return;}
+  const btn=document.getElementById('gemini-test-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Menguji...';}
+  try{
+    await gemFetch(key,()=>({contents:[{parts:[{text:'Balas dengan satu kata: OK'}]}],generationConfig:{temperature:0,maxOutputTokens:8}}),false);
+    showToast('✅ Koneksi Gemini berhasil! Fitur AI siap dipakai.','ok',4000);
+  }catch(e){
+    aiErrToast(e.message,'Tes koneksi gagal',e);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-wifi"></i> Test';}
+  }
+}
 
 /* Feature 1.3 — Core Gemini API call */
 async function callGemini(prompt,json){

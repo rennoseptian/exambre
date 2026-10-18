@@ -404,10 +404,11 @@
     <div class="panel set-panel">
       <h4><i class="ti ti-sparkles" style="color:var(--accent)"></i> AI Penjelasan</h4>
       <p class="set-desc">
-        Masukkan Gemini API key untuk generate penjelasan soal secara otomatis.
-        Dapatkan key gratis di
-        <a href="https://aistudio.google.com" target="_blank"
-           style="color:var(--accent)">aistudio.google.com</a>
+        <b>Mulai cepat (Gemini, gratis):</b> 1) Buka
+        <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a>
+        → klik "Create API key". 2) Salin key-nya. 3) Tempel di bawah lalu Simpan.
+        Tanpa key, fitur AI (scan soal, tutor, variasi, analisis) tidak aktif —
+        SRS & latihan tetap jalan normal.
       </p>
       <div style="display:flex;gap:8px;align-items:center">
         <input
@@ -419,6 +420,9 @@
         >
         <button class="btn btn-p" onclick="saveGeminiKey()" style="white-space:nowrap">
           <i class="ti ti-check"></i> Simpan
+        </button>
+        <button class="btn btn-s" id="gemini-test-btn" onclick="testGeminiKey()" style="white-space:nowrap">
+          <i class="ti ti-wifi"></i> Test
         </button>
       </div>
       <p id="gemini-key-status" style="font-size:12px;margin-top:8px;color:var(--text3)"></p>
