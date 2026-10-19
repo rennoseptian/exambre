@@ -206,6 +206,45 @@
   </div>
 </div>
 
+<!-- PANDUAN AI MODAL -->
+<div class="modal-overlay" id="ai-guide-modal">
+  <div class="modal" style="max-width:460px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <h3 style="margin:0;font-size:15px"><i class="ti ti-help-circle" style="color:var(--accent)"></i> Panduan Mengaktifkan AI</h3>
+      <button class="modal-close" onclick="closeAiGuide()" aria-label="Tutup"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">
+      Ada dua cara. Cukup pilih salah satu — keduanya mengaktifkan semua fitur AI
+      (pembahasan, tutor, variasi soal, dan scan foto).
+    </p>
+
+    <div style="padding:12px 14px;background:var(--bg2);border-radius:var(--radius);margin-bottom:10px">
+      <b style="font-size:13px">Cara 1 — Gemini (gratis, paling mudah)</b>
+      <ol style="font-size:12.5px;color:var(--text2);line-height:1.7;margin:8px 0 0;padding-left:18px">
+        <li>Buka <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a> lalu login dengan akun Google.</li>
+        <li>Klik tombol <b>Create API key</b>, lalu salin kuncinya.</li>
+        <li>Tempel di kolom API key paling atas, klik <b>Simpan</b> lalu <b>Test</b>. Selesai!</li>
+      </ol>
+    </div>
+
+    <div style="padding:12px 14px;background:var(--bg2);border-radius:var(--radius)">
+      <b style="font-size:13px">Cara 2 — Provider kustom (opsional, contoh: Groq)</b>
+      <ol style="font-size:12.5px;color:var(--text2);line-height:1.7;margin:8px 0 0;padding-left:18px">
+        <li>Buka <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">console.groq.com/keys</a> lalu daftar gratis (bisa pakai akun Google).</li>
+        <li>Klik <b>Create API Key</b>, lalu salin kuncinya.</li>
+        <li>Tempel kunci itu di kolom <b>API key provider</b> — alamat servernya terisi otomatis (kalau tidak, lihat contoh di kolom Base URL).</li>
+        <li>Klik <b>Cek Daftar Model</b>, lalu ketuk salah satu nama di daftar untuk mengisi kolom <b>Model teks</b>.</li>
+        <li>Klik <b>Simpan Provider</b>. Selesai!</li>
+      </ol>
+      <p style="font-size:11.5px;color:var(--text3);line-height:1.6;margin:8px 0 0">
+        Kolom <b>Model Vision</b> boleh dibiarkan kosong — scan foto otomatis memakai Gemini.
+        Isi hanya kalau ingin scan lewat provider ini juga, memakai model yang bisa membaca
+        gambar (biasanya bertanda <b>vision</b> atau <b>vl</b>).
+      </p>
+    </div>
+  </div>
+</div>
+
 <div class="app">
   <div class="header nopr">
     <h1><i class="ti ti-book-2" style="color:var(--accent)"></i> Exambre</h1>
@@ -427,15 +466,17 @@
       </div>
       <p id="gemini-key-status" style="font-size:12px;margin-top:8px;color:var(--text3)"></p>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:700">
-          🔌 Provider Kustom (opsional — format OpenAI)
-        </label>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
+          <label style="font-size:12px;color:var(--text2);font-weight:700">🔌 Provider Kustom (opsional — format OpenAI)</label>
+          <button class="btn btn-s btn-sm" onclick="openAiGuide()" style="padding:3px 10px;font-size:11px"><i class="ti ti-help-circle"></i> Panduan</button>
+        </div>
         <p style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:10px">
           Pakai Groq, OpenRouter, Cerebras, atau Ollama lokal. Kosongkan = kembali ke Gemini.
         </p>
         <div style="display:flex;flex-direction:column;gap:8px">
           <input id="cai-url" placeholder="Base URL (cth: https://api.groq.com/openai/v1)"
-            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
+            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit"
+            oninput="this.dataset.auto=''">
           <input id="cai-model" placeholder="Model teks (klik Cek Daftar Model di bawah)"
             style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
           <button class="btn btn-s btn-sm" onclick="cekModelProvider(this)" style="align-self:flex-start"><i class="ti ti-list-check"></i> Cek Daftar Model</button>
@@ -447,7 +488,8 @@
             <b>Biarkan kosong</b> kalau tidak mau foto soal dikirim ke provider ini.
           </p>
           <input id="cai-key" type="password" placeholder="API key provider"
-            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
+            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit"
+            oninput="autoBaseUrlFill(this.value)">
         </div>
         <div style="display:flex;gap:8px;margin-top:10px">
           <button class="btn btn-p btn-sm" onclick="saveCustomAI()"><i class="ti ti-check"></i> Simpan Provider</button>

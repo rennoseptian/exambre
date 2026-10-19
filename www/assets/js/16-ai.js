@@ -11,7 +11,10 @@ function getCustomAI(){
 }
 function loadCustomAI(){
   const c=getCustomAI();
-  ['cai-url','cai-model','cai-key','cai-vmodel'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['cai-url','cai-model','cai-key','cai-vmodel'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.value='';if(id==='cai-url')delete el.dataset.auto;}
+  });
   /* Di-render SEBELUM cek status: kontrol reasoning berdiri sendiri dan model aktif ikut
      berubah tiap provider kustom disimpan/dihapus. Kalau AFTER early-return, widgetnya
      diam-diam tidak muncul saat elemen status tidak ada. */
@@ -47,6 +50,25 @@ function saveCustomAI(){
   showToast(visionModel?'Provider AI kustom aktif ✨ — scan foto memakai provider ini':'Provider AI kustom aktif ✨ (scan tetap Gemini)','ok',3000);
 }
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
+/* Panduan langkah demi langkah untuk pemula (tombol "Panduan" di Lainnya). */
+function openAiGuide(){const m=document.getElementById('ai-guide-modal');if(m)m.classList.add('on');}
+function closeAiGuide(){const m=document.getElementById('ai-guide-modal');if(m)m.classList.remove('on');}
+/* Base URL ditebak dari awalan API key provider yang umum — kolom inilah yang paling
+   membingungkan pemula. WAJIB hanya mengisi kolom yang masih kosong (atau hasil isian
+   otomatis sebelumnya, penanda dataset.auto): tulisan manual user tidak pernah ditimpa. */
+const AI_BASE_HINTS=[
+  [/^gsk_/,'https://api.groq.com/openai/v1'],
+  [/^sk-or-/,'https://openrouter.ai/api/v1'],
+  [/^csk-/,'https://api.cerebras.ai/v1'],
+  [/^sk-/,'https://api.openai.com/v1'],
+];
+function autoBaseUrlFill(key){
+  const el=document.getElementById('cai-url');if(!el)return;
+  if(el.value.trim()&&!el.dataset.auto)return;
+  const hit=AI_BASE_HINTS.find(h=>h[0].test(String(key||'').trim()));
+  if(hit){el.value=hit[1];el.dataset.auto='1';}
+  else if(el.dataset.auto){el.value='';delete el.dataset.auto;}
+}
 
 /* ── Model VISION untuk scan foto ──
    visionModel diisi user di Lainnya dan disimpan DI DALAM config provider yang sama,

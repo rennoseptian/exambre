@@ -176,7 +176,7 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
     kalau tidak hasil heal diam-diam tidak terpakai; cache `exambre_gem_model` JANGAN
     dihapus `clearAllData`;
     (e) nama model tidak boleh masuk teks penjelasan UI.
-    Uji: `/tmp/opencode/test-ai-adaptive.js` (34 assertions).
+    Uji: `/tmp/opencode/test-ai-adaptive.js` (43 assertions).
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh
@@ -252,6 +252,10 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
 - **Nama model TIDAK boleh muncul di teks penjelasan UI** (hint, placeholder, status
   provider, kontrol reasoning, tooltip, toast). Nama model hanya wajar tampil di hasil
   "Cek Daftar Model", nilai input config, dan log console.
+- Tombol **"Panduan"** (Lainnya → Provider Kustom) membuka `#ai-guide-modal` — langkah
+  untuk pemula (bebas nama model juga). `autoBaseUrlFill()` mengisi Base URL dari awalan
+  API key (`gsk_`/`sk-or-`/`csk-`/`sk-`); WAJIB hanya mengisi kolom kosong atau hasil
+  isian otomatis (penanda `dataset.auto`) — JANGAN menimpa tulisan manual user.
 - **Routing scan** (`visionScan()`): `visionModel` terisi → `callCustomAIVision()` (Groq
   OpenAI-compatible), kalau kosong → `gemVisionAsk()` (Gemini).
   `getVisionModel()` WAJIB mengembalikan `null` untuk string kosong — kalau di-default-kan,
@@ -281,7 +285,7 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   dan tidak boleh kontradiktif ("hari ini tidak akan berhasil" padahal reset-nya hari ini juga).
   Jam reset = tengah malam Pasifik → `_nextPTMidnight()` (pakai `Intl` timezone agar aman DST),
   ditampilkan `toLocaleString('id-ID')` sesuai jam device.
-- Uji: `/tmp/opencode/test-ai-adaptive.js` (34 assertions, `fetch` tiruan di halaman).
+- Uji: `/tmp/opencode/test-ai-adaptive.js` (43 assertions, `fetch` tiruan di halaman).
   Wajib dijalankan tiap menyentuh `16-ai.js`. Menutup: heal model teks/vision/Gemini,
   pengganti vision yang aman, anti-loop, regresi auto-disable reasoning +
   `max_completion_tokens`, UI tanpa nama model. Suite lama `test-ai.js` (374 assertions)
