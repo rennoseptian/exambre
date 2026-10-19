@@ -61,23 +61,23 @@
     </div>
     <div>
       <div class="rte-toolbar" style="border-color:var(--note)">
-        <button class="rte-btn" onclick="noteCmd('bold')" aria-label="Tebal"><b>B</b></button>
-        <button class="rte-btn" onclick="noteCmd('italic')" aria-label="Miring"><i>I</i></button>
-        <button class="rte-btn" onclick="noteCmd('underline')" aria-label="Garis bawah"><u>U</u></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteFmt('bold')" aria-label="Tebal"><b>B</b></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteFmt('italic')" aria-label="Miring"><i>I</i></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteFmt('underline')" aria-label="Garis bawah"><u>U</u></button>
         <div class="rte-sep"></div>
-        <button class="rte-btn" onclick="noteCmd('formatBlock','h2')" style="font-size:11px;font-weight:700" aria-label="Judul 2">H2</button>
-        <button class="rte-btn" onclick="noteCmd('formatBlock','h3')" style="font-size:10px;font-weight:700" aria-label="Judul 3">H3</button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteCmd('formatBlock','h2')" style="font-size:11px;font-weight:700" aria-label="Judul 2">H2</button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteCmd('formatBlock','h3')" style="font-size:10px;font-weight:700" aria-label="Judul 3">H3</button>
         <div class="rte-sep"></div>
-        <button class="rte-btn" onclick="noteCmd('insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button>
-        <button class="rte-btn" onclick="noteCmd('insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteCmd('insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteCmd('insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button>
         <div class="rte-sep"></div>
-        <button class="rte-btn" onclick="noteCmd('formatBlock','blockquote')" style="font-family:serif" aria-label="Kutipan">&ldquo;</button>
-        <button class="rte-btn" onclick="insertNoteCode()" aria-label="Kode"><i class="ti ti-code"></i></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteCmd('formatBlock','blockquote')" style="font-family:serif" aria-label="Kutipan">&ldquo;</button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="insertNoteCode()" aria-label="Kode"><i class="ti ti-code"></i></button>
         <div class="rte-sep"></div>
-        <button class="rte-btn" onclick="insertNoteTable()" aria-label="Tabel"><i class="ti ti-table"></i></button>
-        <button class="rte-btn" onclick="noteCmd('insertHorizontalRule')" aria-label="Garis horizontal"><i class="ti ti-minus"></i></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="insertNoteTable()" aria-label="Tabel"><i class="ti ti-table"></i></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteCmd('insertHorizontalRule')" aria-label="Garis horizontal"><i class="ti ti-minus"></i></button>
         <div class="rte-sep"></div>
-        <button class="rte-btn" onclick="noteCmd('removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button>
+        <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteCmd('removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button>
       </div>
       <div class="note-rte-area" id="note-rte-area" contenteditable="true" spellcheck="false" data-ph="Mulai menulis catatan..."></div>
     </div>
@@ -307,7 +307,7 @@
         <div class="field"><label>Gambar soal (opsional)</label><div id="img-area-p-qimgs"></div></div>
         <div class="field">
           <label>Pembahasan <span style="font-weight:400;color:var(--text3)">— rich text</span></label>
-          <div class="rte-toolbar"><button class="rte-btn" onclick="rteCmd('p','bold')" aria-label="Tebal"><b>B</b></button><button class="rte-btn" onclick="rteCmd('p','italic')" aria-label="Miring"><i>I</i></button><button class="rte-btn" onclick="rteCmd('p','underline')" aria-label="Garis bawah"><u>U</u></button><div class="rte-sep"></div><button class="rte-btn" onclick="rteCmd('p','insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button><button class="rte-btn" onclick="rteCmd('p','insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button><div class="rte-sep"></div><button class="rte-btn" onclick="rteCmd('p','removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button></div>
+          <div class="rte-toolbar"><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','bold')" aria-label="Tebal"><b>B</b></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','italic')" aria-label="Miring"><i>I</i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','underline')" aria-label="Garis bawah"><u>U</u></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button></div>
           <div class="rte-area" id="rte-p" contenteditable="true" spellcheck="false"></div>
         </div>
         <div class="field"><label>Gambar pembahasan (opsional)</label><div id="img-area-p-eimgs"></div></div>
@@ -333,7 +333,7 @@
         <div class="field"><label>Gambar soal (opsional)</label><div id="img-area-m-qimgs"></div></div>
         <div class="field">
           <label>Pembahasan</label>
-          <div class="rte-toolbar"><button class="rte-btn" onclick="rteCmd('m','bold')" aria-label="Tebal"><b>B</b></button><button class="rte-btn" onclick="rteCmd('m','italic')" aria-label="Miring"><i>I</i></button><button class="rte-btn" onclick="rteCmd('m','underline')" aria-label="Garis bawah"><u>U</u></button><div class="rte-sep"></div><button class="rte-btn" onclick="rteCmd('m','insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button><button class="rte-btn" onclick="rteCmd('m','insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button><div class="rte-sep"></div><button class="rte-btn" onclick="rteCmd('m','removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button></div>
+          <div class="rte-toolbar"><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','bold')" aria-label="Tebal"><b>B</b></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','italic')" aria-label="Miring"><i>I</i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','underline')" aria-label="Garis bawah"><u>U</u></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button></div>
           <div class="rte-area" id="rte-m" contenteditable="true" spellcheck="false"></div>
         </div>
         <div class="field"><label>Gambar pembahasan (opsional)</label><div id="img-area-m-eimgs"></div></div>

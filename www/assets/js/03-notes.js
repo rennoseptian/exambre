@@ -104,6 +104,82 @@ function deleteNote(id){
   }});
 }
 function noteCmd(cmd,val){const el=document.getElementById('note-rte-area');if(el){el.focus();document.execCommand(cmd,false,val||null);}}
+/* Toggle B/I/U manual utk pilihan non-kosong: execCommand() diam saja bila pilihan
+   terformat sebagian (teks campuran), dan toggle typing-style rusak di WebView Android.
+   Caret tanpa pilihan diperluas ke kata di bawah kursor supaya "matikan tebal" pada
+   kata yang baru diketik benar-benar terlihat. */
+const NOTE_FMT={bold:['B','STRONG'],italic:['I','EM'],underline:['U']};
+function noteFmt(cmd){
+  const el=document.getElementById('note-rte-area');if(!el)return;
+  const tags=NOTE_FMT[cmd];if(!tags)return;
+  el.focus();
+  const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
+  let r=sel.getRangeAt(0),fromCaret=false;
+  if(r.commonAncestorContainer!==el&&!el.contains(r.commonAncestorContainer))return;
+  if(r.collapsed){
+    const w=noteWordRange(el,r);
+    if(!w){document.execCommand(cmd,false,null);return;}
+    r=w;fromCaret=true;
+    sel.removeAllRanges();sel.addRange(r);
+  }
+  if(noteRangeAllFmt(el,r,tags)){
+    /* Pilihan seragam terformat → hapus lewat execCommand: jalur berbasis pilihan
+       inilah yang aman di WebView Android, dan mesin juga ikut menyinkronkan
+       "gaya ketik" sehingga teks berikutnya tidak lanjut terformat. */
+    document.execCommand(cmd,false,null);
+    const s=window.getSelection();
+    if(fromCaret&&s.rangeCount){const rr=s.getRangeAt(0);s.collapse(rr.endContainer,rr.endOffset);}
+    return;
+  }
+  const frag=r.extractContents();
+  if(!frag.firstChild)return;
+  tags.forEach(t=>noteUnwrapTag(frag,t));
+  const tn=noteTextNodes(frag);
+  const w=document.createElement(tags[0].toLowerCase());
+  w.appendChild(frag);r.insertNode(w);
+  const nr=document.createRange();
+  if(tn.length){nr.setStart(tn[0],0);nr.setEnd(tn[tn.length-1],tn[tn.length-1].nodeValue.length);}
+  else nr.selectNodeContents(w);
+  if(fromCaret)nr.collapse(false);
+  sel.removeAllRanges();sel.addRange(nr);
+  noteCleanEmpty(el);
+}
+function noteCleanEmpty(el){
+  el.querySelectorAll('b,strong,i,em,u').forEach(n=>{if(!n.textContent.trim()&&!n.querySelector('img,br,hr'))n.remove();});
+}
+function noteTextNodes(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);const a=[];while(w.nextNode())a.push(w.currentNode);return a;}
+function noteWordRange(el,r){
+  let n=r.startContainer,o=r.startOffset;
+  if(n.nodeType!==3){
+    if(o>0&&n.childNodes[o-1]){n=n.childNodes[o-1];while(n.lastChild)n=n.lastChild;}
+    else if(n.childNodes[o]){n=n.childNodes[o];while(n.firstChild)n=n.firstChild;}
+    if(!n||n.nodeType!==3)return null;
+    o=n.nodeValue.length;
+  }
+  if(!el.contains(n))return null;
+  const t=n.nodeValue,sp=c=>!c||/[\s\u00A0]/.test(c);
+  let s=o,e=o;
+  while(s>0&&!sp(t[s-1]))s--;
+  while(e<t.length&&!sp(t[e]))e++;
+  if(s===e)return null;
+  const rr=document.createRange();rr.setStart(n,s);rr.setEnd(n,e);return rr;
+}
+function noteRangeAllFmt(el,r,tags){
+  let any=false;
+  const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null);
+  while(w.nextNode()){
+    const n=w.currentNode;
+    if(!r.intersectsNode(n)||!n.nodeValue||!n.nodeValue.trim())continue;
+    any=true;
+    let p=n.parentNode,hit=false;
+    while(p&&p!==el){if(p.nodeType===1&&tags.includes(p.tagName)){hit=true;break;}p=p.parentNode;}
+    if(!hit)return false;
+  }
+  return any;
+}
+function noteUnwrapTag(root,tag){
+  root.querySelectorAll(tag).forEach(el=>{const p=el.parentNode;if(!p)return;while(el.firstChild)p.insertBefore(el.firstChild,el);p.removeChild(el);});
+}
 function insertNoteCode(){
   const sel=window.getSelection();const text=sel&&sel.toString()?sel.toString():'kode';
   document.getElementById('note-rte-area').focus();

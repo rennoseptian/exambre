@@ -146,6 +146,26 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     Vektor nyata yang sudah ditutup: `16-ai.js` "✨ Saran:" memuat `cats[key].name` (dari
     import) + `d.subbab` (dari AI). Pesan error `e.message`/`msg` juga di-escape karena untuk
     provider AI kustom teksnya bisa berasal dari server.
+21. Editor catatan (B/I/U) memakai `noteFmt()` (bukan `noteCmd`/`execCommand` polos) karena
+    `execCommand` **diam saja** bila pilihan teks terformat sebagian (campuran), dan toggle
+    typing-style-nya rusak di WebView Android — bug "salah satu tebal/miring tidak bisa
+    dinonaktifkan". Aturan yang tidak boleh dilanggar:
+    (a) semua tombol `.rte-btn` toolbar WAJIB `onmousedown="event.preventDefault()"` —
+    tanpa itu klik tombol merampas fokus & pilihan hilang (buat juga di toolbar soal/opsi);
+    (b) setelah caret diperluas ke kata (`noteWordRange`), WAJIB
+    `sel.removeAllRanges();sel.addRange(r)` — tanpa itu `execCommand` jalan dengan pilihan
+    masih collapsed (hanya men-toggle gaya ketik, DOM tidak berubah);
+    (c) pilihan seragam-terformat → hapus lewat `execCommand` (aman di WebView + sinkron
+    gaya ketik); pilihan campuran → jalur manual extract→unwrap→wrap; caret tanpa kata →
+    `execCommand` (gaya ketik);
+    (d) restore pilihan jalur manual WAJIB "tenggelam" ke text node (`noteTextNodes`), bukan
+    batas elemen — kalau tidak, tag ancestor (mis. `<b>` pembungkus) tidak ikut ter-unwrap
+    dan toggle berikutnya tidak mengubah apa pun;
+    (e) `noteCleanEmpty()` wajib dipanggil setelah jalur manual (extractContents meninggalkan
+    stub `<i></i>` kosong).
+    Uji: `/tmp/opencode/test-notes-rte.js` (13 skenario, klik tombol sungguhan) — WAJIB
+    dijalankan tiap menyentuh `03-notes.js`/toolbar; butuh `setsid python3 -m http.server 8080
+    --directory www` + chrome-headless-shell di `/tmp/opencode/`.
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh

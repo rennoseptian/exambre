@@ -650,9 +650,8 @@ async function callGemini(prompt,json){
 /* Feature 1.1b — Gemini Vision API call */
 /* Instruksi scan — SATU sumber untuk Gemini & Groq vision. JANGAN diduplikasi per
    provider: _extractJSON() hanya berhasil kalau keduanya dapat format JSON sama persis. */
-const VISION_PROMPT_SINGLE=`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak semua informasi dari gambar soal ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Jika field tidak ada di gambar, isi dengan string kosong "".\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas.\n- Untuk "pembahasan": format menggunakan HTML dasar: <p> paragraf, <b> tebal, <ol><li> daftar bernomor. Jangan gunakan tag lain.\n- Untuk "jawaban", tulis HANYA SATU HURUF KAPITAL (A, B, C, D, atau E) — TANPA titik, tanpa tanda kurung, tanpa teks lain. Contoh benar: "B". Contoh SALAH: "B. Sadar Berbangsa", "(B)", "b".
-- Cari jawaban benar dari: warna hijau, tanda centang (✓), lingkaran terisi, atau kata Benar/Kunci/Answer di gambar.\n- Cari jawaban SALAH dari: warna merah/pink, tanda silang (✗), atau kata Jawaban Saya di gambar.\n\nFORMAT JSON:\n{\n  "soal": "teks lengkap soal termasuk nomor jika ada",\n  "A": "teks pilihan A",\n  "B": "teks pilihan B",\n  "C": "teks pilihan C",\n  "D": "teks pilihan D",\n  "E": "teks pilihan E",\n  "jawaban": "SATU HURUF jawaban BENAR (hijau/centang), kosong jika tidak ada",\n  "jawaban_saya": "SATU HURUF jawaban yang DIPILIH PENGGUNA (ada label: Jawaban kamu adalah X, Jawaban anda X, atau pilihan berwarna merah/pink), kosong jika tidak ada",\n  "pembahasan": "pembahasan dalam format HTML dasar jika ada di gambar, kosong jika tidak"\n}`;
-const VISION_PROMPT_BATCH=`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`;
+const VISION_PROMPT_SINGLE=`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak semua informasi dari gambar soal ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Jika field tidak ada di gambar, isi dengan string kosong "".\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas.\n- JANGAN gunakan format LaTeX/backslash (contoh: \\frac, \\sqrt, \\times, \\pi). Tulis matematika sebagai teks biasa memakai simbol Unicode: √, ×, ÷, ≤, ≥, ±, π, ², ³, ½.\n- Untuk "pembahasan": format menggunakan HTML dasar: <p> paragraf, <b> tebal, <ol><li> daftar bernomor. Jangan gunakan tag lain.\n- Untuk "jawaban", tulis HANYA SATU HURUF KAPITAL (A, B, C, D, atau E) — TANPA titik, tanpa tanda kurung, tanpa teks lain. Contoh benar: "B". Contoh SALAH: "B. Sadar Berbangsa", "(B)", "b". Jika kunci di gambar berupa NILAI (bukan huruf), tetap tulis HURUF opsi yang nilainya sama.\n- Cari jawaban benar dari: warna hijau, tanda centang (✓), lingkaran terisi, atau kata Benar/Kunci/Answer di gambar.\n- Cari jawaban SALAH dari: warna merah/pink, tanda silang (✗), atau kata Jawaban Saya di gambar.\n\nFORMAT JSON:\n{\n  "soal": "teks lengkap soal termasuk nomor jika ada",\n  "A": "teks pilihan A",\n  "B": "teks pilihan B",\n  "C": "teks pilihan C",\n  "D": "teks pilihan D",\n  "E": "teks pilihan E",\n  "jawaban": "SATU HURUF jawaban BENAR (hijau/centang), kosong jika tidak ada",\n  "jawaban_saya": "SATU HURUF jawaban yang DIPILIH PENGGUNA (ada label: Jawaban kamu adalah X, Jawaban anda X, atau pilihan berwarna merah/pink), kosong jika tidak ada",\n  "pembahasan": "pembahasan dalam format HTML dasar jika ada di gambar, kosong jika tidak"\n}`;
+const VISION_PROMPT_BATCH=`Kamu adalah sistem ekstraksi soal ujian dan tes seleksi apa pun.\nEkstrak SEMUA soal pilihan ganda yang terlihat pada gambar halaman ini.\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Salin teks PERSIS seperti di gambar, jangan ubah atau ringkas. Abaikan nomor soal.\n- JANGAN gunakan format LaTeX/backslash (contoh: \\frac, \\sqrt, \\times, \\pi). Tulis matematika sebagai teks biasa memakai simbol Unicode: √, ×, ÷, ≤, ≥, ±, π, ², ³, ½.\n- Jika suatu field tidak ada di gambar, isi string kosong "".\n- "jawaban" HANYA SATU HURUF KAPITAL (A-E) dari kunci benar (warna hijau/centang/kata Kunci); kosongkan jika tidak ada. Jika kunci berupa NILAI bukan huruf, tulis huruf opsi yang nilainya sama.\n- "pembahasan" memakai HTML dasar (<p>, <b>, <ol>, <li>) jika terlihat; kosongkan jika tidak ada.\n\nFORMAT JSON:\n{"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"X","pembahasan":""}]}`;
 
 /* Gemini vision: inlineData. maxOut berbeda per fitur (batch butuh JSON 5x soal). */
 async function gemVisionAsk(base64,mime,prompt,maxOut){
@@ -808,9 +807,15 @@ function fillQuestionFormFromScan(parsed) {
     const sel = document.getElementById('m-correct');
     // Gemini kadang mengembalikan "B. Teks pilihan..." atau "(B)" atau "B)"
     // Ekstrak huruf pertama yang valid saja
-    const raw = (parsed.jawaban || '').toUpperCase().trim();
+    const raw = String(parsed.jawaban).toUpperCase().trim();
     const letterMatch = raw.match(/\b([A-E])\b/);
-    const jawaban = letterMatch ? letterMatch[1] : raw.charAt(0);
+    let jawaban = letterMatch ? letterMatch[1] : raw.charAt(0);
+    // Matematika: kunci sering berupa NILAI opsi ("4") — cocokkan ke teks opsi.
+    if (!LETTERS.includes(jawaban)) {
+      const jv = String(parsed.jawaban).trim().toLowerCase();
+      const k = LETTERS.findIndex(l => String(parsed[l] == null ? '' : parsed[l]).trim().toLowerCase() === jv);
+      jawaban = k > -1 ? LETTERS[k] : '';
+    }
     if (sel && jawaban && LETTERS.includes(jawaban)) sel.value = jawaban;
   }
 
@@ -1058,10 +1063,14 @@ async function runNoteToQ(){
     const arr=Array.isArray(data)?data:(data.questions||[]);
     let added=0;
     arr.forEach(it=>{
-      const qtxt=((it&&it.soal)||'').trim();if(!qtxt)return;
-      const opts=LETTERS.map(l=>(it[l]||'').trim());
+      it=it||{};
+      const qtxt=String(it.soal==null?'':it.soal).trim();if(!qtxt)return;
+      const opts=LETTERS.map(l=>String(it[l]==null?'':it[l]).trim());
       if(opts.filter(Boolean).length<2)return;
-      const m=/\b([A-E])\b/.exec((it.jawaban||'').toUpperCase().trim());const cor=m?m[1]:'';
+      let cor='';
+      const jraw=String(it.jawaban==null?'':it.jawaban).trim();
+      const m=/\b([A-E])\b/.exec(jraw.toUpperCase());if(m)cor=m[1];
+      if(!cor&&jraw){const jv=jraw.toLowerCase();const k=opts.findIndex(o=>o&&o.toLowerCase()===jv);if(k>-1)cor=LETTERS[k];}
       if(!cor)return;
       qs.push({id:nid++,cat,bab:'',q:sanitizeHtml(qtxt),opts,optImgs:{},wrong:'',correct:cor,
         expHtml:it.pembahasan?sanitizeHtml(String(it.pembahasan)):'',
@@ -1084,12 +1093,35 @@ async function runNoteToQ(){
 
 function _extractJSON(raw){
   let t=String(raw||'').replace(/```json?|```/gi,'').trim();
-  try{return JSON.parse(t);}catch(e){}
+  /* Perbaikan LaTeX (khusus soal matematika): model kadang menulis \frac/\sqrt mentah
+     sehingga JSON.parse GAGAL (\s \p \d = escape tak dikenal) atau rusak diam-diam
+     (\f → formfeed, \b → backspace). Escape backslash ganda yang SUDAH benar dilindungi
+     (placeholder) supaya perbaikan tidak merusaknya. */
+  const fix=s=>s
+    .replace(/\u201C|\u201D/g,'"').replace(/\u2018|\u2019/g,"'").replace(/,\s*([}\]])/g,'$1')
+    .replace(/\\\\/g,'\uE000')
+    .replace(/\\([fbtr])(?=[A-Za-z])/g,'\\\\$1')
+    .replace(/\\n(?=[a-z])/g,'\\\\n')
+    .replace(/\\(?!["\\\/bfnrtu])/g,'\\\\')
+    .replace(/\\u(?![0-9a-fA-F]{4})/g,'\\\\u')
+    .replace(/\uE000/g,'\\\\');
+  /* Sisa \f/\b/\t yang lolos parse tetap membawa byte kontrol 0x0C/0x08/0x09 — balikkan
+     ke bentuk LaTeX-nya (\frac \beta \theta). \n TIDAK ikut: newline sah di dalam HTML,
+     jadi \nu vs baris baru tak bisa dibedakan. Bit itu hanya kasus sisa; prompt juga
+     sudah melarang LaTeX sehingga jalur ini jarang tersentuh. */
+  const clean=o=>{
+    if(typeof o==='string')return o.replace(/\x08(?=[A-Za-z])/g,'\\b').replace(/\x0C(?=[A-Za-z])/g,'\\f').replace(/\x09(?=[a-z])/g,'\\t');
+    if(Array.isArray(o))return o.map(clean);
+    if(o&&typeof o==='object'){const r={};for(const k in o)r[k]=clean(o[k]);return r;}
+    return o;
+  };
+  const tryParse=s=>{try{return clean(JSON.parse(s));}catch(e){return undefined;}};
+  let r=tryParse(t);if(r!==undefined)return r;
   for(const [a,b] of [['{','}'],['[',']']]){
     const i=t.indexOf(a),j=t.lastIndexOf(b);
     if(i>-1&&j>i){const seg=t.slice(i,j+1);
-      try{return JSON.parse(seg);}catch(e){}
-      try{return JSON.parse(seg.replace(/\u201C|\u201D/g,'"').replace(/\u2018|\u2019/g,"'").replace(/,\s*([}\]])/g,'$1'));}catch(e){}
+      r=tryParse(seg);if(r!==undefined)return r;
+      r=tryParse(fix(seg));if(r!==undefined)return r;
     }
   }
   throw new Error('FORMAT_ERROR');
@@ -1113,11 +1145,22 @@ async function scanBatchToQuestions(inputEl){
     const arr=Array.isArray(data)?data:(data.questions||[]);
     const items=[];
     arr.forEach(it=>{
-      const qtxt=((it&&it.soal)||'').trim();if(!qtxt)return;
-      const opts=LETTERS.map(l=>(it[l]||'').trim());
-      const m=/\b([A-E])\b/.exec((it.jawaban||'').toUpperCase().trim());const cor=m?m[1]:'';
+      it=it||{};
+      const qtxt=String(it.soal==null?'':it.soal).trim();if(!qtxt)return;
+      /* Nilai bisa datang sebagai ANGKA (opsi matematika) — jangan panggil .trim() langsung. */
+      const opts=LETTERS.map(l=>String(it[l]==null?(it[l.toLowerCase()]==null?'':it[l.toLowerCase()]):it[l]).trim());
+      let cor='';
+      const jraw=String(it.jawaban==null?'':it.jawaban).trim();
+      const m=/\b([A-E])\b/.exec(jraw.toUpperCase());if(m)cor=m[1];
+      if(!cor&&jraw){
+        /* Matematika: kunci sering dikembalikan sebagai NILAI opsi ("4"), bukan huruf.
+           Cocokkan dengan teks opsi supaya soal tetap bisa diimpor. */
+        const jv=jraw.toLowerCase();
+        const k=opts.findIndex(o=>o&&o.toLowerCase()===jv);
+        if(k>-1)cor=LETTERS[k];
+      }
       const ok=opts.filter(Boolean).length>=2&&!!cor;
-      items.push({soal:qtxt,opts,jawaban:cor,pembahasan:String(it.pembahasan||''),ok,_sel:ok});
+      items.push({soal:qtxt,opts,jawaban:cor,pembahasan:String(it.pembahasan==null?'':it.pembahasan),ok,_sel:ok});
     });
     if(!items.length)throw new Error('EMPTY_RESPONSE');
     window._batchItems=items;
@@ -1171,7 +1214,7 @@ function runBatchImport(){
   window._batchAssign=null;
   persist();closeBatchModal();
   checkBadges();updateDueBadge();renderGami();
-  showToast('✅ '+items.length+' soal berhasil diimpor!','ok');
+  showToast('✅ '+chosen.length+' soal berhasil diimpor!','ok');
 }
 
 /* Feature 4.4 — Tanya Tutor per Soal */
@@ -1273,10 +1316,14 @@ async function buatVariasi(qid,btn){
     const arr=Array.isArray(data)?data:(data.questions||[]);
     let it=null;
     for(const c of arr){
-      const qtxt=((c&&c.soal)||'').trim();
-      const opts=LETTERS.map(l=>(c[l]||'').trim());
-      const m=/\b([A-E])\b/.exec((c.jawaban||'').toUpperCase().trim());const cor=m?m[1]:'';
-      if(qtxt&&opts.filter(Boolean).length>=2&&cor){it={soal:qtxt,opts,jawaban:cor,pembahasan:String(c.pembahasan||'')};break;}
+      const c2=c||{};
+      const qtxt=String(c2.soal==null?'':c2.soal).trim();
+      const opts=LETTERS.map(l=>String(c2[l]==null?'':c2[l]).trim());
+      let cor='';
+      const jraw=String(c2.jawaban==null?'':c2.jawaban).trim();
+      const m=/\b([A-E])\b/.exec(jraw.toUpperCase());if(m)cor=m[1];
+      if(!cor&&jraw){const jv=jraw.toLowerCase();const k=opts.findIndex(o=>o&&o.toLowerCase()===jv);if(k>-1)cor=LETTERS[k];}
+      if(qtxt&&opts.filter(Boolean).length>=2&&cor){it={soal:qtxt,opts,jawaban:cor,pembahasan:String(c2.pembahasan==null?'':c2.pembahasan)};break;}
     }
     if(!it)throw new Error('EMPTY_RESPONSE');
     window._vari={it,srcId:qid};
