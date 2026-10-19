@@ -44,11 +44,12 @@ curBab, searchQ, fbApp, fbDb, fbStorage, fbReady, syncCode, pendingDeletes`.
 localStorage keys (JANGAN rename `cpns-*` demi kompatibilitas data pengguna lama):
 `cpns-wb-v6` (soal+progress utama) · `exambre-notes-v1` · `exambre_sim_history` ·
 `exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` (provider kustom) ·
+`exambre_gem_model` (cache model Gemini yang sedang dipakai — turunan, bukan setting) ·
 `exambre_exam_date`. (Kunci lama `cpns-fb-config`/`cpns-sync-code` tak lagi dipakai.)
 
 ## Lapisan AI (file `16-ai.js`)
 Dispatcher: `callAI(prompt, json?)` → provider kustom jika tersedia, else Gemini.
-Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback ke Gemini (console.warn tercatat).
+Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOfferFallback()`.
 `callAIChat(systemText, hist)` untuk chat multi-turn sungguhan (tutor).
 - Provider kustom: format OpenAI-compatible `/chat/completions`; config di Lainnya
   (baseUrl+model+key+**visionModel**, disimpan `exambre_custom_ai`). Model vision TERPISAH
@@ -166,6 +167,16 @@ Jika provider kustom GAGAL (error apa pun) dan ada Gemini key, otomatis fallback
     Uji: `/tmp/opencode/test-notes-rte.js` (13 skenario, klik tombol sungguhan) — WAJIB
     dijalankan tiap menyentuh `03-notes.js`/toolbar; butuh `setsid python3 -m http.server 8080
     --directory www` + chrome-headless-shell di `/tmp/opencode/`.
+22. Adaptasi model AI (`16-ai.js`) — jangan regresi:
+    (a) auto-heal HANYA dari daftar model LIVE + urut versi; tabel pengganti statis
+    (`RETIRED_MODELS`) sudah DIHAPUS karena cepat basi — jangan dihidupkan lagi;
+    (b) maksimal SEKALI per request (flag `healed`); request ulang setelah heal juga sekali;
+    (c) pengganti vision tidak boleh kandidat yang dinyatakan buta gambar / kena `AI_NOT_CHAT`;
+    (d) `gemActiveModel()` WAJIB dipakai untuk request & tampilan (bukan `GEM_MODEL` mentah),
+    kalau tidak hasil heal diam-diam tidak terpakai; cache `exambre_gem_model` JANGAN
+    dihapus `clearAllData`;
+    (e) nama model tidak boleh masuk teks penjelasan UI.
+    Uji: `/tmp/opencode/test-ai-adaptive.js` (34 assertions).
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh
@@ -222,18 +233,25 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
 - Scan foto WAJIB lewat `compressImg(file,1400,0.85)` — JANGAN `FileReader.readAsDataURL`
   mentah. Foto HP 12MP ≈ 15.000 token gambar (w*h/768); 1400px ≈ 2.500. Kirim mentah
   = menghabiskan kuota token per menit → 429 hampir tiap scan (bug yang pernah dikeluhkan user).
-- Model vision default Groq = `qwen/qwen3.8-27b` (multimodal 27B, 131K context, JSON mode,
-  tunable reasoning effort; `REASON_CAP` punya entri `qwen3\.8-27b` level
-  `['low','medium','high']` → scan JSON dipaksa ke `levels[0]='low'`).
-- **JANGAN hardcode ID model dari ingatan.** Groq mengganti katalog 2× dalam 2026:
-  `meta-llama/llama-4-scout-17b-16e-instruct` mati 17 Jul 2026, `qwen/qwen3.6-27b` mati
-  **14 Sep 2026** (digantikan 3.8-27b). Keduanya free/dev-tier saja — tier enterprise
-  tidak terkena, jadi `RETIRED_MODELS` hanya memberi saran, TIDAK memblokir. ID mati →
-  404 `NOT_FOUND` → user mengira app rusak. Sumber kebenaran = tombol "Cek Daftar Model"
-  (menarik daftar LIVE dari provider). `openai/gpt-oss-*` text-only.
-- `RETIRED_MODELS` (peta model mati → pengganti) dibaca `loadCustomAI()` untuk menandai
-  status provider dengan warna `--warn`. Entry `REASON_CAP` untuk model mati **TETAP
-  disimpan** (enterprise masih bisa akses).
+- `REASON_CAP` untuk model lama **TETAP disimpan** (tier enterprise bisa saja masih
+  mengaksesnya; `REASON_CAP` hanya mengatur parameter reasoning, bukan ketersediaan).
+- **JANGAN hardcode ID model dari ingatan.** Katalog provider berganti 1–2× per tahun;
+  ID mati → 404 `NOT_FOUND` → user mengira app rusak. Sumber kebenaran = tombol
+  "Cek Daftar Model" dan adaptasi otomatis (dua-duanya menarik daftar LIVE). Ingat:
+  `openai/gpt-oss-*` text-only (jangan pernah dipakai untuk scan foto).
+- **Adaptasi model otomatis** (`aiHealModel`/`aiPickModel` + `gemHealModel`): saat 404,
+  app menarik daftar model live (`aiFetchModels` → provider `groq-list`; Gemini →
+  `gemini-list`) lalu memilih penerus keluarga sama dengan versi terbaru, meng-update
+  config (`exambre_custom_ai` / cache `exambre_gem_model`), dan mengulang request SEKALI
+  (flag `healed`, tanpa loop). Tanpa pengganti aman → error asli diteruskan.
+  Pengganti vision HANYA kandidat yang dikenali gambar (metadata `input_modalities` /
+  hint `vl|vision|multimodal`), dan `AI_NOT_CHAT` (whisper/tts/guard/embedding/…)
+  WAJIB disaring. Gemini dipilih pola `gemini-<versi>-flash` terbaru dari daftar live —
+  tanpa hardcode nama versi. Cache `exambre_gem_model` adalah TURUNAN (bukan setting
+  user): jangan ikut dihapus `clearAllData`.
+- **Nama model TIDAK boleh muncul di teks penjelasan UI** (hint, placeholder, status
+  provider, kontrol reasoning, tooltip, toast). Nama model hanya wajar tampil di hasil
+  "Cek Daftar Model", nilai input config, dan log console.
 - **Routing scan** (`visionScan()`): `visionModel` terisi → `callCustomAIVision()` (Groq
   OpenAI-compatible), kalau kosong → `gemVisionAsk()` (Gemini).
   `getVisionModel()` WAJIB mengembalikan `null` untuk string kosong — kalau di-default-kan,
@@ -263,11 +281,11 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   dan tidak boleh kontradiktif ("hari ini tidak akan berhasil" padahal reset-nya hari ini juga).
   Jam reset = tengah malam Pasifik → `_nextPTMidnight()` (pakai `Intl` timezone agar aman DST),
   ditampilkan `toLocaleString('id-ID')` sesuai jam device.
-- Uji: `/tmp/opencode/test-ai.js` (374 assertions, `fetch` tiruan). Wajib dijalankan tiap
-  menyentuh `16-ai.js` — ia sudah menangkap 13 bug nyata yang lolos `node --check`.
-  Panggilan yang harusnya sukses dibungkus `settle()` supaya satu seksi rusak tidak
-  me-crash dan menyembunyikan seksi berikutnya. Mutasi balik ke `attempt(true)`,
-  `return await call(GEM_MODEL)`, atau `/^gemini-3/i` harus memunculkan `✗`.
+- Uji: `/tmp/opencode/test-ai-adaptive.js` (34 assertions, `fetch` tiruan di halaman).
+  Wajib dijalankan tiap menyentuh `16-ai.js`. Menutup: heal model teks/vision/Gemini,
+  pengganti vision yang aman, anti-loop, regresi auto-disable reasoning +
+  `max_completion_tokens`, UI tanpa nama model. Suite lama `test-ai.js` (374 assertions)
+  HILANG saat `/tmp` ter-wipe — bangun ulang bagian lain bila menyentuh area terkait.
 
 ## Riwayat Keputusan Besar
 - Refactor: fase 1 CSS/JS dipisah (f27653e) → fase 2 pecah 17 modul (3d949aa) →

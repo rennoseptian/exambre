@@ -23,7 +23,7 @@ function loadCustomAI(){
     if(urlEl)urlEl.value=c.baseUrl;if(mEl)mEl.value=c.model;
     if(vmInp)vmInp.value=c.visionModel||'';
     if(keyInp)keyInp.placeholder='Tersimpan ('+c.key.slice(-4)+') — kosongkan jika tak ingin mengganti';
-    st.textContent='✅ Aktif: '+c.model+' @ '+c.baseUrl.replace(/^https?:\/\//,'')+' · key ••••'+c.key.slice(-4);
+    st.textContent='✅ Aktif di '+c.baseUrl.replace(/^https?:\/\//,'')+' · key ••••'+c.key.slice(-4);
     st.style.color='var(--success)';
   }else{
     if(keyInp)keyInp.placeholder='API key provider';
@@ -32,19 +32,7 @@ function loadCustomAI(){
   }
   /* Selalu beri tahu provider mana yang dipakai scan — kalau ini ambigu, user tidak bisa
      menebak kenapa foto tetap dikirim ke Google padahal provider kustomnya aktif. */
-  if(vmInp&&!vmInp.placeholder)vmInp.placeholder=VISION_MODEL_DEFAULT;
   if(vmInp)vmInp.title=visionReadyMsg();
-  /* Model yang tersimpan sudah dihapus provider → 404 terus-menerus. Kasih penggantinya
-     di status SEBELUM user scan, jadi tidak perlu mencari sendiri lewat error 404 yang membingungkan. */
-  if(c){
-    const bad=[['model teks',c.model],['model vision',c.visionModel]]
-      .filter(x=>x[1]&&RETIRED_MODELS[String(x[1]).trim()]);
-    if(bad.length){
-      const first=bad[0];
-      st.textContent='⚠️ '+first[0]+' "'+first[1]+'" sudah dihapus provider (rozak → 404). Ganti ke "'+RETIRED_MODELS[String(first[1]).trim()]+'" atau cek daftar model terbaru.';
-      st.style.color='var(--warn)';
-    }
-  }
 }
 function saveCustomAI(){
   const g=id=>(document.getElementById(id)||{}).value||'';
@@ -56,32 +44,82 @@ function saveCustomAI(){
   if(!/^https?:\/\//i.test(baseUrl)){showToast('Base URL harus diawali http:// atau https://','warn');return;}
   localStorage.setItem(CAI_KEY,JSON.stringify({baseUrl,model,key,visionModel}));
   loadCustomAI();
-  showToast(visionModel?'Provider AI kustom aktif ✨ — scan pakai '+visionModel:'Provider AI kustom aktif ✨ (scan tetap Gemini)','ok',visionModel?5000:3000);
+  showToast(visionModel?'Provider AI kustom aktif ✨ — scan foto memakai provider ini':'Provider AI kustom aktif ✨ (scan tetap Gemini)','ok',3000);
 }
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
 
 /* ── Model VISION untuk scan foto ──
-   Default: Qwen3.8-27B — successor langsung qwen3.6-27b (multimodal 27B, 131K context,
-   thinking + instruct mode, tunable reasoning effort, tool use, JSON mode).
-   JANGAN hardcode dari ingatan: Groq mengganti katalog beberapa kali dalam 2026 —
-   llama-4-scout mati 17 Jul, qwen3.6-27b mati 14 Sep. ID mati → 404 dan user mengira
-   app rusak. Sumber kebenaran tetap tombol "Cek Daftar Model" (menarik daftar live).
-   Disimpan DI DALAM config provider yang sama, bukan key terpisah, jadi tetap satu blok
-   "Simpan Provider" yang perlu diklik.
+   visionModel diisi user di Lainnya dan disimpan DI DALAM config provider yang sama,
+   bukan key terpisah, jadi tetap satu blok "Simpan Provider" yang perlu diklik.
    PENTING: visionModel kosong = scan tetap pakai Gemini. Jangan default-kan diam-diam
-   ke Groq — foto soal user akan ikut terkirim ke provider lain tanpa diminta. */
-const VISION_MODEL_DEFAULT='qwen/qwen3.8-27b';
-/* Model yang sudah DIHAPUS provider → 404 NOT_FOUND. Dipakai untuk memberi saran
-   penggantinya, TIDAK untuk memblokir: deprecation Groq tidak berlaku untuk tier
-   enterprise, jadi model yang "mati" bisa saja masih hidup di akun user. */
-const RETIRED_MODELS={
-  'qwen/qwen3.6-27b':'qwen/qwen3.8-27b',
-  'meta-llama/llama-4-scout-17b-16e-instruct':'qwen/qwen3.8-27b',
-  'meta-llama/llama-4-maverick-17b-128e-instruct':'openai/gpt-oss-120b',
-  'qwen/qwen3-32b':'openai/gpt-oss-120b',
-  'llama-3.3-70b-versatile':'openai/gpt-oss-120b',
-  'llama-3.1-8b-instant':'openai/gpt-oss-20b'
-};
+   ke provider kustom — foto soal user tidak boleh terkirim ke provider lain tanpa diminta.
+
+   ── Adaptasi model (berlaku juga untuk model teks) ──
+   Provider mengganti katalog mereka beberapa kali per tahun; ID yang dihapus dijawab 404.
+   Tabel pengganti statis cepat basi (penggantinya sering ikut mati), jadi saat 404 terjadi
+   app menarik daftar model LIVE dari provider lalu memilih penerus dari keluarga yang sama
+   dengan versi terbaru. Daftar live = satu-satunya sumber kebenaran, sama seperti tombol
+   "Cek Daftar Model". JANGAN hardcode ID model dari ingatan. */
+const AI_NOT_CHAT=/(whisper|tts|speech|audio|embed|moderation|guard|rerank)/i; /* jenis non-chat */
+const AI_VISION_HINT=/(^|[/_.-])(vl|vision|multimodal)([/_.-]|$)/i; /* penanda nama model gambar */
+function _aiVerNum(id){const m=String(id||'').match(/\d+(?:\.\d+)?/g);return m?m.map(Number):[0];}
+function _aiVerCmp(a,b){
+  const A=_aiVerNum(a),B=_aiVerNum(b);
+  for(let i=0;i<Math.max(A.length,B.length);i++){const d=(B[i]||0)-(A[i]||0);if(d)return d;}
+  return a<b?-1:a>b?1:0;
+}
+/* Pilih pengganti dari daftar live. infos:[{id,img}] — img true/false = laporan provider,
+   null = tidak dilaporkan. oldId dikecualikan; keluarga sama diutamakan, versi terbaru
+   menang. Kandidat vision hanya yang dikenali bisa gambar (metadata/hint) supaya foto
+   soal tidak diam-diam dikirim ke model buta gambar; bila tidak ada, keluarga sama versi
+   terbaru tetap dicoba. Kosong = tidak ada pengganti yang aman. */
+function aiPickModel(infos,oldId,vision){
+  const list=(infos||[]).map(x=>typeof x==='string'?{id:x,img:null}:x)
+    .filter(x=>x.id&&x.id!==oldId&&!AI_NOT_CHAT.test(x.id));
+  if(!list.length)return'';
+  const fam=String(oldId||'').includes('/')?String(oldId).split('/')[0]+'/':'';
+  const sameFam=fam?list.filter(x=>x.id.startsWith(fam)):[];
+  const best=a=>a.length?a.slice().sort((p,q)=>_aiVerCmp(p.id,q.id))[0].id:'';
+  if(vision){
+    const known=x=>x.img===true, notBlind=x=>x.img!==false, hint=x=>AI_VISION_HINT.test(x.id);
+    return best(sameFam.filter(known))||best(sameFam.filter(x=>notBlind(x)&&hint(x)))
+      ||best(sameFam.filter(notBlind))||best(list.filter(known))||best(list.filter(hint))||'';
+  }
+  return best(sameFam)||best(list);
+}
+function _aiImgCap(m){
+  const im=(m&&(m.input_modalities||m.inputModalities||(m.architecture&&m.architecture.input_modalities)))||null;
+  return Array.isArray(im)?im.indexOf('image')!==-1:null;
+}
+/* Daftar model live provider OpenAI-compatible. Provider id 'groq-list' terpisah supaya
+   fetch diagnostik ini tidak mengunci cooldown generate yang dipakai user. */
+async function aiFetchModels(baseUrl,key){
+  const res=await aiFetch(String(baseUrl).replace(/\/+$/,'')+'/models',{headers:{'Authorization':'Bearer '+key}},'groq-list');
+  if(res.status===401||res.status===403)throw new Error('BAD_KEY');
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const d=await res.json();
+  return (d.data||[]).map(m=>({id:String((m&&m.id)||''),img:_aiImgCap(m)})).filter(x=>x.id);
+}
+/* Ganti model yang dijawab 404 dengan penerus terbaru dari daftar LIVE lalu simpan.
+   Pemanggil WAJIB menjaga agar ini dicoba SEKALI per request (tanpa loop).
+   Kosong = tidak ada pengganti aman → error asli diteruskan ke user. */
+async function aiHealModel(kind,oldId){
+  const c=getCustomAI();
+  if(!c||!oldId)return'';
+  try{
+    const picked=aiPickModel(await aiFetchModels(c.baseUrl,c.key),oldId,kind==='vision');
+    if(!picked)return'';
+    localStorage.setItem(CAI_KEY,JSON.stringify(Object.assign({},c,kind==='vision'?{visionModel:picked}:{model:picked})));
+    console.warn('Model '+(kind==='vision'?'vision ':'')+oldId+' dihapus provider → otomatis beralih ke '+picked);
+    showToast(kind==='vision'
+      ?'Model vision lama sudah dihapus provider — otomatis beralih ke model terbaru ✨'
+      :'Model lama sudah dihapus provider — otomatis beralih ke model terbaru ✨','warn',6000);
+    return picked;
+  }catch(x){
+    console.warn('Ganti model otomatis gagal:',(x&&x.message)||x);
+    return '';
+  }
+}
 function getVisionModel(){
   const c=getCustomAI();if(!c)return null;
   const m=String(c.visionModel||'').trim();
@@ -94,7 +132,7 @@ function visionProvider(){
 }
 function visionReadyMsg(){
   return getVisionModel()
-    ? 'Scan foto memakai '+getVisionModel()+' @ '+aiProviderLabel('groq')+'.'
+    ? 'Scan foto memakai '+aiProviderLabel('groq')+'.'
     : 'Scan foto memakai Gemini.';
 }
 
@@ -139,7 +177,7 @@ function _nextPTMidnight(){
   }catch(e){return null;}
 }
 
-function aiProviderLabel(p){return p==='groq'?'Provider kustom (Groq)':'Gemini';}
+function aiProviderLabel(p){return p==='groq'?'Provider kustom':'Gemini';}
 
 /* Durasi majemuk gaya Groq: "6m0s", "1h2m3s", "1.5s", "250ms" → total ms.
    Guard regex memastikan SELURUH string adalah rangkaian komponen yang valid, jadi
@@ -270,8 +308,42 @@ function aiText(res,shape){
 }
 function _gemUrl(model,key){return 'https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+key;}
 const _gemHead={'Content-Type':'application/json'};
+/* ADAPTASI MODEL GEMINI: Google juga menghapus model lama (404). Model yang terbukti
+   hidup di-cache di exambre_gem_model agar tidak ada request gagal berulang; saat 404,
+   app menarik daftar model LIVE dan memilih varian flash terbaru — tanpa hardcode nama
+   versi apa pun. Cache ini turunan konfigurasi, BUKAN pengaturan user: jangan ikut
+   dihapus clearAllData (punya daftar kunci sendiri). */
+const GEM_MODEL_CACHE='exambre_gem_model';
+function gemActiveModel(){try{return localStorage.getItem(GEM_MODEL_CACHE)||GEM_MODEL;}catch(e){return GEM_MODEL;}}
+function gemPickModel(names,preferLite){
+  const ver=s=>{const m=String(s).match(/gemini-(\d+)(?:\.(\d+))?/);return m?[+m[1],+(m[2]||0)]:[0,0];};
+  const best=a=>a.length?a.slice().sort((p,q)=>{const A=ver(p),B=ver(q);return(B[0]-A[0])||(B[1]-A[1]);})[0]:'';
+  const flash=names.filter(n=>/^gemini-[\d.]+-flash$/.test(n));
+  const lite=names.filter(n=>/^gemini-[\d.]+-flash-lite$/.test(n));
+  const preview=names.filter(n=>/^gemini-[\d.]+-flash-preview[-\d.]*$/.test(n));
+  const tiers=preferLite?[lite,flash,preview]:[flash,lite,preview];
+  for(const t of tiers){const r=best(t);if(r)return r;}
+  return '';
+}
+async function gemHealModel(key,oldModel,preferLite){
+  try{
+    const res=await aiFetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(key),{method:'GET'},'gemini-list');
+    if(!res.ok)return'';
+    const d=await res.json();
+    const names=(d.models||[])
+      .filter(m=>(m.supportedGenerationMethods||[]).indexOf('generateContent')!==-1)
+      .map(m=>String((m&&m.name)||'').replace(/^models\//,''))
+      .filter(n=>n&&n!==oldModel);
+    const picked=gemPickModel(names,preferLite);
+    if(!picked)return'';
+    localStorage.setItem(GEM_MODEL_CACHE,picked);
+    console.warn('Model Gemini '+oldModel+' tidak tersedia → otomatis beralih ke '+picked);
+    showToast('Model Gemini lama sudah tidak tersedia — otomatis beralih ke model terbaru ✨','warn',6000);
+    return picked;
+  }catch(x){console.warn('Ganti model Gemini otomatis gagal:',(x&&x.message)||x);return '';}
+}
 /* 503 "high demand" sering per-model, bukan per-kuota. Coba model lebih kecil satu kali
-   (kuota tetap akun yang sama) sebelum menyerah. Callerعادkan error aslinya kalau tetap gagal. */
+   (kuota tetap akun yang sama) sebelum menyerah. Caller meneruskan error aslinya kalau tetap gagal. */
 async function gemFetch(key,buildBody,forJson){
   const call=async(model,tries)=>{
     const body=buildBody(model);
@@ -282,30 +354,47 @@ async function gemFetch(key,buildBody,forJson){
     return await aiText(res,'gemini');
   };
   /* Fallback flash-lite. WAJIB aiClearCooldown dulu: kalau tidak, aiFetch langsung
-     melempar COOLDOWN dan percobaan lite tidak pernah terpakai. */
+     melempar COOLDOWN dan percobaan lite tidak pernah terpakai. Lite juga bisa sudah
+     dihapus Google → adaptasi sekali dari daftar live sebelum menyerah. */
   const tryLite=async err=>{
-    if(err.message!=='OVERLOADED'||GEM_MODEL_LITE===GEM_MODEL)throw err;
-    console.warn('Gemini overload, coba '+GEM_MODEL_LITE+':',err.detail||'');
+    if(err.message!=='OVERLOADED')throw err;
+    const lite=GEM_MODEL_LITE;
+    if(lite===gemActiveModel())throw err;
+    console.warn('Gemini overload, coba '+lite+':',err.detail||'');
     aiClearCooldown('gemini');
-    return await call(GEM_MODEL_LITE,1);
+    try{
+      return await call(lite,1);
+    }catch(x){
+      if(x.message==='NOT_FOUND'){
+        const heal=await gemHealModel(key,lite,true);
+        if(heal){aiClearCooldown('gemini');return await call(heal,1);}
+      }
+      throw x;
+    }
   };
   let e=null;
+  const first=gemActiveModel();
   try{
-    return await call(GEM_MODEL);
+    return await call(first);
   }catch(x){e=x;}
+  /* Model dijawab 404 (dihapus Google) → tarik daftar live, pilih flash terbaru, ulangi SEKALI. */
+  if(e.message==='NOT_FOUND'){
+    const heal=await gemHealModel(key,first,false);
+    if(heal){aiClearCooldown('gemini');try{return await call(heal);}catch(x){e=x;}}
+  }
   /* 400 yang menyebut thinkingLevel = tabel REASON_CAP usang untuk model ini. Matikan
      reasoning lalu ulangi TANPA parameter (satu kali). Error retry diteruskan ke tryLite
      supaya jalur flash-lite di bawah tetap kepakai kalau hasilnya OVERLOADED. */
-  if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel|thinking level/i.test(e.detail)&&reasonCap(GEM_MODEL)&&!reasonOff(GEM_MODEL)){
-    reasonOffAdd(GEM_MODEL);
+  if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel|thinking level/i.test(e.detail)&&reasonCap(first)&&!reasonOff(first)){
+    reasonOffAdd(first);
     /* Flash-Lite ikut dimatikan: 400 come here means our table is stale, and the lite
        model is from the same family. Keeping reasoning on there would just be
        immediately 400 again on the fallback request. */
     reasonOffAdd(GEM_MODEL_LITE);
-    console.warn('thinkingLevel tidak didukung',GEM_MODEL,'— dimatikan:',e.detail);
+    console.warn('thinkingLevel tidak didukung',first,'— dimatikan:',e.detail);
     showToast('Tingkat reasoning tidak didukung model ini — dinonaktifkan otomatis.','warn',6000);
     aiClearCooldown('gemini');
-    try{return await call(GEM_MODEL);}catch(x){e=x;}
+    try{return await call(first);}catch(x){e=x;}
   }
   return await tryLite(e);
 }
@@ -392,8 +481,8 @@ function setReasonChoice(v){
   localStorage.setItem(REASON_KEY,REASON_LEVELS.some(l=>l.v===v)?v:'auto');
   renderReasonChips();
 }
-/* Model aktif = provider kustom bila ada, else Gemini */
-function reasonActiveModel(){const c=getCustomAI();return c?c.model:GEM_MODEL;}
+/* Model aktif = provider kustom bila ada, else model Gemini yang sedang dipakai */
+function reasonActiveModel(){const c=getCustomAI();return c?c.model:gemActiveModel();}
 /* Level yang akan dikirim. forJson → dipaksa ke levels[0] (terendah) karena token
    reasoning yang banyak menaikkan peluang JSON rusak → FORMAT_ERROR → retry → boros. */
 function reasonLevel(model,forJson){
@@ -426,15 +515,15 @@ function applyReason(body,model,forJson,genField){
 }
 function reasonUIHtml(){
   const model=reasonActiveModel(),cap=reasonCap(model);
-  if(!cap)return'<p style="font-size:11.5px;color:var(--text3);margin-top:8px">Model <b>'+escHtml(model||'—')+'</b> tidak punya kendali reasoning, jadi tidak ada parameter yang dikirim.</p>';
-  if(reasonOff(model))return'<p style="font-size:11.5px;color:var(--text3);margin-top:8px">Kendali reasoning untuk <b>'+escHtml(model)+'</b> dinonaktifkan otomatis karena server menolaknya (kemungkinan model/level ini tidak mendukung).</p>'
+  if(!cap)return'<p style="font-size:11.5px;color:var(--text3);margin-top:8px">Model aktif tidak punya kendali reasoning, jadi tidak ada parameter tambahan yang dikirim.</p>';
+  if(reasonOff(model))return'<p style="font-size:11.5px;color:var(--text3);margin-top:8px">Kendali reasoning dinonaktifkan otomatis karena server menolaknya (kemungkinan model/level ini tidak mendukung).</p>'
     +'<button class="btn btn-s btn-sm" style="margin-top:8px" onclick="reasonOffClear()"><i class="ti ti-refresh"></i> Aktifkan lagi</button>';
   const cur=reasonChoice();
   const chips=REASON_LEVELS.filter(l=>cap.levels.indexOf(l.v)!==-1).map(l=>
     '<button class="ctab ctab-sm'+(cur===l.v?' on':'')+'" onclick="setReasonChoice(\''+l.v+'\')" title="'+escHtml(l.hint)+'">'+l.label+'</button>').join('');
   const auto='<button class="ctab ctab-sm'+(cur==='auto'?' on':'')+'" onclick="setReasonChoice(\'auto\')" title="biarkan model memakai default-nya">Otomatis</button>';
   return'<div style="display:flex;flex-wrap:wrap;gap:6px">'+auto+chips+'</div>'
-    +'<p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.5">Terapkan ke <b>'+escHtml(model)+'</b> lewat <code>'+cap.field+'</code>. '
+    +'<p style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.5">'
     +'Fitur scan/JSON otomatis memakai level terendah demi hasil JSON valid. '
     +'Tinggi paling akurat tapi paling cepat menghabiskan kuota.</p>';
 }
@@ -455,29 +544,39 @@ async function callCustomAI(prompt,json){
     },'groq');
     return await aiText(res,'openai');
   };
-  try{
-    return await attempt(json);
-  }catch(e){
-    /* 400 yang menyebut reasoning = tabel REASON_CAP usang untuk model ini (atau level tak
-       didukung). Matikan untuk model ini lalu ulangi TANPA parameter — hanya sekali. */
-    if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel/i.test(e.detail)){
-      const c=getCustomAI();
-      if(c&&reasonCap(c.model)&&!reasonOff(c.model)){
-        reasonOffAdd(c.model);
-        console.warn('Reasoning tidak didukung model',c.model,'— dimatikan untuk model ini:',e.detail);
-        showToast('Tingkat reasoning tidak didukung model ini — dinonaktifkan otomatis untuk model tersebut.','warn',6000);
-        return await attempt(json);
+  let healed=false;
+  for(;;){
+    try{
+      return await attempt(json);
+    }catch(e){
+      /* Model dihapus provider (404) → cari penerus dari daftar model LIVE lalu ulangi
+         SEKALI. Tabel pengganti statis sengaja tidak dipakai — cepat basi. */
+      if(e.message==='NOT_FOUND'&&!healed){
+        const c=getCustomAI();
+        const picked=c&&await aiHealModel('text',c.model);
+        if(picked){healed=true;continue;}
       }
+      /* 400 yang menyebut reasoning = tabel REASON_CAP usang untuk model ini (atau level tak
+         didukung). Matikan untuk model ini lalu ulangi TANPA parameter — hanya sekali. */
+      if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel/i.test(e.detail)){
+        const c=getCustomAI();
+        if(c&&reasonCap(c.model)&&!reasonOff(c.model)){
+          reasonOffAdd(c.model);
+          console.warn('Reasoning tidak didukung model',c.model,'— dimatikan untuk model ini:',e.detail);
+          showToast('Tingkat reasoning tidak didukung model ini — dinonaktifkan otomatis untuk model tersebut.','warn',6000);
+          return await attempt(json);
+        }
+      }
+      /* Retry TANPA json:true dicoba untuk error yang mungkin disebabkan response_format
+         (BAD_REQUEST dari provider, EMPTY_RESPONSE, FORMAT-ish). DICUALKAN: 429/COOLDOWN
+         (retry cuma memperpanjang throttle), BAD_KEY & NOT_FOUND (percuma), serta
+         OVERLOADED/NETWORK/TIMEOUT (sudah ditangani retry+jeda di aiFetch — mengulang di sini
+         akan menembak provider dua kali dalam satu permintaan). */
+      if(json&&!['RATE_LIMIT','BAD_KEY','NO_KEY','NOT_FOUND','COOLDOWN','OVERLOADED','NETWORK','TIMEOUT'].includes(e.message)){
+        return await attempt(false);
+      }
+      throw e;
     }
-    /* Retry TANPA json:true dicoba untuk error yang mungkin disebabkan response_format
-       (BAD_REQUEST dari provider, EMPTY_RESPONSE, FORMAT-ish). DICUALKAN: 429/COOLDOWN
-       (retry cuma memperpanjang throttle), BAD_KEY & NOT_FOUND (percuma), serta
-       OVERLOADED/NETWORK/TIMEOUT (sudah ditangani retry+jeda di aiFetch — mengulang di sini
-       akan menembak provider dua kali dalam satu permintaan). */
-    if(json&&!['RATE_LIMIT','BAD_KEY','NO_KEY','NOT_FOUND','COOLDOWN','OVERLOADED','NETWORK','TIMEOUT'].includes(e.message)){
-      return await attempt(false);
-    }
-    throw e;
   }
 }
 
@@ -513,7 +612,7 @@ function aiAltReadyModality(p,mod){
    lewat provider kustom, jadi user tanpa Gemini key bukan berarti tidak bisa scan. */
 function visionReadyHint(){
   return getCustomAI()
-    ? 'Isi "Model Vision" di Lainnya (mis. '+VISION_MODEL_DEFAULT+') untuk scan lewat '+aiProviderLabel('groq')+', atau masukkan Gemini API key.'
+    ? 'Isi "Model Vision" di Lainnya untuk scan lewat '+aiProviderLabel('groq')+', atau masukkan Gemini API key.'
     : 'Masukkan Gemini API key di Lainnya, atau aktifkan provider kustom + Model Vision.';
 }
 /* modality: 'text' (default) | 'vision'. null/undefined = text, jadi call site lama aman. */
@@ -587,12 +686,23 @@ function aiErrToast(msg,prefix,e){
 async function callAIChat(systemText,hist){
   const c=getCustomAI();
   if(c){
-    const res=await aiFetch(c.baseUrl+'/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
-      body:JSON.stringify({model:c.model,messages:[{role:'system',content:systemText},...hist.map(h=>({role:h.r==='user'?'user':'assistant',content:h.t}))],temperature:0.5,max_tokens:1024})
-    },'groq');
-    return await aiText(res,'openai');
+    const send=async m=>{
+      const res=await aiFetch(c.baseUrl+'/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+        body:JSON.stringify({model:m,messages:[{role:'system',content:systemText},...hist.map(h=>({role:h.r==='user'?'user':'assistant',content:h.t}))],temperature:0.5,max_tokens:1024})
+      },'groq');
+      return await aiText(res,'openai');
+    };
+    try{return await send(c.model);}
+    catch(e){
+      /* Sama seperti callCustomAI: model dihapus provider → adaptasi sekali dari daftar live. */
+      if(e.message==='NOT_FOUND'){
+        const picked=await aiHealModel('text',c.model);
+        if(picked)return await send(picked);
+      }
+      throw e;
+    }
   }
   const key=localStorage.getItem('exambre_gemini_key');
   if(!key)throw new Error('NO_KEY');
@@ -670,9 +780,10 @@ const GROQ_IMG_MAX=8*1024*1024;
 async function callCustomAIVision(base64,mime,prompt){
   const c=getCustomAI();
   if(!c||!getVisionModel())throw new Error('NO_KEY');
-  const vm=getVisionModel();
   if(base64.length>GROQ_IMG_MAX)throw new Error('Foto masih '+(Math.round(base64.length/1024/1024*10)/10)+'MB setelah kompres — melebihi batas 8MB untuk scan. Ambil foto dengan resolusi lebih kecil.');
   const attempt=async()=>{
+    const vm=getVisionModel();
+    if(!vm)throw new Error('NO_KEY');
     const body={model:vm,messages:[{role:'user',content:[
       {type:'text',text:prompt},
       {type:'image_url',image_url:{url:'data:'+(mime||'image/jpeg')+';base64,'+base64}}
@@ -687,19 +798,32 @@ async function callCustomAIVision(base64,mime,prompt){
     },'groq');
     return await aiText(res,'openai');
   };
-  try{
-    return await attempt();
-  }catch(e){
-    /* Sama seperti callCustomAI: 400 yang menyebut reasoning = REASON_CAP usang untuk model
-       ini. Matikan untuk model itu lalu ulangi sekali. Scan HANYA fallback ke Gemini atas
-       permintaan user, jadi error fatal di sini tidak boleh diam-diam pindah provider. */
-    if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel/i.test(e.detail)&&reasonCap(vm)&&!reasonOff(vm)){
-      reasonOffAdd(vm);
-      console.warn('Reasoning tidak didukung vision model',vm,'— dimatikan untuk model ini:',e.detail);
-      showToast('Reasoning tidak didukung model vision ini — dinonaktifkan otomatis.','warn',6000);
+  let healed=false;
+  for(;;){
+    try{
       return await attempt();
+    }catch(e){
+      /* Model vision dihapus provider (404) → adaptasi sekali dari daftar live; pengganti
+         HANYA kandidat yang dikenali bisa gambar (lihat aiPickModel), jadi foto soal tidak
+         diam-diam dikirim ke model buta gambar. */
+      if(e.message==='NOT_FOUND'&&!healed){
+        const picked=await aiHealModel('vision',getVisionModel());
+        if(picked){healed=true;continue;}
+      }
+      /* Sama seperti callCustomAI: 400 yang menyebut reasoning = REASON_CAP usang untuk model
+         ini. Matikan untuk model itu lalu ulangi sekali. Scan HANYA fallback ke Gemini atas
+         permintaan user, jadi error fatal di sini tidak boleh diam-diam pindah provider. */
+      if(e.message==='BAD_REQUEST'&&e.detail&&/reasoning|effort|thinkinglevel/i.test(e.detail)){
+        const vm=getVisionModel();
+        if(vm&&reasonCap(vm)&&!reasonOff(vm)){
+          reasonOffAdd(vm);
+          console.warn('Reasoning tidak didukung vision model',vm,'— dimatikan untuk model ini:',e.detail);
+          showToast('Reasoning tidak didukung model vision ini — dinonaktifkan otomatis.','warn',6000);
+          return await attempt();
+        }
+      }
+      throw e;
     }
-    throw e;
   }
 }
 /* Router scan: Groq vision bila visionModel terisi, kalau tidak → Gemini (perilaku lama).
