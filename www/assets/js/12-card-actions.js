@@ -98,10 +98,54 @@ function removeBab(cat,idx){
   }});
 }
 function addBab(cat){const inp=document.getElementById('new-bab-'+cat),val=inp.value.trim();if(!val)return;if(!cats[cat].babs)cats[cat].babs=[];cats[cat].babs.push(val);inp.value='';renderSettingsContent();}
+let _catDelKey=null;
 function removeCategory(k){
-  showConfirm({icon:'🗑️',title:`Hapus kategori "${cats[k].name||k}"?`,body:'Soal yang sudah memakai kategori ini tidak akan terhapus, hanya kehilangan label kategori.',actionLabel:'Hapus',onConfirm:()=>{
-    delete cats[k];renderSettingsContent();buildCatTabs();populateCatSelects();
-  }});
+  if(!cats[k])return;
+  _catDelKey=k;
+  const n=qs.filter(q=>q.cat===k).length;
+  const t=document.getElementById('cat-del-title'),d=document.getElementById('cat-del-desc'),row=document.getElementById('cat-del-all-row'),cnt=document.getElementById('cat-del-count');
+  if(t)t.textContent='Hapus kategori "'+(cats[k].name||k)+'"?';
+  if(d)d.textContent=n?n+' soal memakai kategori ini. Pilih tindakan yang diinginkan:':'Kategori ini belum dipakai soal.';
+  if(row)row.style.display=n?'flex':'none';
+  if(cnt)cnt.textContent=n;
+  const only=document.querySelector('input[name="cat-del-choice"][value="only"]');
+  if(only)only.checked=true;
+  const m=document.getElementById('cat-del-modal');if(m)m.classList.add('on');
+}
+function closeCatDel(){
+  const m=document.getElementById('cat-del-modal');if(m)m.classList.remove('on');
+  _catDelKey=null;
+}
+function confirmCatDel(){
+  const k=_catDelKey;if(!k||!cats[k]){closeCatDel();return;}
+  const n=qs.filter(q=>q.cat===k).length;
+  const choice=document.querySelector('input[name="cat-del-choice"]:checked');
+  const delQs=!!(choice&&choice.value==='all'&&n>0);
+  const name=cats[k].name||k;
+  closeCatDel();
+  if(delQs){
+    showConfirm({icon:'⛔',title:'Hapus '+n+' soal permanen?',body:'Kategori "'+name+'" beserta '+n+' soal, gambar, dan progres SRS-nya akan dihapus. Kamu masih bisa membatalkan lewat tombol "Batalkan" selama 8 detik.',actionLabel:'Ya, hapus semua',actionClass:'btn-warn',onConfirm:()=>doDeleteCategory(k,true)});
+  }else doDeleteCategory(k,false);
+}
+function doDeleteCategory(k,withQs){
+  if(!cats[k])return;
+  const snap={cat:JSON.parse(JSON.stringify(cats[k])),qs:withQs?JSON.parse(JSON.stringify(qs.filter(q=>q.cat===k))):[]};
+  if(withQs)qs=qs.filter(q=>q.cat!==k);
+  delete cats[k];
+  if(curCat===k){curCat='ALL';curBab='all';}
+  if(simSelectedCats&&simSelectedCats.has(k))simSelectedCats.delete(k);
+  persist();buildCatTabs();populateCatSelects();updateBabFilter();render();renderSettingsContent();updateDueBadge();
+  const label=escHtml(snap.cat.name||k);
+  showToastWithUndo(withQs?'Kategori "'+label+'" dan '+snap.qs.length+' soal dihapus.':'Kategori "'+label+'" dihapus.',()=>{
+    if(!cats[k])cats[k]=snap.cat;
+    if(snap.qs.length){
+      const have=new Set(qs.map(q=>q.id));
+      snap.qs.forEach(q=>{if(!have.has(q.id))qs.push(q);});
+      qs.sort((a,b)=>a.id-b.id);
+    }
+    persist();buildCatTabs();populateCatSelects();updateBabFilter();render();renderSettingsContent();updateDueBadge();
+    showToast('✅ Kategori dipulihkan','ok');
+  },8000);
 }
 function addCategory(){const key='KAT'+(Date.now()%10000);const bg='#e8e8e8';cats[key]={name:'Kategori Baru',color:bg,textColor:autoTextColor(bg),babs:[]};renderSettingsContent();}
 

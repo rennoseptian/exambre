@@ -12,6 +12,7 @@ function backCloseOverlay(id){
     case 'tutor-modal':closeTutor();return;
     case 'import-modal':closeImportModal();return;
     case 'ai-guide-modal':closeAiGuide();return;
+    case 'cat-del-modal':closeCatDel();return;
     case 'onboard-modal':skipOnboard();return;
     default:{const el=document.getElementById(id);if(el)el.classList.remove('on');}
   }

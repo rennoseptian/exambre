@@ -185,6 +185,27 @@
   </div>
 </div>
 
+<!-- DELETE CATEGORY MODAL -->
+<div class="modal-overlay" id="cat-del-modal">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" onclick="closeCatDel()" aria-label="Tutup"><i class="ti ti-x"></i></button>
+    <h3 id="cat-del-title" style="margin-bottom:8px">Hapus kategori?</h3>
+    <p class="sub" id="cat-del-desc"></p>
+    <label style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);margin-bottom:8px;cursor:pointer">
+      <input type="radio" name="cat-del-choice" value="only" checked style="margin-top:2px;accent-color:var(--accent)">
+      <span><b style="font-size:13px">Hapus kategori saja</b><br><span style="font-size:11.5px;color:var(--text2);line-height:1.5">Soal tetap ada, hanya kehilangan label kategori.</span></span>
+    </label>
+    <label id="cat-del-all-row" style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);margin-bottom:8px;cursor:pointer">
+      <input type="radio" name="cat-del-choice" value="all" style="margin-top:2px;accent-color:var(--danger)">
+      <span><b style="font-size:13px">Hapus kategori + <span id="cat-del-count">0</span> soal</b><br><span style="font-size:11.5px;color:var(--text2);line-height:1.5">Soal, gambar, dan progres SRS ikut terhapus.</span></span>
+    </label>
+    <div class="btn-row">
+      <button class="btn btn-s" onclick="closeCatDel()">Batal</button>
+      <button class="btn btn-warn" onclick="confirmCatDel()"><i class="ti ti-trash"></i> Hapus</button>
+    </div>
+  </div>
+</div>
+
 <!-- IMPORT PASTE MODAL -->
 <div class="modal-overlay" id="import-modal">
   <div class="modal" style="max-width:420px">

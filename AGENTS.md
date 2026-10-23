@@ -210,6 +210,14 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
 27. Panel "Data & Privasi" di Lainnya harus tetap menyatakan: data hanya di perangkat,
     tidak ada akun/server/pelacakan, dan fitur AI mengirim konten ke provider pilihan user.
     Uji: `/tmp/opencode/test-privacy.js` (6 assertions).
+28. Hapus kategori (`removeCategory`, `12-card-actions.js`) WAJIB dua pilihan eksplisit:
+    "hapus kategori saja" (DEFAULT) dan "hapus kategori + N soal" dengan konfirmasi kedua
+    + undo 8 dtk. JANGAN auto-hapus soal dan JANGAN menaruh opsi hapus massal di dialog
+    hapus satu soal. Undo memakai snapshot deep-copy (`JSON.parse(JSON.stringify(...))`)
+    per-toast (bukan slot global) agar opsi/gambar/SRS pulih utuh; setelah hapus, reset
+    `curCat`/`curBab` bila kategori aktif dihapus dan buang dari `simSelectedCats`.
+    Nama kategori di toast wajib `escHtml()` (toast memakai innerHTML).
+    Uji: `/tmp/opencode/test-cat-delete.js` (16 assertions).
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh
