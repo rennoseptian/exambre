@@ -19,16 +19,31 @@ function togglePanel(){
   if(isOpen){hideScanPreview();}
   if(!isOpen){
     populateCatSelects();populateAnswerSelects('p-wrong','p-correct');populateAnswerSelects('m-wrong','m-correct');
-    ['p-qimgs','p-eimgs','m-qimgs','m-eimgs'].forEach(k=>{imgAreas[k]=[];renderImgArea(k);});
-    buildManualOptRows('m');setTimeout(bindPasteArea,50);
+    // Form Tambah Soal adalah DRAFT: menutup lalu membuka lagi TIDAK boleh
+    // menghapus ketikan/gambar user. Hanya Simpan & tombol Batal yang mereset.
+    const rows=document.getElementById('m-opt-rows');
+    if(rows&&!rows.children.length)buildManualOptRows('m');
+    ['p-qimgs','p-eimgs','m-qimgs','m-eimgs'].forEach(k=>renderImgArea(k));
+    setTimeout(bindPasteArea,50);
   }
+}
+function cancelAddPanel(){
+  resetAddForm();
+  const p=document.getElementById('add-panel');
+  if(p&&p.style.display!=='none'){p.style.display='none';hideScanPreview();}
 }
 function switchMode(m,btn){
   document.querySelectorAll('.t2').forEach(t=>{t.classList.remove('on');t.setAttribute('aria-selected','false');});
   btn.classList.add('on');btn.setAttribute('aria-selected','true');
   document.getElementById('mode-paste').style.display=m==='paste'?'block':'none';
   document.getElementById('mode-manual').style.display=m==='manual'?'block':'none';
-  if(m==='manual'){buildManualOptRows('m');['m-qimgs','m-eimgs'].forEach(k=>{if(!imgAreas[k])imgAreas[k]=[];renderImgArea(k);});}
+  if(m==='manual'){
+    // Jangan bangun ulang baris opsi yang sudah ada: pindah tab Paste↔Manual
+    // tidak boleh menghapus ketikan user (baris awal sudah dibuat loadData()).
+    const rows=document.getElementById('m-opt-rows');
+    if(rows&&!rows.children.length)buildManualOptRows('m');
+    ['m-qimgs','m-eimgs'].forEach(k=>{if(!imgAreas[k])imgAreas[k]=[];renderImgArea(k);});
+  }
 }
 function rteCmd(w,cmd){const el=document.getElementById('rte-'+w);if(el){el.focus();document.execCommand(cmd,false,null);}}
 

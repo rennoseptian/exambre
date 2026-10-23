@@ -2,6 +2,10 @@
 function render(){
   buildCatTabs();updateBabFilter();updateDueBadge();renderGami();checkBadges();
   const list=getFiltered(),el=document.getElementById('qlist');
+  // Form edit inline berada DI DALAM kartu, jadi rebuild #qlist akan menghapusnya
+  // beserta ketikan user (mis. pindah tab lalu kembali). Snapshot dulu, pulihkan
+  // setelah render — kecuali saat Simpan/Batal yang memang menutup form.
+  const draft=inlineDraftSnapshot();
   if(!qs.length&&getCatKeys().length===0){
     el.innerHTML=`<div class="onboard-card">
   <i class="ti ti-book-2" style="font-size:40px;color:var(--accent);margin-bottom:12px;display:block"></i>
@@ -25,6 +29,37 @@ function render(){
     return;
   }
   el.innerHTML=list.map((q,i)=>renderQCard(q,i)).join('');
+  inlineDraftApply(draft);
+}
+function inlineDraftSnapshot(){
+  const el=document.querySelector('.inline-edit.on');if(!el)return null;
+  const id=Number(el.dataset.qid);if(!id)return null;
+  const g=x=>document.getElementById(x),d={id,opts:{}};
+  const q=g('e-q-'+id);d.q=q?q.value:'';
+  LETTERS.forEach(l=>{const ce=g('e-opt-'+id+'-'+l);d.opts[l]=ce?ce.innerHTML:'';});
+  const cat=g('e-cat-'+id),bab=g('e-bab-'+id),wrong=g('e-wrong-'+id),corr=g('e-correct-'+id),exp=g('rte-e-'+id);
+  d.cat=cat?cat.value:'';d.bab=bab?bab.value:'';d.wrong=wrong?wrong.value:'';d.correct=corr?corr.value:'';d.exp=exp?exp.innerHTML:'';
+  d.qimgs=(imgAreas['edit-qimgs-'+id]||[]).slice();
+  d.eimgs=(imgAreas['edit-eimgs-'+id]||[]).slice();
+  return d;
+}
+function inlineDraftApply(d){
+  if(!d)return;
+  toggleInlineEdit(d.id);
+  const id=d.id,el=document.getElementById('inline-edit-'+id);
+  if(!el||!el.classList.contains('on'))return;
+  const g=x=>document.getElementById(x);
+  const q=g('e-q-'+id);if(q)q.value=d.q||'';
+  LETTERS.forEach(l=>{const ce=g('e-opt-'+id+'-'+l);if(ce)ce.innerHTML=d.opts[l]||'';});
+  const cat=g('e-cat-'+id);
+  if(cat&&d.cat){cat.value=d.cat;updateBabSelectEdit(id);}
+  const bab=g('e-bab-'+id);if(bab&&d.bab)bab.value=d.bab;
+  const wrong=g('e-wrong-'+id);if(wrong&&d.wrong)wrong.value=d.wrong;
+  const corr=g('e-correct-'+id);if(corr&&d.correct)corr.value=d.correct;
+  const exp=g('rte-e-'+id);if(exp)exp.innerHTML=d.exp||'';
+  imgAreas['edit-qimgs-'+id]=d.qimgs||[];
+  imgAreas['edit-eimgs-'+id]=d.eimgs||[];
+  renderImgArea('edit-qimgs-'+id);renderImgArea('edit-eimgs-'+id);
 }
 function onboardCreateCat(){
   const inp=document.getElementById('onboard-cat-inp');
@@ -179,6 +214,8 @@ function saveEdit(id){
   q.expHtml=document.getElementById('rte-e-'+id).innerHTML.trim();
   q.qimgs=[...getArea('edit-qimgs-'+id)];
   q.eimgs=[...getArea('edit-eimgs-'+id)];
+  const el=document.getElementById('inline-edit-'+id);
+  if(el){el.classList.remove('on');el.innerHTML='';}
   persist();showToast('✅ Soal berhasil diperbarui!','ok');render();
 }
 

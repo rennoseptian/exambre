@@ -177,6 +177,19 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
     dihapus `clearAllData`;
     (e) nama model tidak boleh masuk teks penjelasan UI.
     Uji: `/tmp/opencode/test-ai-adaptive.js` (43 assertions).
+23. Draft form tambah/edit soal TIDAK boleh hilang saat pindah tab:
+    (a) `switchMode('manual')` JANGAN memanggil `buildManualOptRows()` bila
+    `#m-opt-rows` sudah berisi — pindah tab Paste↔Manual dulu mengosongkan opsi user;
+    (b) `render()` WAJIB snapshot form edit inline (`inlineDraftSnapshot`) sebelum
+    `#qlist` dibangun ulang dan memulihkannya (`inlineDraftApply`) — form edit berada
+    DI DALAM kartu sehingga pindah bottom-tab dulu menutup form + menghapus ketikan;
+    `saveEdit()` wajib menutup form (`.on` + innerHTML) SEBELUM `render()`, kalau tidak
+    draft dipulihkan lagi setelah simpan;
+    (c) panel Tambah Soal adalah draft: `togglePanel()` buka/tutup tidak mereset apa pun;
+    reset HANYA lewat Simpan atau `cancelAddPanel()` (tombol Batal), yang memanggil
+    `resetAddForm()`. Dulu buka panel me-reset opsi/gambar tapi membiarkan pertanyaan —
+    inkonsisten dan terasa seperti "tulisan hilang".
+    Uji: `/tmp/opencode/test-form-draft.js` (19 assertions).
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh
