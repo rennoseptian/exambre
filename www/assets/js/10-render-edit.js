@@ -21,11 +21,16 @@ function render(){
       <i class="ti ti-plus"></i> Buat Kategori
     </button>
   </div>
+  <button class="btn btn-s" style="margin-top:10px" onclick="loadSampleQs()">
+    <i class="ti ti-download"></i> Muat ${SAMPLE_PACK.qs.length} Soal Contoh
+  </button>
 </div>`;
     return;
   }
   if(!list.length){
-    el.innerHTML='<div class="empty"><i class="ti ti-books"></i><p>'+(searchQ?`Soal dengan kata "<b>${escHtml(searchQ)}</b>" tidak ditemukan.`:'Belum ada soal'+(curCat!=='ALL'?' untuk kategori ini':'')+'.<br>Tambahkan soal yang salah dijawab biar bisa dilatih ulang.')+'</p>'+(searchQ?'':'<button class="btn btn-p" style="margin-top:16px" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>')+'</div>';
+    el.innerHTML='<div class="empty"><i class="ti ti-books"></i><p>'+(searchQ?`Soal dengan kata "<b>${escHtml(searchQ)}</b>" tidak ditemukan.`:'Belum ada soal'+(curCat!=='ALL'?' untuk kategori ini':'')+'.<br>Tambahkan soal yang salah dijawab biar bisa dilatih ulang.')+'</p>'+(searchQ?'':(qs.length
+      ?'<button class="btn btn-p" style="margin-top:16px" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>'
+      :'<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap"><button class="btn btn-p" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button><button class="btn btn-s" onclick="loadSampleQs()"><i class="ti ti-download"></i> Muat Contoh Soal</button></div>'))+'</div>';
     return;
   }
   el.innerHTML=list.map((q,i)=>renderQCard(q,i)).join('');
