@@ -95,5 +95,6 @@ function dismissSplash() {
   if (!overlay || overlay.classList.contains('hide')) return;
   overlay.classList.add('hide');
   setTimeout(() => overlay.remove(), 500);
+  if (!window._obChecked) { window._obChecked = true; setTimeout(maybeShowOnboard, 350); }
 }
 

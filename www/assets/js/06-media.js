@@ -66,3 +66,39 @@ function loadSampleQs(){
   showToast('✨ '+SAMPLE_PACK.qs.length+' soal contoh dimuat — silakan edit atau hapus sesuai kebutuhan.','ok',5000);
 }
 
+/* ── ONBOARDING (3 langkah, muncul sekali saat instalasi baru & data kosong) ── */
+const OB_STEPS=[
+  {ic:'ti-category',t:'Buat kategori',d:'Kelompokkan soalmu — misalnya Matematika, Bahasa Indonesia, atau IPA. Kategori dipakai untuk memfilter daftar dan memilih soal simulasi.'},
+  {ic:'ti-plus',t:'Tambah soal',d:'Isi manual, tempel dari tryout, scan foto, atau muat contoh soal. Semua cara berujung di daftar soal yang sama.'},
+  {ic:'ti-repeat',t:'Latih & ulangi',d:'Review menjadwalkan pengulangan otomatis sesuai daya ingatmu. Simulasi ujian untuk latihan berwaktu — skornya terpisah.'}
+];
+let _obStep=0;
+function maybeShowOnboard(){
+  try{if(localStorage.getItem('exambre_onboarded')==='1')return;}catch(e){}
+  if(getCatKeys().length||qs.length)return;
+  _obStep=0;renderOnboardStep();
+  const m=document.getElementById('onboard-modal');if(m)m.classList.add('on');
+}
+function renderOnboardStep(){
+  const s=OB_STEPS[_obStep];if(!s)return;
+  const ic=document.getElementById('ob-ic'),t=document.getElementById('ob-title'),d=document.getElementById('ob-desc'),dots=document.getElementById('ob-dots'),next=document.getElementById('ob-next');
+  if(ic)ic.className='ti '+s.ic;
+  if(t)t.textContent=s.t;
+  if(d)d.textContent=s.d;
+  if(dots)dots.innerHTML=OB_STEPS.map((_,i)=>`<span style="width:7px;height:7px;border-radius:50%;background:${i===_obStep?'var(--accent)':'var(--border2)'}"></span>`).join('');
+  if(next)next.innerHTML=_obStep===OB_STEPS.length-1?'Mengerti <i class="ti ti-check"></i>':'Lanjut <i class="ti ti-arrow-right"></i>';
+}
+function obNext(){
+  if(_obStep<OB_STEPS.length-1){_obStep++;renderOnboardStep();}
+  else finishOnboard();
+}
+function onboardDone(){try{localStorage.setItem('exambre_onboarded','1');}catch(e){}}
+function closeOnboardModal(){const m=document.getElementById('onboard-modal');if(m)m.classList.remove('on');}
+function finishOnboard(){
+  onboardDone();closeOnboardModal();
+  const inp=document.getElementById('onboard-cat-inp');
+  if(inp){inp.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>inp.focus(),250);}
+}
+function skipOnboard(){onboardDone();closeOnboardModal();}
+function onboardSample(){onboardDone();closeOnboardModal();loadSampleQs();}
+
