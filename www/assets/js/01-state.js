@@ -1,5 +1,6 @@
 const SK='cpns-wb-v6';
 const NK='exambre-notes-v1';
+const APP_VERSION='1.0.0';
 const LETTERS=['A','B','C','D','E'];
 
 /* ── SANITIZE ── */

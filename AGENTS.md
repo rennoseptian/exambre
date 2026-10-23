@@ -46,6 +46,7 @@ localStorage keys (JANGAN rename `cpns-*` demi kompatibilitas data pengguna lama
 `exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` (provider kustom) ·
 `exambre_gem_model` (cache model Gemini yang sedang dipakai — turunan, bukan setting) ·
 `exambre_exam_date` · `exambre_onboarded` (flag onboarding sudah dilihat) ·
+`exambre_last_backup` (waktu export sukses) · `exambre_backup_reminder_at` (jeda pengingat) ·
 `exambre_ai_cooldown` / `exambre_reasoning` / `exambre_reasoning_off` (kontrol AI).
 (Kunci lama `cpns-fb-config`/`cpns-sync-code` tak lagi dipakai.)
 
@@ -218,6 +219,19 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
     `curCat`/`curBab` bila kategori aktif dihapus dan buang dari `simSelectedCats`.
     Nama kategori di toast wajib `escHtml()` (toast memakai innerHTML).
     Uji: `/tmp/opencode/test-cat-delete.js` (16 assertions).
+29. Versi & pengaman rilis:
+    (a) `APP_VERSION` (`01-state.js`) adalah SATU-SATUNYA sumber label versi di Lainnya
+        dan `appVersion` di payload export — jangan hardcode angka versi di file lain;
+    (b) `storageBytes()` menghitung seluruh localStorage (≈2 byte/char UTF-16) dan
+        `renderStorageStatus()` menampilkan pemakaian + status backup. `markBackup()`
+        HANYA setelah export benar-benar berhasil (web: download terpicu; native: Share
+        sukses) — JANGAN tandai saat import/gagal, karena status "backup terakhir" palsu
+        lebih berbahaya daripada tidak ada status;
+    (c) pengingat backup maksimal sekali per 7 hari, hanya jika ada soal & tidak ada modal
+        terbuka (jangan menimpa onboarding). Key jeda: `exambre_backup_reminder_at`;
+    (d) `reportUnexpected()` (17-main.js) menangkap error global: 1 toast per 10 dtk,
+        detail hanya ke console — jangan tampilkan pesan mentah ke user.
+    Uji: `/tmp/opencode/test-release.js` (12 assertions).
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh

@@ -1,9 +1,61 @@
 /* ── TAB LAINNYA: tema, export/import ── */
+const BACKUP_KEY='exambre_last_backup';
+const BACKUP_REMINDER_KEY='exambre_backup_reminder_at';
+function fmtBytes(n){
+  if(n<1024)return n+' B';
+  if(n<1048576)return (n/1024).toFixed(n<10240?1:0)+' KB';
+  return (n/1048576).toFixed(1)+' MB';
+}
+function storageBytes(){
+  try{
+    let n=0;
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i)||'';
+      n+=(k.length+(localStorage.getItem(k)||'').length)*2;
+    }
+    return n;
+  }catch(e){return 0;}
+}
+function backupDaysAgo(){
+  const t=Number(localStorage.getItem(BACKUP_KEY))||0;
+  if(!t)return null;
+  return Math.max(0,Math.floor((Date.now()-t)/86400000));
+}
+function markBackup(){try{localStorage.setItem(BACKUP_KEY,String(Date.now()));}catch(e){}}
+function renderStorageStatus(){
+  const label=document.getElementById('storage-label');if(!label)return;
+  const bytes=storageBytes(),quota=5*1024*1024,pct=Math.min(100,Math.round(bytes/quota*100));
+  label.textContent='Data terpakai: '+fmtBytes(bytes);
+  const p=document.getElementById('storage-pct');if(p)p.textContent=(bytes&&!pct?'<1':pct)+'% dari ±5 MB';
+  const bar=document.getElementById('storage-bar');
+  if(bar){bar.style.width=(bytes?Math.max(1,pct):0)+'%';bar.style.background=pct>=85?'var(--danger)':pct>=60?'var(--warn)':'var(--accent)';}
+  const b=document.getElementById('backup-status');if(!b)return;
+  if(!qs.length){b.textContent='Belum ada data soal untuk dibackup.';b.style.color='var(--text3)';return;}
+  const days=backupDaysAgo();
+  if(days===null){b.textContent='⚠️ Belum pernah backup. Export Data agar aman jika app dihapus.';b.style.color='var(--warn)';}
+  else if(days===0){b.textContent='✅ Backup terakhir: hari ini.';b.style.color='var(--text3)';}
+  else if(days>=14){b.textContent='⚠️ Backup terakhir '+days+' hari lalu. Sebaiknya export sekarang.';b.style.color='var(--warn)';}
+  else{b.textContent='Backup terakhir '+days+' hari lalu.';b.style.color='var(--text3)';}
+}
+function maybeBackupReminder(){
+  try{
+    if(!qs.length)return;
+    const last=Number(localStorage.getItem(BACKUP_KEY))||0;
+    if(last&&Date.now()-last<14*86400000)return;
+    const shown=Number(localStorage.getItem(BACKUP_REMINDER_KEY))||0;
+    if(Date.now()-shown<7*86400000)return;
+    if(document.querySelector('.modal-overlay.on'))return;
+    localStorage.setItem(BACKUP_REMINDER_KEY,String(Date.now()));
+    showToast(last?'📦 Sudah 14 hari tanpa backup. Ekspor data di tab Lainnya ya.':'📦 Belum pernah backup. Ekspor data di tab Lainnya ya.','warn',6000);
+  }catch(e){}
+}
 function renderLainnya(){
   const cur=localStorage.getItem('exambre-theme')||'auto';
   document.querySelectorAll('#theme-toggle button').forEach(b=>{
     b.classList.toggle('on', b.dataset.th===cur);
   });
+  const ver=document.getElementById('app-ver-label');if(ver)ver.textContent=APP_VERSION;
+  renderStorageStatus();
   loadGeminiKey();
   loadCustomAI();
   loadSfxToggle();
@@ -20,7 +72,7 @@ function applyTheme(theme){
   renderLainnya();
 }
 async function exportData(){
-  const payload={app:'Exambre',version:1,exportedAt:new Date().toISOString(),qs,nid,cats,gami,notes,noteCats,noteNid};
+  const payload={app:'Exambre',version:1,appVersion:APP_VERSION,exportedAt:new Date().toISOString(),qs,nid,cats,gami,notes,noteCats,noteNid};
   const json=JSON.stringify(payload,null,2);
   const filename=`exambre-backup-${new Date().toISOString().slice(0,10)}.json`;
   const isNative=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
@@ -36,6 +88,7 @@ async function exportData(){
       const result=await Filesystem.writeFile({path:filename,data:json,directory:'CACHE',encoding:'utf8'});
       if(Share){
         await Share.share({title:'Backup Exambre',text:'Backup data Exambre',url:result.uri,dialogTitle:'Simpan atau bagikan backup'});
+        markBackup();renderStorageStatus();
         showToast('Pilih lokasi simpan di menu yang muncul','ok');
       }else{
         showToast('File backup dibuat, tapi plugin Share belum ada untuk menyimpannya','warn',5000);
@@ -54,6 +107,7 @@ async function exportData(){
     a.href=url;a.download=filename;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(url),1000);
+    markBackup();renderStorageStatus();
     showToast('Data berhasil diexport','ok');
   }catch(e){showToast('Gagal export data','warn');}
 }

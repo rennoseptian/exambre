@@ -484,6 +484,28 @@
         Menghapus app atau membersihkan data browser ikut menghapus datamu.
         Lakukan <b>Export Data</b> secara berkala untuk menjaga backup.
       </p>
+      <div id="storage-status" style="margin-top:12px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius)">
+        <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600">
+          <span id="storage-label">Penyimpanan…</span><span id="storage-pct" style="color:var(--text2)"></span>
+        </div>
+        <div style="height:6px;border-radius:99px;background:var(--border);overflow:hidden;margin-top:6px">
+          <div id="storage-bar" style="height:100%;width:0;background:var(--accent);transition:width .3s"></div>
+        </div>
+        <p id="backup-status" style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-top:8px"></p>
+      </div>
+    </div>
+    <div class="panel set-panel">
+      <h4><i class="ti ti-info-circle" style="color:var(--accent)"></i> Tentang Exambre</h4>
+      <p class="set-desc" style="margin-bottom:6px">
+        Versi <b id="app-ver-label">1.0.0</b> · aplikasi latihan soal universal, 100% lokal.
+      </p>
+      <details style="font-size:12px;color:var(--text2);line-height:1.6">
+        <summary style="cursor:pointer;font-weight:600">Catatan rilis</summary>
+        <ul style="margin:8px 0 0;padding-left:18px">
+          <li><b>1.0.0</b> — rilis publik pertama: SRS, simulasi ujian, catatan, statistik,
+              AI opsional, backup/import, onboarding, dan paket contoh soal.</li>
+        </ul>
+      </details>
     </div>
     <div class="panel set-panel">
       <h4><i class="ti ti-sun-moon" style="color:var(--accent)"></i> Tema</h4>

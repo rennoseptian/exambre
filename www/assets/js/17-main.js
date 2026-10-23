@@ -1,4 +1,18 @@
-document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();initExambreSplash();initHardwareBack();});
+document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();initExambreSplash();initHardwareBack();setTimeout(maybeBackupReminder,2500);});
+
+/* ── PENANGKAP ERROR GLOBAL ──
+   Error tak terduga tidak boleh membuat app diam saja tanpa penjelasan.
+   Cukup satu toast per 10 dtk agar tidak membanjiri layar; detail ke console. */
+let _unexpectedAt=0;
+function reportUnexpected(kind,detail){
+  try{console.error('[Exambre] '+kind,detail);}catch(e){}
+  if(Date.now()-_unexpectedAt<10000)return;
+  if(typeof showToast!=='function'||!document.getElementById('toast-wrap'))return;
+  _unexpectedAt=Date.now();
+  showToast('⚠️ Ada gangguan teknis. Coba ulangi; data yang sudah tersimpan tetap aman.','warn',5000);
+}
+window.addEventListener('error',e=>{if(e&&e.message)reportUnexpected('error',e.error||e.message);});
+window.addEventListener('unhandledrejection',e=>reportUnexpected('rejection',e.reason));
 
 /* ── TOMBOL BACK ANDROID ──
    Tanpa listener, tombol back langsung menutup app walau modal/form masih terbuka.
