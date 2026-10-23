@@ -45,7 +45,9 @@ localStorage keys (JANGAN rename `cpns-*` demi kompatibilitas data pengguna lama
 `cpns-wb-v6` (soal+progress utama) · `exambre-notes-v1` · `exambre_sim_history` ·
 `exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` (provider kustom) ·
 `exambre_gem_model` (cache model Gemini yang sedang dipakai — turunan, bukan setting) ·
-`exambre_exam_date`. (Kunci lama `cpns-fb-config`/`cpns-sync-code` tak lagi dipakai.)
+`exambre_exam_date` · `exambre_onboarded` (flag onboarding sudah dilihat) ·
+`exambre_ai_cooldown` / `exambre_reasoning` / `exambre_reasoning_off` (kontrol AI).
+(Kunci lama `cpns-fb-config`/`cpns-sync-code` tak lagi dipakai.)
 
 ## Lapisan AI (file `16-ai.js`)
 Dispatcher: `callAI(prompt, json?)` → provider kustom jika tersedia, else Gemini.
@@ -190,6 +192,24 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
     `resetAddForm()`. Dulu buka panel me-reset opsi/gambar tapi membiarkan pertanyaan —
     inkonsisten dan terasa seperti "tulisan hilang".
     Uji: `/tmp/opencode/test-form-draft.js` (19 assertions).
+24. Pengguna baru: `defaultQ()` sengaja kosong. Paket contoh ada di `SAMPLE_PACK`
+    (`06-media.js`) dan dimuat `loadSampleQs()` HANYA saat `qs.length===0` — klik kedua
+    tidak boleh menggandakan. Kategori contoh DIGABUNG ke kategori yang sudah ada
+    (jangan menimpa nama/warna milik user).
+    Uji: `/tmp/opencode/test-sample.js` (13 assertions).
+25. Onboarding (`#onboard-modal`, `06-media.js`) tampil sekali lewat `maybeShowOnboard()`
+    yang dipanggil dari `dismissSplash()` — HANYA jika `exambre_onboarded` belum `'1'`
+    DAN data masih kosong (`qs`/kategori). Jangan panggil sebelum `loadData()`.
+    Splash z-index 99999 > modal 8888, jadi modal aman menunggu di belakang splash.
+    Uji: `/tmp/opencode/test-onboard.js` (11 assertions).
+26. Tombol back Android (`@capacitor/app`, `17-main.js`) — urutan wajib: splash →
+    konfirmasi → editor catatan → lightbox → modal teratas → tab lain → form edit inline →
+    panel tambah → konfirmasi keluar. JANGAN biarkan back menutup app saat modal/draft
+    terbuka. Panel tambah ditutup `togglePanel()` (draft aman), BUKAN `resetAddForm()`.
+    Uji: `/tmp/opencode/test-back.js` (13 assertions).
+27. Panel "Data & Privasi" di Lainnya harus tetap menyatakan: data hanya di perangkat,
+    tidak ada akun/server/pelacakan, dan fitur AI mengirim konten ke provider pilihan user.
+    Uji: `/tmp/opencode/test-privacy.js` (6 assertions).
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh

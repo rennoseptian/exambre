@@ -1,1 +1,44 @@
-document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();initExambreSplash();});
+document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();initExambreSplash();initHardwareBack();});
+
+/* ── TOMBOL BACK ANDROID ──
+   Tanpa listener, tombol back langsung menutup app walau modal/form masih terbuka.
+   Urutan: splash → konfirmasi → editor catatan → lightbox → modal teratas →
+   tab lain → form edit inline → panel tambah → konfirmasi keluar. */
+function backCloseOverlay(id){
+  switch(id){
+    case 'settings-modal':closeSettings();return;
+    case 'note-cat-modal':closeNoteCatModal();return;
+    case 'batch-modal':closeBatchModal();return;
+    case 'tutor-modal':closeTutor();return;
+    case 'import-modal':closeImportModal();return;
+    case 'ai-guide-modal':closeAiGuide();return;
+    case 'onboard-modal':skipOnboard();return;
+    default:{const el=document.getElementById(id);if(el)el.classList.remove('on');}
+  }
+}
+function handleHardwareBack(){
+  const splash=document.getElementById('exambre-splash');
+  if(splash&&!splash.classList.contains('hide')){dismissSplash();return;}
+  if(document.getElementById('confirm-modal').classList.contains('on')){closeConfirm();return;}
+  const ne=document.getElementById('note-editor-overlay');
+  if(ne&&ne.classList.contains('on')){closeNoteEditor();return;}
+  const lb=document.getElementById('lightbox');
+  if(lb&&lb.classList.contains('on')){closeLB();return;}
+  const modals=[...document.querySelectorAll('.modal-overlay.on')];
+  if(modals.length){backCloseOverlay(modals[modals.length-1].id);return;}
+  const active=document.querySelector('.sec.on');
+  if(active&&active.id!=='sec-list'){goSec('list',document.querySelector('.bnav-item'));return;}
+  const ie=document.querySelector('.inline-edit.on');
+  if(ie){toggleInlineEdit(Number(ie.dataset.qid));return;}
+  const panel=document.getElementById('add-panel');
+  if(panel&&panel.style.display!=='none'){togglePanel();return;}
+  showConfirm({icon:'👋',title:'Keluar dari Exambre?',body:'Semua data tetap tersimpan di perangkat ini.',actionLabel:'Keluar',actionClass:'btn-p',onConfirm:()=>{
+    const App=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    if(App&&App.exitApp)App.exitApp();
+  }});
+}
+function initHardwareBack(){
+  const App=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+  if(!App||!App.addListener)return;
+  App.addListener('backButton',handleHardwareBack);
+}
