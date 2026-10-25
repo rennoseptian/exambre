@@ -19,7 +19,7 @@
 <body>
 <div class="exambre-splash" id="exambre-splash" onclick="dismissSplash()">
   <div class="splash-mascot-wrap">
-    <img class="splash-mascot" src="assets/saber.webp" alt="">
+    <img class="splash-mascot" src="assets/saber.webp" alt="" width="412" height="486" decoding="async">
   </div>
   <div class="splash-wordmark">Exambre</div>
   <div class="splash-bar" aria-hidden="true"><span></span></div>
@@ -27,10 +27,10 @@
 </div>
 <div class="lightbox" id="lightbox" onclick="closeLB()">
   <button class="cls" onclick="closeLB()" aria-label="Tutup"><i class="ti ti-x"></i></button>
-  <img id="lb-img" src="" alt="">
+  <img id="lb-img" src="" alt="Gambar diperbesar" decoding="async">
 </div>
-<div class="toast-wrap" id="toast-wrap"></div>
-<div class="badge-toast" id="badge-toast"></div>
+<div class="toast-wrap" id="toast-wrap" aria-live="polite" aria-atomic="false"></div>
+<div class="badge-toast" id="badge-toast" role="status" aria-live="polite"></div>
 
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay" id="settings-modal">
@@ -349,8 +349,8 @@
           <span><i class="ti ti-photo" style="vertical-align:-1px;margin-right:4px"></i>Referensi soal asli — tap untuk perbesar</span>
           <button onclick="hideScanPreview()" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:2px 6px;font-size:16px;line-height:1" aria-label="Tutup preview gambar">✕</button>
         </div>
-        <img id="scan-preview-img" src="" alt="Gambar soal asli"
-          onclick="openLB(this.src)"
+        <img id="scan-preview-img" src="" alt="Gambar soal asli" decoding="async"
+          onclick="openLB(this.src,this.alt)"
           style="width:100%;max-height:220px;object-fit:contain;background:var(--bg3);cursor:zoom-in;display:block">
       </div>
 
@@ -541,7 +541,7 @@
           <i class="ti ti-wifi"></i> Test
         </button>
       </div>
-      <p id="gemini-key-status" style="font-size:12px;margin-top:8px;color:var(--text3)"></p>
+      <p id="gemini-key-status" role="status" aria-live="polite" style="font-size:12px;margin-top:8px;color:var(--text3)"></p>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
           <label style="font-size:12px;color:var(--text2);font-weight:700">🔌 Provider Kustom (opsional — format OpenAI)</label>
@@ -572,7 +572,7 @@
           <button class="btn btn-p btn-sm" onclick="saveCustomAI()"><i class="ti ti-check"></i> Simpan Provider</button>
           <button class="btn btn-s btn-sm" onclick="clearCustomAI()">Hapus</button>
         </div>
-        <p id="custom-ai-status" style="font-size:11.5px;margin-top:8px;color:var(--text3)"></p>
+        <p id="custom-ai-status" role="status" aria-live="polite" style="font-size:11.5px;margin-top:8px;color:var(--text3)"></p>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
         <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:700">
@@ -595,7 +595,7 @@
             <i class="ti ti-x"></i>
           </button>
         </div>
-        <p id="exam-date-status" style="font-size:12px;color:var(--text3);margin-top:6px"></p>
+        <p id="exam-date-status" role="status" aria-live="polite" style="font-size:12px;color:var(--text3);margin-top:6px"></p>
       </div>
     </div>
     <div class="panel set-panel">

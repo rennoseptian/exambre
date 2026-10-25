@@ -41,12 +41,12 @@ function renderRev(){
     </div>
     <div class="rcard">
       <p class="rq">${sanitizeHtml(q.q)}</p>
-      ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${escHtml(ei.src)}" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${escHtml(jsStr(ei.src))}')">`;}).join('')+'</div>':''}
+      ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${escHtml(ei.src)}" alt="Gambar soal" decoding="async" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${escHtml(jsStr(ei.src))}','Gambar soal')">`;}).join('')+'</div>':''}
       <div class="ropts">${(q.opts||[]).map((o,i)=>{
         if(!LETTERS[i]||!o||!o.trim()||o==='<br>')return'';const l=LETTERS[i];
         const safeO=sanitizeHtml(o);
         const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
-        const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${escHtml(imgSrc)}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">` :'';
+        const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${escHtml(imgSrc)}" alt="Gambar pilihan ${l}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">` :'';
         const displayHtml=safeO.replace(/<img([^>]*)style="[^"]*"([^>]*)>/gi,'<img$1style="max-height:100px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px"$2>');
         return`<button class="ropt" data-l="${l}" onclick="ansRev(${q.id},'${l}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
       }).join('')}</div>
@@ -84,7 +84,7 @@ function ansRev(qid,chosen,btn){
   if(revDone)return;revDone=true;
   const q=qs.find(x=>x.id===qid),ok=chosen===q.correct;
   document.querySelectorAll('.ropt').forEach(b=>{b.disabled=true;const l=b.dataset.l;if(l===chosen&&!ok)b.classList.add('rw');if(l===q.correct)b.classList.add('rc');if(l===chosen&&ok)b.classList.add('rc');});
-  const eimgHtml=q.eimgs&&q.eimgs.length?'<div style="margin-top:8px">'+q.eimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return'<img src="'+escHtml(ei.src)+'" onclick="openLB(\''+escHtml(jsStr(ei.src))+'\')" style="max-height:200px;border-radius:4px;border:0.5px solid var(--border);cursor:pointer;object-fit:contain;display:block;margin-bottom:6px">';}).join('')+'</div>':'';
+  const eimgHtml=q.eimgs&&q.eimgs.length?'<div style="margin-top:8px">'+q.eimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return'<img src="'+escHtml(ei.src)+'" alt="Gambar pembahasan" loading="lazy" decoding="async" onclick="openLB(\''+escHtml(jsStr(ei.src))+'\',\'Gambar pembahasan\')" style="max-height:200px;border-radius:4px;border:0.5px solid var(--border);cursor:pointer;object-fit:contain;display:block;margin-bottom:6px">';}).join('')+'</div>':'';
   const wasMastered=!!q.mastered;
   srsUpdate(q,ok);
   if(!ok){

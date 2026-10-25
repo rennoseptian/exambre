@@ -1,9 +1,9 @@
-@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/inter-400.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('./assets/fonts/inter-500.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:italic;font-weight:500;font-display:swap;src:url('./assets/fonts/inter-500italic.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('./assets/fonts/inter-600.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('./assets/fonts/inter-700.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:800;font-display:swap;src:url('./assets/fonts/inter-800.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/inter-400.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/inter-500.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:italic;font-weight:500;font-display:swap;src:url('./fonts/inter-500italic.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/inter-600.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/inter-700.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:800;font-display:swap;src:url('./fonts/inter-800.woff2') format('woff2')}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#ffffff;--bg2:#f7f7f8;--bg3:#f2f2f4;--text:#16171b;--text2:#6b6d76;--text3:#75777f;--border:rgba(15,15,20,0.08);--border2:rgba(15,15,20,0.13);--radius:14px;--radius-lg:20px;--radius-pill:999px;--accent:#4F62E0;--accent-dark:#3949B8;--accent-ink:#3949B8;--success:#1D9E75;--success-dark:#16805e;--success-ink:#177055;--danger:#D6433D;--danger-dark:#b8332e;--danger-ink:#a8332e;--gold:#B45A00;--gold-dark:#8f4700;--gold-ink:#8f4700;--note:#7C3AED;--note-dark:#6326D9;--note-ink:#5B21B6;--blue50:#EAF1FE;--blue800:#3552CC;--teal50:#E4F6EE;--teal800:#1A7A52;--amber50:#FEF2E2;--amber800:#B45A00;--purple50:#F2EDFE;--purple800:#6B3FD4;--coral50:#FDEDE8;--coral800:#C24A2E;--green50:#E9F7F0;--green800:#177055;--red50:#FBEAE9;--red800:#A8332E;--warn:#B45A00;
   --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:24px;
@@ -290,7 +290,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .toast.warn{background:var(--danger);color:#fff}
 .toast.ok{background:var(--success);color:#fff}
 .toast.gold{background:var(--text);color:var(--bg)}
-.toast a{color:inherit;text-decoration:underline;cursor:pointer}
+.toast a,.toast-link{color:inherit;text-decoration:underline;cursor:pointer}
+.toast-link{background:transparent;border:none;font-weight:700;font-size:12px;margin-left:8px;padding:0;font-family:inherit}
 /* Gamifikasi: badge achievement (tenang, tanpa confetti) */
 .badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px}
 .ach{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 10px;text-align:center;opacity:.45;filter:grayscale(.5)}

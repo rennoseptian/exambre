@@ -45,6 +45,7 @@ function sanitizeHtml(html){
         el.removeAttribute(attr.name);
       }
     });
+    if(el.tagName==='IMG'&&!el.hasAttribute('alt'))el.setAttribute('alt','Gambar');
   });
   return tmp.innerHTML;
 }

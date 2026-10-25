@@ -46,7 +46,7 @@ function toggleM(id){
 function rmStoredEimg(qid,idx){const q=qs.find(x=>x.id===qid);if(!q)return;q.eimgs.splice(idx,1);persist();render();}
 
 /* ── LIGHTBOX ── */
-function openLB(src){document.getElementById('lb-img').src=src;document.getElementById('lightbox').classList.add('on');}
+function openLB(src,alt){const im=document.getElementById('lb-img');im.src=src;im.alt=alt||'Gambar diperbesar';document.getElementById('lightbox').classList.add('on');}
 function closeLB(){document.getElementById('lightbox').classList.remove('on');}
 
 /* ── CONFIRM MODAL ── */

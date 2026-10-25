@@ -51,6 +51,8 @@ function showToast(msg,type='',dur=3000){
   const w=document.getElementById('toast-wrap');
   const t=document.createElement('div');
   t.className='toast'+(type?' '+type:'');
+  t.setAttribute('role',type==='warn'?'alert':'status');
+  t.setAttribute('aria-atomic','true');
   t.innerHTML=msg;
   w.appendChild(t);
   setTimeout(()=>t.classList.add('on'),10);
@@ -60,6 +62,8 @@ function showToastWithUndo(msg,onUndo,dur=8000){
   const w=document.getElementById('toast-wrap');
   const t=document.createElement('div');
   t.className='toast ok';
+  t.setAttribute('role','status');
+  t.setAttribute('aria-atomic','true');
   t.innerHTML=msg+' <button onclick="this.closest(\'.toast\')._undo()" style="background:transparent;border:none;color:inherit;font-weight:700;cursor:pointer;text-decoration:underline;font-size:12px;margin-left:8px;font-family:inherit">Batalkan</button>';
   t._undo=()=>{onUndo();t.classList.remove('on');setTimeout(()=>t.remove(),300);};
   w.appendChild(t);

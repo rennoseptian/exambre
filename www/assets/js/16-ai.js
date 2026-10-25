@@ -1393,7 +1393,7 @@ function saveTutorToNotes(){
   v.forEach(x=>{html+=x.r==='user'?'<p><b>Tanya:</b> '+escHtml(x.t)+'</p>':'<div><b>Tutor:</b>'+x.h+'</div>';});
   notes.push({id:noteNid++,title:'Tutor — '+(qPlain.slice(0,60)||'percakapan'),body:html,bodyText:html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim(),catId:'',createdAt:Date.now(),updatedAt:Date.now()});
   persistNotes();renderNotes();
-  showToast('Disimpan ke Catatan. <a onclick="closeTutor();goSec(\'catatan\')">Buka</a>','ok',5000);
+  showToast('Disimpan ke Catatan. <button type="button" class="toast-link" onclick="closeTutor();goSec(\'catatan\')">Buka</button>','ok',5000);
 }
 function _tutorAdd(role,html){
   const w=document.getElementById('tutor-msgs');if(!w)return null;
