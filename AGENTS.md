@@ -232,6 +232,29 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
     (d) `reportUnexpected()` (17-main.js) menangkap error global: 1 toast per 10 dtk,
         detail hanya ke console — jangan tampilkan pesan mentah ke user.
     Uji: `/tmp/opencode/test-release.js` (12 assertions).
+30. Aksesibilitas P0 (jangan regresi saat menambah modal/form):
+    (a) Font Inter dimuat dari `./fonts/` (bukan path absolut) dan splash memakai
+        `width="412" height="486"`; alt gambar wajib ada, dengan fallback `Gambar` dari
+        `sanitizeHtml()`, dan `openLB(src,alt)` selalu diberi alt.
+    (b) Toast sukses = `role="status"`, peringatan/error = `role="alert"`, `aria-atomic`;
+        tombol "Buka" adalah `<button class="toast-link">` (bukan link palsu).
+    (c) SEMUA overlay (`DIALOG_SELECTOR` di `12-card-actions.js`) wajib punya
+        `role="dialog"`, `aria-modal="true"`, dan nama aksesibel. Jangan hapus
+        `initDialogA11y()`: MutationObserver mengelola stack fokus, focusin menyimpan
+        pembuka, keydown menangani Esc/Tab, dan `body.dialog-open` mengunci scroll.
+        Tutup lewat `closeDialogEl()` agar fokus kembali benar; back Android juga
+        memakai jalur itu. Modal baru wajib masuk `DIALOG_SELECTOR`/switch close.
+    (d) Setiap `input`/`select`/`textarea`/`contenteditable` wajib punya nama aksesibel
+        (`label for` atau `aria-label`; area kaya teks juga `role="textbox"` +
+        `aria-multiline`). Ini berlaku untuk HTML statis DAN string render dinamis:
+        form tambah/edit, pengaturan kategori, simulasi, scan/batch, import, image area
+        (`imgAreaLabel`), serta opsi A–E/editor catatan/pembahasan. Jangan mengandalkan
+        placeholder saja. Label berisi data user wajib lewat `escHtml()`.
+    (e) Setiap perubahan file inti wajib menaikkan `CACHE` di `www/sw.js`.
+    Uji: `/tmp/opencode/a11y/test-stage3.js` (60 assertions), `test-stage2.js` (23),
+    `test-regression-smoke.js` (12), `test-back-smoke.js` (7),
+    `test-note-quick.js` (4), `test-stage1-smoke.js` (7). `/tmp` bisa ter-wipe;
+    bangun ulang dari perilaku di atas bila hilang.
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh
