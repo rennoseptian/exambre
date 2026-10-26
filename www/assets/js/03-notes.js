@@ -43,7 +43,7 @@ function renderNotes(){
     const catBadge=cat?`<span class="note-cat-badge" style="background:${badgeBg}22;color:${badgeFg};border-color:${badgeBg}55">${escHtml(cat.name)}</span>`:'';
     const d=n.updatedAt?new Date(n.updatedAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
     const preview=(n.bodyText||'').slice(0,140);
-    return`<div class="note-card" onclick="openNoteEditor(${n.id})">
+    return`<div class="note-card" role="button" tabindex="0" aria-label="Buka catatan: ${escHtml(n.title||'(Tanpa judul)')}" onclick="openNoteEditor(${n.id})" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();openNoteEditor(${n.id})}">
       <div class="note-card-header"><div class="note-card-title">${escHtml(n.title||'(Tanpa judul)')}</div><button class="ibtn edit-btn" style="width:34px;height:34px;font-size:13px" title="Buat soal dari catatan ini" aria-label="Buat soal dari catatan ini" onclick="event.stopPropagation();openNoteToQ(${n.id})"><i class="ti ti-sparkles"></i></button></div>
       <div class="note-meta">${catBadge}<span class="note-date">${d}</span></div>
       <div class="note-card-preview">${preview?escHtml(preview):'<i style="color:var(--text3)">Kosong</i>'}</div>
@@ -70,7 +70,6 @@ function openNoteEditor(id){
     delBtn.style.display='flex';
   }
   document.getElementById('note-editor-overlay').classList.add('on');
-  setTimeout(()=>titleInp.focus(),100);
 }
 function closeNoteEditor(){
   document.getElementById('note-editor-overlay').classList.remove('on');

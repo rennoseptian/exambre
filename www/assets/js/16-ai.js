@@ -1371,10 +1371,9 @@ function openTutor(qid){
   const sub=document.getElementById('tutor-sub');
   if(sub)sub.textContent='Tanya bebas tentang soal ini — sentuh salah satu contoh di bawah, atau ketik pertanyaanmu sendiri.';
   const m=document.getElementById('tutor-msgs');
-  if(m){m.innerHTML='';_tutorAdd('ai','Halo! Saya siap membantu soal ini. Sentuh salah satunya:<br><span class="tchip" onclick="_tutorAsk(this)">Kenapa jawaban kuncinya benar?</span><span class="tchip" onclick="_tutorAsk(this)">Jelaskan langkah demi langkah</span><span class="tchip" onclick="_tutorAsk(this)">Kasih trik cepat mengerjakannya</span>');}
+  if(m){m.innerHTML='';_tutorAdd('ai','Halo! Saya siap membantu soal ini. Sentuh salah satunya:<br><button type="button" class="tchip" onclick="_tutorAsk(this)">Kenapa jawaban kuncinya benar?</button><button type="button" class="tchip" onclick="_tutorAsk(this)">Jelaskan langkah demi langkah</button><button type="button" class="tchip" onclick="_tutorAsk(this)">Kasih trik cepat mengerjakannya</button>');}
   const inp=document.getElementById('tutor-inp');if(inp)inp.value='';
   document.getElementById('tutor-modal').classList.add('on');
-  setTimeout(()=>{if(inp)inp.focus();},180);
 }
 function closeTutor(){document.getElementById('tutor-modal').classList.remove('on');}
 function _tutorAsk(el){

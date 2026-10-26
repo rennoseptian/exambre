@@ -25,7 +25,7 @@
   <div class="splash-bar" aria-hidden="true"><span></span></div>
   <div class="splash-skip">Ketuk untuk lanjut</div>
 </div>
-<div class="lightbox" id="lightbox" onclick="closeLB()">
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Gambar diperbesar" onclick="closeLB()">
   <button class="cls" onclick="closeLB()" aria-label="Tutup"><i class="ti ti-x"></i></button>
   <img id="lb-img" src="" alt="Gambar diperbesar" decoding="async">
 </div>
@@ -33,10 +33,10 @@
 <div class="badge-toast" id="badge-toast" role="status" aria-live="polite"></div>
 
 <!-- SETTINGS MODAL -->
-<div class="modal-overlay" id="settings-modal">
+<div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
   <div class="modal">
     <button class="modal-close" onclick="closeSettings()" aria-label="Tutup"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-settings" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>Kelola Kategori & Sub-Bab</h3>
+    <h3 id="settings-title"><i class="ti ti-settings" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>Kelola Kategori & Sub-Bab</h3>
     <p class="sub">Edit nama kategori, tambah/hapus kategori, dan kelola bab</p>
     <div id="settings-content"></div>
     <div style="display:flex;gap:8px;justify-content:space-between;margin-top:16px;align-items:center">
@@ -47,10 +47,10 @@
 </div>
 
 <!-- NOTE EDITOR OVERLAY -->
-<div class="note-editor-overlay" id="note-editor-overlay">
+<div class="note-editor-overlay" id="note-editor-overlay" role="dialog" aria-modal="true" aria-label="Editor catatan">
   <div class="note-editor-header">
     <button class="ibtn" onclick="closeNoteEditor(false)" aria-label="Kembali"><i class="ti ti-arrow-left"></i></button>
-    <input class="note-editor-title-inp" id="note-editor-title" placeholder="Judul catatan..." maxlength="120">
+    <input class="note-editor-title-inp" id="note-editor-title" data-autofocus placeholder="Judul catatan..." maxlength="120">
     <button class="btn btn-note btn-sm" onclick="saveNote()"><i class="ti ti-device-floppy"></i> Simpan</button>
     <button class="ibtn del" onclick="deleteCurrentNote()" id="note-del-btn" style="display:none" aria-label="Hapus catatan"><i class="ti ti-trash"></i></button>
   </div>
@@ -86,10 +86,10 @@
 </div>
 
 <!-- NOTE CAT MODAL -->
-<div class="modal-overlay" id="note-cat-modal">
+<div class="modal-overlay" id="note-cat-modal" role="dialog" aria-modal="true" aria-labelledby="note-cat-title">
   <div class="modal" style="max-width:420px">
     <button class="modal-close" onclick="closeNoteCatModal()" aria-label="Tutup"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-tag" style="color:var(--note);font-size:16px"></i> Kategori Catatan</h3>
+    <h3 id="note-cat-title"><i class="ti ti-tag" style="color:var(--note);font-size:16px"></i> Kategori Catatan</h3>
     <p class="sub">Buat dan kelola kategori untuk mengorganisir catatan</p>
     <div id="note-cats-content"></div>
     <div style="display:flex;gap:8px;margin-top:14px">
@@ -104,10 +104,10 @@
 </div>
 
 <!-- NOTE TO QUESTION MODAL -->
-<div class="modal-overlay" id="note2q-modal">
+<div class="modal-overlay" id="note2q-modal" role="dialog" aria-modal="true" aria-labelledby="note2q-title">
   <div class="modal" style="max-width:420px">
     <button class="modal-close" onclick="document.getElementById('note2q-modal').classList.remove('on')" aria-label="Tutup"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-sparkles" style="color:var(--accent);font-size:16px"></i> Buat Soal dari Catatan</h3>
+    <h3 id="note2q-title"><i class="ti ti-sparkles" style="color:var(--accent);font-size:16px"></i> Buat Soal dari Catatan</h3>
     <p class="sub">AI akan menyusun soal latihan berdasarkan isi catatan ini, lengkap dengan pembahasan.</p>
     <p id="note2q-info" style="font-size:12px;color:var(--text2);margin-bottom:12px;background:var(--bg2);border-radius:var(--radius);padding:8px 12px"></p>
     <div class="field"><label>Jumlah soal</label>
@@ -122,10 +122,10 @@
 </div>
 
 <!-- BATCH SCAN MODAL -->
-<div class="modal-overlay" id="batch-modal">
+<div class="modal-overlay" id="batch-modal" role="dialog" aria-modal="true" aria-labelledby="batch-title">
   <div class="modal" style="max-width:540px">
     <button class="modal-close" onclick="closeBatchModal()" aria-label="Tutup"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-file-text" style="color:var(--accent);font-size:16px"></i> Preview Hasil Scan</h3>
+    <h3 id="batch-title"><i class="ti ti-file-text" style="color:var(--accent);font-size:16px"></i> Preview Hasil Scan</h3>
     <p class="sub">Centang soal yang ingin diimpor. Soal bertanda tidak valid otomatis tak terpilih.</p>
     <div id="batch-list" style="max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding-right:2px"></div>
     <div class="field"><label>Kategori tujuan</label>
@@ -143,15 +143,15 @@
 </div>
 
 <!-- TUTOR CHAT MODAL -->
-<div class="modal-overlay" id="tutor-modal">
+<div class="modal-overlay" id="tutor-modal" role="dialog" aria-modal="true" aria-labelledby="tutor-title">
   <div class="modal" style="max-width:480px;display:flex;flex-direction:column;max-height:86vh">
     <button class="modal-close" style="right:56px" onclick="saveTutorToNotes()" aria-label="Simpan percakapan ke Catatan" title="Simpan percakapan ke Catatan"><i class="ti ti-bookmark-plus"></i></button>
     <button class="modal-close" onclick="closeTutor()" aria-label="Tutup"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-message-circle" style="color:var(--accent);font-size:16px"></i> Tanya Tutor</h3>
+    <h3 id="tutor-title"><i class="ti ti-message-circle" style="color:var(--accent);font-size:16px"></i> Tanya Tutor</h3>
     <p class="sub" id="tutor-sub"></p>
     <div id="tutor-msgs" style="flex:1;min-height:170px;max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;padding-right:2px"></div>
     <div style="display:flex;gap:8px">
-      <input id="tutor-inp" placeholder="Tanya apa saja tentang soal ini..."
+      <input id="tutor-inp" data-autofocus placeholder="Tanya apa saja tentang soal ini..."
         style="flex:1;font-size:13.5px;padding:11px 14px;border:none;border-radius:999px;background:var(--bg2);color:var(--text);font-family:inherit;outline:none"
         onkeydown="if(event.key==='Enter')sendTutor()">
       <button class="btn btn-p" id="tutor-send" onclick="sendTutor()" aria-label="Kirim"><i class="ti ti-send"></i></button>
@@ -160,10 +160,10 @@
 </div>
 
 <!-- VARIASI SOAL MODAL -->
-<div class="modal-overlay" id="variasi-modal">
+<div class="modal-overlay" id="variasi-modal" role="dialog" aria-modal="true" aria-labelledby="variasi-title">
   <div class="modal" style="max-width:480px">
     <button class="modal-close" onclick="document.getElementById('variasi-modal').classList.remove('on')" aria-label="Tutup"><i class="ti ti-x"></i></button>
-    <h3><i class="ti ti-arrows-shuffle" style="color:var(--accent);font-size:16px"></i> Variasi Soal</h3>
+    <h3 id="variasi-title"><i class="ti ti-arrows-shuffle" style="color:var(--accent);font-size:16px"></i> Variasi Soal</h3>
     <p class="sub">Soal baru dengan konsep sama, konteks berbeda — melatih pemahaman.</p>
     <div id="variasi-body" style="font-size:13px;line-height:1.6"></div>
     <div class="btn-row">
@@ -174,10 +174,10 @@
 </div>
 
 <!-- CONFIRM MODAL -->
-<div class="modal-overlay" id="confirm-modal">
+<div class="modal-overlay" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body">
   <div class="modal" style="max-width:380px;text-align:center">
     <div id="confirm-icon" style="font-size:36px;margin-bottom:12px"></div>
-    <h3 id="confirm-title" style="margin-bottom:8px"></h3>
+    <h3 id="confirm-title" style="margin-bottom:8px">Konfirmasi</h3>
     <p id="confirm-body" style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px"></p>
     <div style="display:flex;gap:10px;justify-content:center">
       <button class="btn btn-s" onclick="closeConfirm()">Batal</button>
@@ -187,13 +187,13 @@
 </div>
 
 <!-- DELETE CATEGORY MODAL -->
-<div class="modal-overlay" id="cat-del-modal">
+<div class="modal-overlay" id="cat-del-modal" role="dialog" aria-modal="true" aria-labelledby="cat-del-title" aria-describedby="cat-del-desc">
   <div class="modal" style="max-width:400px">
     <button class="modal-close" onclick="closeCatDel()" aria-label="Tutup"><i class="ti ti-x"></i></button>
     <h3 id="cat-del-title" style="margin-bottom:8px">Hapus kategori?</h3>
     <p class="sub" id="cat-del-desc"></p>
     <label style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);margin-bottom:8px;cursor:pointer">
-      <input type="radio" name="cat-del-choice" value="only" checked style="margin-top:2px;accent-color:var(--accent)">
+      <input type="radio" name="cat-del-choice" value="only" checked data-autofocus style="margin-top:2px;accent-color:var(--accent)">
       <span><b style="font-size:13px">Hapus kategori saja</b><br><span style="font-size:11.5px;color:var(--text2);line-height:1.5">Soal tetap ada, hanya kehilangan label kategori.</span></span>
     </label>
     <label id="cat-del-all-row" style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);margin-bottom:8px;cursor:pointer">
@@ -208,16 +208,16 @@
 </div>
 
 <!-- IMPORT PASTE MODAL -->
-<div class="modal-overlay" id="import-modal">
+<div class="modal-overlay" id="import-modal" role="dialog" aria-modal="true" aria-labelledby="import-title">
   <div class="modal" style="max-width:420px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <h3 style="margin:0;font-size:15px"><i class="ti ti-upload" style="color:var(--accent)"></i> Import Data</h3>
+      <h3 id="import-title" style="margin:0;font-size:15px"><i class="ti ti-upload" style="color:var(--accent)"></i> Import Data</h3>
       <button class="modal-close" onclick="closeImportModal()" aria-label="Tutup"><i class="ti ti-x"></i></button>
     </div>
     <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px">
       Buka file backup <b>.json</b> kamu dengan aplikasi teks/file manager, lalu <b>salin semua isinya</b> dan tempel di sini.
     </p>
-    <textarea id="import-paste-area"
+    <textarea id="import-paste-area" data-autofocus
       placeholder='Tempel isi file .json di sini...'
       style="width:100%;height:160px;font-size:12px;font-family:monospace;border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px;background:var(--bg2);color:var(--text);resize:vertical;box-sizing:border-box;line-height:1.5"
     ></textarea>
@@ -229,10 +229,10 @@
 </div>
 
 <!-- PANDUAN AI MODAL -->
-<div class="modal-overlay" id="ai-guide-modal">
+<div class="modal-overlay" id="ai-guide-modal" role="dialog" aria-modal="true" aria-labelledby="ai-guide-title">
   <div class="modal" style="max-width:460px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <h3 style="margin:0;font-size:15px"><i class="ti ti-help-circle" style="color:var(--accent)"></i> Panduan Mengaktifkan AI</h3>
+      <h3 id="ai-guide-title" style="margin:0;font-size:15px"><i class="ti ti-help-circle" style="color:var(--accent)"></i> Panduan Mengaktifkan AI</h3>
       <button class="modal-close" onclick="closeAiGuide()" aria-label="Tutup"><i class="ti ti-x"></i></button>
     </div>
     <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">
@@ -268,7 +268,7 @@
 </div>
 
 <!-- ONBOARDING MODAL -->
-<div class="modal-overlay" id="onboard-modal">
+<div class="modal-overlay" id="onboard-modal" role="dialog" aria-modal="true" aria-labelledby="ob-title" aria-describedby="ob-desc">
   <div class="modal" style="max-width:400px;text-align:center">
     <button class="modal-close" onclick="skipOnboard()" aria-label="Lewati panduan"><i class="ti ti-x"></i></button>
     <div style="font-size:38px;margin:4px 0 10px"><i class="ti ti-category" id="ob-ic" style="color:var(--accent)"></i></div>
@@ -277,7 +277,7 @@
     <div id="ob-dots" style="display:flex;gap:6px;justify-content:center;margin:14px 0 18px"></div>
     <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
       <button class="btn btn-s" onclick="skipOnboard()">Lewati</button>
-      <button class="btn btn-p" id="ob-next" onclick="obNext()">Lanjut <i class="ti ti-arrow-right"></i></button>
+      <button class="btn btn-p" id="ob-next" data-autofocus onclick="obNext()">Lanjut <i class="ti ti-arrow-right"></i></button>
     </div>
     <button class="btn btn-s btn-sm" style="margin-top:12px;width:100%;justify-content:center" onclick="onboardSample()"><i class="ti ti-download"></i> Atau muat 15 soal contoh</button>
   </div>
@@ -349,8 +349,8 @@
           <span><i class="ti ti-photo" style="vertical-align:-1px;margin-right:4px"></i>Referensi soal asli — tap untuk perbesar</span>
           <button onclick="hideScanPreview()" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:2px 6px;font-size:16px;line-height:1" aria-label="Tutup preview gambar">✕</button>
         </div>
-        <img id="scan-preview-img" src="" alt="Gambar soal asli" decoding="async"
-          onclick="openLB(this.src,this.alt)"
+        <img id="scan-preview-img" src="" alt="Gambar soal asli" decoding="async" role="button" tabindex="0"
+          onclick="openLB(this.src,this.alt)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openLB(this.src,this.alt)}"
           style="width:100%;max-height:220px;object-fit:contain;background:var(--bg3);cursor:zoom-in;display:block">
       </div>
 

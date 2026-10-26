@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();initExambreSplash();initHardwareBack();setTimeout(maybeBackupReminder,2500);});
+document.addEventListener('DOMContentLoaded',()=>{loadSimHistory();loadData();initExambreSplash();initHardwareBack();initDialogA11y();setTimeout(maybeBackupReminder,2500);});
 
 /* ── PENANGKAP ERROR GLOBAL ──
    Error tak terduga tidak boleh membuat app diam saja tanpa penjelasan.
@@ -18,19 +18,7 @@ window.addEventListener('unhandledrejection',e=>reportUnexpected('rejection',e.r
    Tanpa listener, tombol back langsung menutup app walau modal/form masih terbuka.
    Urutan: splash → konfirmasi → editor catatan → lightbox → modal teratas →
    tab lain → form edit inline → panel tambah → konfirmasi keluar. */
-function backCloseOverlay(id){
-  switch(id){
-    case 'settings-modal':closeSettings();return;
-    case 'note-cat-modal':closeNoteCatModal();return;
-    case 'batch-modal':closeBatchModal();return;
-    case 'tutor-modal':closeTutor();return;
-    case 'import-modal':closeImportModal();return;
-    case 'ai-guide-modal':closeAiGuide();return;
-    case 'cat-del-modal':closeCatDel();return;
-    case 'onboard-modal':skipOnboard();return;
-    default:{const el=document.getElementById(id);if(el)el.classList.remove('on');}
-  }
-}
+function backCloseOverlay(id){const el=document.getElementById(id);if(el)closeDialogEl(el);}
 function handleHardwareBack(){
   const splash=document.getElementById('exambre-splash');
   if(splash&&!splash.classList.contains('hide')){dismissSplash();return;}

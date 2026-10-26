@@ -49,6 +49,106 @@ function rmStoredEimg(qid,idx){const q=qs.find(x=>x.id===qid);if(!q)return;q.eim
 function openLB(src,alt){const im=document.getElementById('lb-img');im.src=src;im.alt=alt||'Gambar diperbesar';document.getElementById('lightbox').classList.add('on');}
 function closeLB(){document.getElementById('lightbox').classList.remove('on');}
 
+const DIALOG_SELECTOR='.modal-overlay,.note-editor-overlay,.lightbox';
+function _dialogOpen(){return [...document.querySelectorAll(DIALOG_SELECTOR)].filter(el=>el.classList.contains('on'));}
+function _dialogVisible(el){return !!(el&&el.isConnected&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden');}
+function _dialogFocusables(el){
+  return [...el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),[contenteditable="true"]')]
+    .filter(x=>_dialogVisible(x)&&!x.closest('[aria-hidden="true"],[inert]'));
+}
+function _focusEl(el){if(!el)return;try{el.focus({preventScroll:true});}catch(e){try{el.focus();}catch(_){}}}
+function _dialogTop(){
+  for(let i=dialogStack.length-1;i>=0;i--){const el=dialogStack[i].el;if(el&&el.classList.contains('on'))return el;}
+  const open=_dialogOpen();return open[open.length-1]||null;
+}
+function _focusDialog(el){
+  if(el.contains(document.activeElement))return;
+  const auto=el.querySelector('[data-autofocus]');
+  _focusEl((auto&&_dialogVisible(auto))?auto:_dialogFocusables(el)[0]||el);
+}
+function _dialogRestore(opener){
+  if(!opener)return;
+  clearTimeout(dialogRestoreTimer);
+  dialogRestoreTimer=setTimeout(()=>{
+    const open=_dialogOpen();
+    if(open.length){const top=_dialogTop();if(!top||!top.contains(opener))return;}
+    let t=opener;
+    if(!_dialogVisible(t))t=dialogLastFocus;
+    if(!_dialogVisible(t))t=document.querySelector('.bnav-item.on');
+    if(_dialogVisible(t))_focusEl(t);
+  },0);
+}
+function _dialogSync(){
+  const open=_dialogOpen();
+  for(let i=dialogStack.length-1;i>=0;i--){
+    const entry=dialogStack[i];
+    if(!open.includes(entry.el)){dialogStack.splice(i,1);_dialogRestore(entry.opener);}
+  }
+  open.forEach(el=>{
+    if(dialogStack.some(x=>x.el===el))return;
+    const active=document.activeElement;
+    let opener=(active&&active!==document.body&&!el.contains(active))?active:dialogLastFocus;
+    if(!_dialogVisible(opener))opener=null;
+    dialogStack.push({el,opener});
+  });
+  document.body.classList.toggle('dialog-open',open.length>0);
+  const top=_dialogTop();
+  if(top)_focusDialog(top);
+}
+function closeDialogEl(el){
+  if(!el)return;
+  switch(el.id){
+    case 'settings-modal':closeSettings();return;
+    case 'note-cat-modal':closeNoteCatModal();return;
+    case 'batch-modal':closeBatchModal();return;
+    case 'tutor-modal':closeTutor();return;
+    case 'import-modal':closeImportModal();return;
+    case 'ai-guide-modal':closeAiGuide();return;
+    case 'cat-del-modal':closeCatDel();return;
+    case 'confirm-modal':closeConfirm();return;
+    case 'onboard-modal':skipOnboard();return;
+    case 'note-editor-overlay':closeNoteEditor();return;
+    case 'lightbox':closeLB();return;
+    default:el.classList.remove('on');
+  }
+}
+function initDialogA11y(){
+  if(document.body.dataset.dialogA11y==='1')return;
+  document.body.dataset.dialogA11y='1';
+  const els=[...document.querySelectorAll(DIALOG_SELECTOR)];
+  els.forEach(el=>{
+    if(!el.hasAttribute('role'))el.setAttribute('role','dialog');
+    el.setAttribute('aria-modal','true');
+    if(!el.hasAttribute('aria-label')&&!el.hasAttribute('aria-labelledby')){
+      const h=el.querySelector('h3');
+      if(h){if(!h.id)h.id='dialog-title-'+el.id;el.setAttribute('aria-labelledby',h.id);}
+    }
+    if(!el.hasAttribute('tabindex'))el.tabIndex=-1;
+  });
+  dialogObserver=new MutationObserver(_dialogSync);
+  els.forEach(el=>dialogObserver.observe(el,{attributes:true,attributeFilter:['class']}));
+  document.addEventListener('focusin',e=>{
+    const el=e.target;
+    if(el&&el!==document.body&&!_dialogOpen().some(d=>d.contains(el)))dialogLastFocus=el;
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'||e.key==='Esc'){
+      if(e.defaultPrevented)return;
+      const top=_dialogTop();if(!top)return;
+      e.preventDefault();closeDialogEl(top);return;
+    }
+    if(e.key!=='Tab'||e.defaultPrevented)return;
+    const top=_dialogTop();if(!top)return;
+    const f=_dialogFocusables(top);
+    if(!f.length){e.preventDefault();_focusEl(top);return;}
+    const active=document.activeElement;
+    if(!top.contains(active)||active===top){e.preventDefault();_focusEl(e.shiftKey?f[f.length-1]:f[0]);return;}
+    if(e.shiftKey&&active===f[0]){e.preventDefault();_focusEl(f[f.length-1]);}
+    else if(!e.shiftKey&&active===f[f.length-1]){e.preventDefault();_focusEl(f[0]);}
+  });
+  _dialogSync();
+}
+
 /* ── CONFIRM MODAL ── */
 function showConfirm(opts){
   // opts: { icon, title, body, actionLabel, actionClass, onConfirm }
