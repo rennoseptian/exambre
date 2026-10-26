@@ -117,7 +117,7 @@ function renderSimSetup(){
         ${availCats.length?`<div style="display:flex;gap:10px"><button onclick="simSelectAllCats()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600">Pilih semua</button><button onclick="simClearCats()" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;font-weight:600">Kosongkan</button></div>`:''}
       </div>
 
-      <div class="field"><label>Jumlah soal (tersedia: ${pool.length})</label>
+      <div class="field"><label for="sim-qcount">Jumlah soal (tersedia: ${pool.length})</label>
         <input type="number" id="sim-qcount" min="1" max="${pool.length||1}" value="${defaultQCount}">
         <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
           ${[10,25,50].filter(n=>n<=pool.length).map(n=>`<button class="ctab" style="padding:5px 10px;font-size:11px" onclick="setSimQCount(${n})">${n}</button>`).join('')}
@@ -133,7 +133,7 @@ function renderSimSetup(){
       </div>
 
       <div class="field" id="sim-persoal-field" style="display:${simTimerType==='persoal'?'block':'none'}">
-        <label>Detik per soal</label>
+        <label for="sim-persoal-sec">Detik per soal</label>
         <input type="number" id="sim-persoal-sec" min="5" value="60">
         <div style="display:flex;gap:6px;margin-top:6px">
           ${[30,45,60,90].map(n=>`<button class="ctab" style="padding:5px 10px;font-size:11px" onclick="setSimPersoalSec(${n})">${n}s</button>`).join('')}
@@ -141,7 +141,7 @@ function renderSimSetup(){
       </div>
 
       <div class="field" id="sim-total-field" style="display:${simTimerType==='total'?'block':'none'}">
-        <label>Total menit untuk sesi ini</label>
+        <label for="sim-total-min">Total menit untuk sesi ini</label>
         <input type="number" id="sim-total-min" min="1" value="${defaultMin}">
         <div style="display:flex;gap:6px;margin-top:6px">
           ${[15,30,60,90].map(n=>`<button class="ctab" style="padding:5px 10px;font-size:11px" onclick="setSimTotalMin(${n})">${n}m</button>`).join('')}

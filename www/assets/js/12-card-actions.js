@@ -178,15 +178,15 @@ function renderSettingsContent(){
     const c=cats[k];
     html+=`<div class="cat-section"><div class="cat-header">
       <span style="font-size:11px;color:var(--text2);flex-shrink:0">Nama:</span>
-      <input id="cat-name-${escHtml(k)}" value="${escHtml(c.name||k)}" placeholder="Nama kategori" style="font-weight:600">
+      <input id="cat-name-${escHtml(k)}" value="${escHtml(c.name||k)}" aria-label="Nama kategori ${escHtml(c.name||k)}" placeholder="Nama kategori" style="font-weight:600">
       <div class="cat-header-right">
-        <label style="font-size:11px;color:var(--text2);flex-shrink:0;display:flex;align-items:center;gap:4px">Warna: <input type="color" id="cat-color-${escHtml(k)}" value="${escHtml(c.color||'#eeeeee')}" style="width:28px;height:22px;border:none;cursor:pointer;border-radius:4px;padding:0"></label>
+        <label style="font-size:11px;color:var(--text2);flex-shrink:0;display:flex;align-items:center;gap:4px">Warna: <input type="color" id="cat-color-${escHtml(k)}" value="${escHtml(c.color||'#eeeeee')}" aria-label="Warna kategori ${escHtml(c.name||k)}" style="width:28px;height:22px;border:none;cursor:pointer;border-radius:4px;padding:0"></label>
         <button class="rm-bab" onclick="removeCategory('${escHtml(jsStr(k))}')" style="background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:14px;display:flex;align-items:center" aria-label="Hapus kategori"><i class="ti ti-trash"></i></button>
       </div>
     </div><div class="cat-body">
       <div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px">Sub-Bab</div>
-      <div class="bab-list" id="bab-list-${escHtml(k)}">${(c.babs||[]).map((b,i)=>`<div class="bab-item"><i class="ti ti-grip-vertical" style="font-size:13px;color:var(--text3)"></i><input value="${escHtml(b)}" onchange="editBab('${escHtml(jsStr(k))}',${i},this.value)"><button class="rm-bab" onclick="removeBab('${escHtml(jsStr(k))}',${i})" aria-label="Hapus sub-bab"><i class="ti ti-x"></i></button></div>`).join('')}</div>
-      <div class="bab-add-row"><input id="new-bab-${escHtml(k)}" placeholder="Tambah sub-bab baru..." onkeydown="if(event.key==='Enter')addBab('${escHtml(jsStr(k))}')"><button onclick="addBab('${escHtml(jsStr(k))}')"><i class="ti ti-plus" style="font-size:11px"></i> Tambah</button></div>
+      <div class="bab-list" id="bab-list-${escHtml(k)}">${(c.babs||[]).map((b,i)=>`<div class="bab-item"><i class="ti ti-grip-vertical" style="font-size:13px;color:var(--text3)"></i><input value="${escHtml(b)}" aria-label="Sub-bab ${i+1} kategori ${escHtml(c.name||k)}" onchange="editBab('${escHtml(jsStr(k))}',${i},this.value)"><button class="rm-bab" onclick="removeBab('${escHtml(jsStr(k))}',${i})" aria-label="Hapus sub-bab"><i class="ti ti-x"></i></button></div>`).join('')}</div>
+      <div class="bab-add-row"><input id="new-bab-${escHtml(k)}" placeholder="Tambah sub-bab baru..." aria-label="Tambah sub-bab baru untuk ${escHtml(c.name||k)}" onkeydown="if(event.key==='Enter')addBab('${escHtml(jsStr(k))}')"><button onclick="addBab('${escHtml(jsStr(k))}')" aria-label="Tambah sub-bab"><i class="ti ti-plus" style="font-size:11px"></i> Tambah</button></div>
     </div></div>`;
   });
   document.getElementById('settings-content').innerHTML=html;

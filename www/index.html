@@ -50,13 +50,13 @@
 <div class="note-editor-overlay" id="note-editor-overlay" role="dialog" aria-modal="true" aria-label="Editor catatan">
   <div class="note-editor-header">
     <button class="ibtn" onclick="closeNoteEditor(false)" aria-label="Kembali"><i class="ti ti-arrow-left"></i></button>
-    <input class="note-editor-title-inp" id="note-editor-title" data-autofocus placeholder="Judul catatan..." maxlength="120">
+    <input class="note-editor-title-inp" id="note-editor-title" data-autofocus placeholder="Judul catatan..." maxlength="120" aria-label="Judul catatan">
     <button class="btn btn-note btn-sm" onclick="saveNote()"><i class="ti ti-device-floppy"></i> Simpan</button>
     <button class="ibtn del" onclick="deleteCurrentNote()" id="note-del-btn" style="display:none" aria-label="Hapus catatan"><i class="ti ti-trash"></i></button>
   </div>
   <div class="note-editor-body">
     <div class="note-editor-meta-row">
-      <label style="font-size:12px;color:var(--text2);font-weight:600">Kategori:</label>
+      <label for="note-editor-cat" style="font-size:12px;color:var(--text2);font-weight:600">Kategori:</label>
       <select class="note-cat-sel" id="note-editor-cat"></select>
       <span style="font-size:11px;color:var(--text3)" id="note-editor-date"></span>
     </div>
@@ -80,7 +80,7 @@
         <div class="rte-sep"></div>
         <button class="rte-btn" onmousedown="event.preventDefault()" onclick="noteCmd('removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button>
       </div>
-      <div class="note-rte-area" id="note-rte-area" contenteditable="true" spellcheck="false" data-ph="Mulai menulis catatan..."></div>
+      <div class="note-rte-area" id="note-rte-area" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Isi catatan" spellcheck="false" data-ph="Mulai menulis catatan..."></div>
     </div>
   </div>
 </div>
@@ -93,10 +93,10 @@
     <p class="sub">Buat dan kelola kategori untuk mengorganisir catatan</p>
     <div id="note-cats-content"></div>
     <div style="display:flex;gap:8px;margin-top:14px">
-      <input id="new-note-cat-inp" placeholder="Nama kategori baru..."
+      <input id="new-note-cat-inp" placeholder="Nama kategori baru..." aria-label="Nama kategori catatan baru"
         style="flex:1;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;background:var(--bg);color:var(--text);font-family:inherit"
         onkeydown="if(event.key==='Enter')addNoteCat()">
-      <input type="color" id="new-note-cat-color" value="#7C3AED"
+      <input type="color" id="new-note-cat-color" value="#7C3AED" aria-label="Warna kategori catatan baru"
         style="width:36px;height:36px;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;padding:2px">
       <button class="btn btn-note btn-sm" onclick="addNoteCat()"><i class="ti ti-plus"></i> Tambah</button>
     </div>
@@ -110,10 +110,10 @@
     <h3 id="note2q-title"><i class="ti ti-sparkles" style="color:var(--accent);font-size:16px"></i> Buat Soal dari Catatan</h3>
     <p class="sub">AI akan menyusun soal latihan berdasarkan isi catatan ini, lengkap dengan pembahasan.</p>
     <p id="note2q-info" style="font-size:12px;color:var(--text2);margin-bottom:12px;background:var(--bg2);border-radius:var(--radius);padding:8px 12px"></p>
-    <div class="field"><label>Jumlah soal</label>
+    <div class="field"><label for="note2q-count">Jumlah soal</label>
       <select id="note2q-count"><option value="3">3 soal</option><option value="5" selected>5 soal</option><option value="10">10 soal</option></select>
     </div>
-    <div class="field"><label>Kategori tujuan</label><select id="note2q-cat"></select></div>
+    <div class="field"><label for="note2q-cat">Kategori tujuan</label><select id="note2q-cat"></select></div>
     <div class="btn-row">
       <button class="btn btn-s" onclick="document.getElementById('note2q-modal').classList.remove('on')">Batal</button>
       <button class="btn btn-p" id="note2q-go" onclick="runNoteToQ()"><i class="ti ti-sparkles"></i> Generate</button>
@@ -128,7 +128,7 @@
     <h3 id="batch-title"><i class="ti ti-file-text" style="color:var(--accent);font-size:16px"></i> Preview Hasil Scan</h3>
     <p class="sub">Centang soal yang ingin diimpor. Soal bertanda tidak valid otomatis tak terpilih.</p>
     <div id="batch-list" style="max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding-right:2px"></div>
-    <div class="field"><label>Kategori tujuan</label>
+    <div class="field"><label for="batch-cat">Kategori tujuan</label>
       <div style="display:flex;gap:8px">
         <select id="batch-cat" style="flex:1"></select>
         <button class="btn btn-s btn-sm" onclick="saranKategoriBatch(this)" style="white-space:nowrap"><i class="ti ti-sparkles"></i> Sarankan</button>
@@ -151,7 +151,7 @@
     <p class="sub" id="tutor-sub"></p>
     <div id="tutor-msgs" style="flex:1;min-height:170px;max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;padding-right:2px"></div>
     <div style="display:flex;gap:8px">
-      <input id="tutor-inp" data-autofocus placeholder="Tanya apa saja tentang soal ini..."
+      <input id="tutor-inp" data-autofocus placeholder="Tanya apa saja tentang soal ini..." aria-label="Pertanyaan untuk tutor"
         style="flex:1;font-size:13.5px;padding:11px 14px;border:none;border-radius:999px;background:var(--bg2);color:var(--text);font-family:inherit;outline:none"
         onkeydown="if(event.key==='Enter')sendTutor()">
       <button class="btn btn-p" id="tutor-send" onclick="sendTutor()" aria-label="Kirim"><i class="ti ti-send"></i></button>
@@ -217,7 +217,7 @@
     <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px">
       Buka file backup <b>.json</b> kamu dengan aplikasi teks/file manager, lalu <b>salin semua isinya</b> dan tempel di sini.
     </p>
-    <textarea id="import-paste-area" data-autofocus
+    <textarea id="import-paste-area" data-autofocus aria-label="Isi file backup JSON"
       placeholder='Tempel isi file .json di sini...'
       style="width:100%;height:160px;font-size:12px;font-family:monospace;border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px;background:var(--bg2);color:var(--text);resize:vertical;box-sizing:border-box;line-height:1.5"
     ></textarea>
@@ -294,7 +294,7 @@
     <div class="toolbar nopr">
       <div class="search-wrap">
         <i class="ti ti-search"></i>
-        <input class="search-inp" placeholder="Cari soal..." oninput="fSearch(this.value)">
+        <input class="search-inp" placeholder="Cari soal..." aria-label="Cari soal" oninput="fSearch(this.value)">
       </div>
       <div class="tbr">
         <button class="btn btn-p" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>
@@ -313,6 +313,7 @@
           type="file"
           id="scan-img-input"
           accept="image/*"
+          aria-label="Pilih foto soal untuk dipindai"
           style="display:none"
           onchange="scanImageToQuestion(this)"
         >
@@ -329,6 +330,7 @@
           type="file"
           id="batch-img-input"
           accept="image/*"
+          aria-label="Pilih halaman soal untuk dipindai"
           style="display:none"
           onchange="scanBatchToQuestions(this)"
         >
@@ -362,7 +364,7 @@
         <div class="field">
           <label>Tempel soal di sini <span style="font-weight:400;color:var(--text3)">— Ctrl+V dari halaman tryout</span></label>
           <div style="border:1.5px dashed var(--border2);border-radius:var(--radius);padding:2px;transition:border-color .2s" id="paste-zone-add">
-            <div id="paste-ta" contenteditable="true" spellcheck="false"
+            <div id="paste-ta" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Tempel soal" spellcheck="false"
               style="min-height:120px;padding:12px 14px;font-size:13px;line-height:1.65;color:var(--text);font-family:inherit;outline:none"
               data-ph="Ctrl+V untuk paste soal dari Ruangguru atau website lain.&#10;&#10;Teks, gambar soal, dan gambar opsi semua akan terdeteksi otomatis."></div>
           </div>
@@ -374,18 +376,18 @@
           </div>
         </div>
         <div class="g2">
-          <div class="field"><label>Kategori <button type="button" title="Sarankan kategori dengan AI" aria-label="Sarankan kategori dengan AI" onclick="saranKategoriTunggal()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;padding:0 2px;vertical-align:middle">✨</button></label><select id="p-cat" onchange="updateBabSelect('p-bab','p-cat')"></select></div>
-          <div class="field"><label>Sub-Bab</label><select id="p-bab"></select></div>
+          <div class="field"><label for="p-cat">Kategori <button type="button" title="Sarankan kategori dengan AI" aria-label="Sarankan kategori dengan AI" onclick="saranKategoriTunggal()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;padding:0 2px;vertical-align:middle">✨</button></label><select id="p-cat" aria-label="Kategori soal" onchange="updateBabSelect('p-bab','p-cat')"></select></div>
+          <div class="field"><label for="p-bab">Sub-Bab</label><select id="p-bab"></select></div>
         </div>
         <div class="g2">
-          <div class="field"><label>Jawaban saya (salah)</label><select id="p-wrong"></select></div>
-          <div class="field"><label>Jawaban benar</label><select id="p-correct"></select></div>
+          <div class="field"><label for="p-wrong">Jawaban saya (salah)</label><select id="p-wrong"></select></div>
+          <div class="field"><label for="p-correct">Jawaban benar</label><select id="p-correct"></select></div>
         </div>
         <div class="field"><label>Gambar soal (opsional)</label><div id="img-area-p-qimgs"></div></div>
         <div class="field">
           <label>Pembahasan <span style="font-weight:400;color:var(--text3)">— rich text</span></label>
           <div class="rte-toolbar"><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','bold')" aria-label="Tebal"><b>B</b></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','italic')" aria-label="Miring"><i>I</i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','underline')" aria-label="Garis bawah"><u>U</u></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('p','removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button></div>
-          <div class="rte-area" id="rte-p" contenteditable="true" spellcheck="false"></div>
+          <div class="rte-area" id="rte-p" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Pembahasan soal" spellcheck="false"></div>
         </div>
         <div class="field"><label>Gambar pembahasan (opsional)</label><div id="img-area-p-eimgs"></div></div>
         <div class="btn-row">
@@ -395,23 +397,23 @@
       </div>
       <div id="mode-manual" style="display:none">
         <div class="g2">
-          <div class="field"><label>Kategori</label><select id="m-cat" onchange="updateBabSelect('m-bab','m-cat')"></select></div>
-          <div class="field"><label>Sub-Bab</label><select id="m-bab"></select></div>
+          <div class="field"><label for="m-cat">Kategori</label><select id="m-cat" onchange="updateBabSelect('m-bab','m-cat')"></select></div>
+          <div class="field"><label for="m-bab">Sub-Bab</label><select id="m-bab"></select></div>
         </div>
-        <div class="field"><label>Pertanyaan</label><textarea id="m-q" rows="3" placeholder="Tulis soal..."></textarea></div>
+        <div class="field"><label for="m-q">Pertanyaan</label><textarea id="m-q" rows="3" placeholder="Tulis soal..."></textarea></div>
         <div class="field">
           <label>Pilihan Jawaban (A–E)</label>
           <div class="opt-rows" id="m-opt-rows"></div>
         </div>
         <div class="g2">
-          <div class="field"><label>Jawaban saya (salah)</label><select id="m-wrong"></select></div>
-          <div class="field"><label>Jawaban benar</label><select id="m-correct"></select></div>
+          <div class="field"><label for="m-wrong">Jawaban saya (salah)</label><select id="m-wrong"></select></div>
+          <div class="field"><label for="m-correct">Jawaban benar</label><select id="m-correct"></select></div>
         </div>
         <div class="field"><label>Gambar soal (opsional)</label><div id="img-area-m-qimgs"></div></div>
         <div class="field">
           <label>Pembahasan</label>
           <div class="rte-toolbar"><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','bold')" aria-label="Tebal"><b>B</b></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','italic')" aria-label="Miring"><i>I</i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','underline')" aria-label="Garis bawah"><u>U</u></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('m','removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button></div>
-          <div class="rte-area" id="rte-m" contenteditable="true" spellcheck="false"></div>
+          <div class="rte-area" id="rte-m" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Pembahasan soal" spellcheck="false"></div>
         </div>
         <div class="field"><label>Gambar pembahasan (opsional)</label><div id="img-area-m-eimgs"></div></div>
         <div class="btn-row">
@@ -422,9 +424,9 @@
     </div>
 
     <div class="filter-row nopr">
-      <label>Filter:</label>
-      <select onchange="fStatus(this.value)"><option value="all">Semua status</option><option value="wrong">Belum dikuasai</option><option value="mastered">Dikuasai</option></select>
-      <select onchange="fBab(this.value)" id="filter-bab"><option value="all">Semua bab</option></select>
+      <label for="filter-status">Filter:</label>
+      <select id="filter-status" aria-label="Filter status" onchange="fStatus(this.value)"><option value="all">Semua status</option><option value="wrong">Belum dikuasai</option><option value="mastered">Dikuasai</option></select>
+      <select onchange="fBab(this.value)" id="filter-bab" aria-label="Filter sub-bab"><option value="all">Semua bab</option></select>
     </div>
     <div id="qlist"></div>
   </div>
@@ -442,7 +444,7 @@
     <div class="toolbar nopr">
       <div class="search-wrap">
         <i class="ti ti-search"></i>
-        <input class="search-inp" placeholder="Cari catatan..." oninput="fNoteSearch(this.value)">
+        <input class="search-inp" placeholder="Cari catatan..." aria-label="Cari catatan" oninput="fNoteSearch(this.value)">
       </div>
       <div class="tbr">
         <button class="btn btn-s" onclick="openNoteCatModal()"><i class="ti ti-tag"></i> Kategori</button>
@@ -530,6 +532,7 @@
         <input
           id="gemini-key-inp"
           type="password"
+          aria-label="API key Gemini"
           placeholder="Paste API key di sini..."
           style="flex:1;font-size:13px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit"
           oninput="previewGeminiKey(this.value)"
@@ -551,20 +554,20 @@
           Pakai Groq, OpenRouter, Cerebras, atau Ollama lokal. Kosongkan = kembali ke Gemini.
         </p>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <input id="cai-url" placeholder="Base URL (cth: https://api.groq.com/openai/v1)"
+          <input id="cai-url" aria-label="Base URL provider kustom" placeholder="Base URL (cth: https://api.groq.com/openai/v1)"
             style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit"
             oninput="this.dataset.auto=''">
-          <input id="cai-model" placeholder="Model teks (klik Cek Daftar Model di bawah)"
+          <input id="cai-model" aria-label="Model teks provider kustom" placeholder="Model teks (klik Cek Daftar Model di bawah)"
             style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
           <button class="btn btn-s btn-sm" onclick="cekModelProvider(this)" style="align-self:flex-start"><i class="ti ti-list-check"></i> Cek Daftar Model</button>
           <div id="cai-model-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-          <input id="cai-vmodel" placeholder="Model Vision untuk scan foto (kosong = Gemini)"
+          <input id="cai-vmodel" aria-label="Model Vision provider kustom" placeholder="Model Vision untuk scan foto (kosong = Gemini)"
             style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
           <p style="font-size:11px;color:var(--text3);line-height:1.5;margin:-2px 0 0">
             Model terpisah untuk scan foto — model teks umumnya tidak bisa membaca gambar.
             <b>Biarkan kosong</b> kalau tidak mau foto soal dikirim ke provider ini.
           </p>
-          <input id="cai-key" type="password" placeholder="API key provider"
+          <input id="cai-key" type="password" aria-label="API key provider kustom" placeholder="API key provider"
             style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit"
             oninput="autoBaseUrlFill(this.value)">
         </div>
@@ -581,7 +584,7 @@
         <div id="reason-box"></div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600">
+        <label for="exam-date-inp" style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600">
           🎯 Tanggal Ujian Target
         </label>
         <div style="display:flex;gap:8px;align-items:center">

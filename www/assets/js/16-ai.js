@@ -1330,7 +1330,7 @@ function renderBatchPreview(){
     const tag=a?`<span style="flex-shrink:0;font-size:10px;font-weight:700;${catBadgeStyle(a.cat)}padding:3px 9px;border-radius:99px">${escHtml(((cats[a.cat]&&cats[a.cat].name)||a.cat)+(a.bab?' · '+a.bab:''))}</span>`:'';
     return`
     <label class="batch-row${it.ok?'':' inv'}">
-      <input type="checkbox" ${it._sel?'checked':''} ${it.ok?'':'disabled'} onchange="_bt(${i},this.checked)">
+      <input type="checkbox" ${it._sel?'checked':''} ${it.ok?'':'disabled'} aria-label="Pilih soal ${i+1}" onchange="_bt(${i},this.checked)">
       <span style="flex:1">${escHtml((i+1)+'. '+it.soal.slice(0,120))}${it.ok?'':' <b style="color:var(--danger-ink)">tidak valid</b>'}</span>
       ${tag}
       <b style="flex-shrink:0">${escHtml(it.jawaban||'—')}</b>

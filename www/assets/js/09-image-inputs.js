@@ -1,16 +1,17 @@
 /* ── IMAGE AREAS ── */
 function getArea(id){if(!imgAreas[id])imgAreas[id]=[];return imgAreas[id];}
+function imgAreaLabel(areaId,file){const exp=/eimgs/.test(areaId);return(file?'Pilih file gambar ':'URL gambar ')+(exp?'pembahasan':'soal');}
 function renderImgArea(areaId){
   const el=document.getElementById('img-area-'+areaId);if(!el)return;
   const items=getArea(areaId);
   el.innerHTML=`<div class="img-input-area">
     <div class="img-input-area-title"><i class="ti ti-photo" style="font-size:13px"></i> Tambah Gambar</div>
     <div class="img-input-row">
-      <input class="img-url-input" id="url-input-${areaId}" placeholder="Paste URL gambar">
+      <input class="img-url-input" id="url-input-${areaId}" aria-label="${imgAreaLabel(areaId)}" placeholder="Paste URL gambar">
       <button class="img-url-btn" onclick="addImgFromUrl('${areaId}')"><i class="ti ti-link" style="font-size:12px"></i> Tambah</button>
     </div>
     <div class="img-dropzone-sm" ondragover="onDrag(event,this)" ondragleave="offDrag(this)" ondrop="onDropArea(event,'${areaId}')">
-      <input type="file" accept="image/*" multiple onchange="onFileArea(event,'${areaId}')">
+      <input type="file" accept="image/*" multiple aria-label="${imgAreaLabel(areaId,true)}" onchange="onFileArea(event,'${areaId}')">
       <p><i class="ti ti-upload" style="font-size:14px;margin-bottom:2px;display:block"></i>Upload / drag file gambar (maks 4MB)</p>
     </div>
     <div class="stored-imgs" id="stored-${areaId}">${items.map((img,i)=>renderScaleWrap(areaId,i,img)).join('')}</div>
@@ -73,7 +74,7 @@ function buildManualOptRows(prefix='m',existingOpts={}){
   el.innerHTML=LETTERS.map(l=>`
     <div class="opt-row-wrap"><div class="opt-lbl">${l}</div>
       <div class="opt-row-inner">
-        <div class="opt-ce" id="${prefix}-opt-${l}" contenteditable="true" spellcheck="false" data-ph="Pilihan ${l}">${existingOpts[l]||''}</div>
+        <div class="opt-ce" id="${prefix}-opt-${l}" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Pilihan ${l}" spellcheck="false" data-ph="Pilihan ${l}">${existingOpts[l]||''}</div>
         <div class="opt-ce-hint"><i class="ti ti-photo" style="font-size:10px;vertical-align:-1px"></i> Ctrl+V paste gambar langsung</div>
       </div>
     </div>`).join('');

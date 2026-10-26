@@ -14,7 +14,7 @@ function render(){
     Mulai dengan membuat kategori soal pertama kamu — misalnya TIU, TWK, atau TKP.
   </p>
   <div style="display:flex;gap:8px;justify-content:center">
-    <input id="onboard-cat-inp" placeholder="Nama kategori (cth: TIU)" 
+    <input id="onboard-cat-inp" placeholder="Nama kategori (cth: TIU)" aria-label="Nama kategori pertama"
       style="font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;background:var(--bg);color:var(--text);font-family:inherit;flex:1;max-width:220px"
       onkeydown="if(event.key==='Enter')onboardCreateCat()">
     <button class="btn btn-p" onclick="onboardCreateCat()">
@@ -144,25 +144,25 @@ function renderExpBlock(q){
 function buildInlineEditHTML(q){
   return`<div class="inline-edit-title"><i class="ti ti-pencil"></i> Edit Soal</div>
     <div class="g2">
-      <div class="field"><label>Kategori</label><select id="e-cat-${q.id}" onchange="updateBabSelectEdit(${q.id})">
+      <div class="field"><label for="e-cat-${q.id}">Kategori</label><select id="e-cat-${q.id}" onchange="updateBabSelectEdit(${q.id})">
         ${getCatKeys().map(k=>`<option value="${escHtml(k)}"${q.cat===k?' selected':''}>${escHtml(cats[k].name||k)}</option>`).join('')}
       </select></div>
-      <div class="field"><label>Sub-Bab</label><select id="e-bab-${q.id}">
+      <div class="field"><label for="e-bab-${q.id}">Sub-Bab</label><select id="e-bab-${q.id}">
         ${(cats[q.cat]?cats[q.cat].babs:[]).map(b=>`<option value="${escHtml(b)}"${q.bab===b?' selected':''}>${escHtml(b)}</option>`).join('')}
       </select></div>
     </div>
-    <div class="field"><label>Pertanyaan</label><textarea id="e-q-${q.id}" rows="3">${escHtml(q.q)}</textarea></div>
+    <div class="field"><label for="e-q-${q.id}">Pertanyaan</label><textarea id="e-q-${q.id}" rows="3">${escHtml(q.q)}</textarea></div>
     <div class="field"><label>Pilihan Jawaban (A–E)</label>
-      ${LETTERS.map(l=>`<div class="opt-row-wrap" style="margin-bottom:6px"><div class="opt-lbl">${l}</div><div class="opt-row-inner"><div class="opt-ce" id="e-opt-${q.id}-${l}" contenteditable="true" spellcheck="false" data-ph="Pilihan ${l}">${sanitizeHtml((q.opts&&q.opts[LETTERS.indexOf(l)])||'')}</div><div class="opt-ce-hint"><i class="ti ti-photo" style="font-size:10px;vertical-align:-1px"></i> Ctrl+V paste gambar</div></div></div>`).join('')}
+      ${LETTERS.map(l=>`<div class="opt-row-wrap" style="margin-bottom:6px"><div class="opt-lbl">${l}</div><div class="opt-row-inner"><div class="opt-ce" id="e-opt-${q.id}-${l}" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Pilihan ${l}" spellcheck="false" data-ph="Pilihan ${l}">${sanitizeHtml((q.opts&&q.opts[LETTERS.indexOf(l)])||'')}</div><div class="opt-ce-hint"><i class="ti ti-photo" style="font-size:10px;vertical-align:-1px"></i> Ctrl+V paste gambar</div></div></div>`).join('')}
     </div>
     <div class="g2">
-      <div class="field"><label>Jawaban saya (salah)</label><select id="e-wrong-${q.id}">${LETTERS.map(l=>`<option value="${l}"${q.wrong===l?' selected':''}>${l}</option>`).join('')}</select></div>
-      <div class="field"><label>Jawaban benar</label><select id="e-correct-${q.id}">${LETTERS.map(l=>`<option value="${l}"${q.correct===l?' selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="field"><label for="e-wrong-${q.id}">Jawaban saya (salah)</label><select id="e-wrong-${q.id}">${LETTERS.map(l=>`<option value="${l}"${q.wrong===l?' selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="field"><label for="e-correct-${q.id}">Jawaban benar</label><select id="e-correct-${q.id}">${LETTERS.map(l=>`<option value="${l}"${q.correct===l?' selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="field"><label>Gambar soal</label><div id="img-area-edit-qimgs-${q.id}"></div></div>
     <div class="field"><label>Pembahasan</label>
       <div class="rte-toolbar"><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('e-${q.id}','bold')" aria-label="Tebal"><b>B</b></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('e-${q.id}','italic')" aria-label="Miring"><i>I</i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('e-${q.id}','underline')" aria-label="Garis bawah"><u>U</u></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('e-${q.id}','insertUnorderedList')" aria-label="Daftar bullet"><i class="ti ti-list"></i></button><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('e-${q.id}','insertOrderedList')" aria-label="Daftar bernomor"><i class="ti ti-list-numbers"></i></button><div class="rte-sep"></div><button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteCmd('e-${q.id}','removeFormat')" aria-label="Hapus format"><i class="ti ti-clear-formatting"></i></button></div>
-      <div class="rte-area" id="rte-e-${q.id}" contenteditable="true" spellcheck="false">${q.expHtml||''}</div>
+      <div class="rte-area" id="rte-e-${q.id}" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Pembahasan soal" spellcheck="false">${q.expHtml||''}</div>
     </div>
     <div class="field"><label>Gambar pembahasan <span style="font-weight:400;color:var(--text3)">(Ctrl+V screenshot)</span></label><div id="img-area-edit-eimgs-${q.id}"></div></div>
     <div class="btn-row">
