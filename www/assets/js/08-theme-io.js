@@ -187,7 +187,7 @@ function clearAllData(){
 // FIX BUG #2: reset curBab saat ganti kategori
 function fCat(c,btn){
   curCat=c;curBab='all';
-  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');
+  document.querySelectorAll('#cat-tabs .ctab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');
   const fbSel=document.getElementById('filter-bab');if(fbSel)fbSel.value='all';
   updateBabFilter();render();
 }

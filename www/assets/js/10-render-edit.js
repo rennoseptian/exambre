@@ -2,6 +2,11 @@
 function render(){
   buildCatTabs();updateBabFilter();updateDueBadge();renderGami();checkBadges();
   const list=getFiltered(),el=document.getElementById('qlist');
+  const countEl=document.getElementById('list-count');
+  if(countEl){
+    const isFiltered=searchQ||curCat!=='ALL'||curSt!=='all'||curBab!=='all';
+    countEl.textContent=isFiltered?`${list.length} dari ${qs.length} soal`:`${qs.length} soal`;
+  }
   // Form edit inline berada DI DALAM kartu, jadi rebuild #qlist akan menghapusnya
   // beserta ketikan user (mis. pindah tab lalu kembali). Snapshot dulu, pulihkan
   // setelah render — kecuali saat Simpan/Batal yang memang menutup form.
@@ -17,7 +22,7 @@ function render(){
     <input id="onboard-cat-inp" placeholder="Nama kategori (cth: TIU)" aria-label="Nama kategori pertama"
       style="font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;background:var(--bg);color:var(--text);font-family:inherit;flex:1;max-width:220px"
       onkeydown="if(event.key==='Enter')onboardCreateCat()">
-    <button class="btn btn-p" onclick="onboardCreateCat()">
+    <button class="btn btn-ink" onclick="onboardCreateCat()">
       <i class="ti ti-plus"></i> Buat Kategori
     </button>
   </div>
@@ -29,8 +34,8 @@ function render(){
   }
   if(!list.length){
     el.innerHTML='<div class="empty"><i class="ti ti-books"></i><p>'+(searchQ?`Soal dengan kata "<b>${escHtml(searchQ)}</b>" tidak ditemukan.`:'Belum ada soal'+(curCat!=='ALL'?' untuk kategori ini':'')+'.<br>Tambahkan soal yang salah dijawab biar bisa dilatih ulang.')+'</p>'+(searchQ?'':(qs.length
-      ?'<button class="btn btn-p" style="margin-top:16px" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>'
-      :'<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap"><button class="btn btn-p" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button><button class="btn btn-s" onclick="loadSampleQs()"><i class="ti ti-download"></i> Muat Contoh Soal</button></div>'))+'</div>';
+      ?'<button class="btn btn-ink" style="margin-top:16px" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>'
+      :'<div style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap"><button class="btn btn-ink" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button><button class="btn btn-s" onclick="loadSampleQs()"><i class="ti ti-download"></i> Muat Contoh Soal</button></div>'))+'</div>';
     return;
   }
   el.innerHTML=list.map((q,i)=>renderQCard(q,i)).join('');
@@ -81,18 +86,20 @@ function onboardCreateCat(){
 }
 
 function renderQCard(q,i){
-  const catStyle=catBadgeStyle(q.cat);
-  const catName=escHtml(cats[q.cat]?(cats[q.cat].name||q.cat):q.cat);
+  const cat=cats[q.cat];
+  const catName=escHtml(cat?(cat.name||q.cat):q.cat);
+  const catDot=safeColor(cat&&cat.color,'#eeeeee');
+  const catRing=safeColor(cat&&cat.textColor,autoTextColor(catDot));
   // FIX BUG #4: filter opsi kosong
   const validOpts=(q.opts||[]).filter((o,oi)=>LETTERS[oi]&&(o&&o.trim()&&o!=='<br>'));
   const hasImgs=validOpts.some(o=>o&&o.includes('<img'))||Object.keys(q.optImgs||{}).length>0;
   return`<div class="qcard" id="qcard-${q.id}">
     <div class="qmeta">
       <div class="qmeta-left">
-        <span style="font-size:11px;color:var(--text2)">${i+1}.</span>
-        <span class="badge" style="${catStyle}">${catName}</span>
-        ${q.bab?`<span class="badge-bab">${escHtml(q.bab)}</span>`:''}
-        ${q.mastered?'<span class="bM"><i class="ti ti-check" style="font-size:10px"></i> Dikuasai</span>':''}
+        <span class="qnum">${String(i+1).padStart(2,'0')}</span>
+        <span class="qcat"><span class="qcat-dot" style="background:${catDot};--dot-ring:${catRing}" aria-hidden="true"></span><span class="qcat-name">${catName}</span></span>
+        ${q.bab?`<span class="qsep" aria-hidden="true">·</span><span class="qbab">${escHtml(q.bab)}</span>`:''}
+        ${q.mastered?'<span class="bM"><i class="ti ti-check" style="font-size:10px" aria-hidden="true"></i> Dikuasai</span>':''}
       </div>
       <div class="qacts nopr">
         <button class="ibtn" title="Tanya Tutor" aria-label="Tanya Tutor" onclick="openTutor(${q.id})"><i class="ti ti-message-circle"></i></button>
@@ -129,14 +136,14 @@ function renderImgList(qid,imgs){
 }
 function renderExpBlock(q){
   const eimgsHtml=q.eimgs&&q.eimgs.length?'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'+q.eimgs.map((img,ii)=>{const ei=typeof img==='string'?{src:img}:img;return`<div class="img-stored-item"><img src="${escHtml(ei.src)}" alt="Gambar pembahasan" loading="lazy" decoding="async" style="max-height:200px;max-width:100%;object-fit:contain;border-radius:var(--radius);border:0.5px solid var(--border);cursor:pointer;display:block" onclick="openLB('${escHtml(jsStr(ei.src))}','Gambar pembahasan')"><button class="rm-img-btn" onclick="rmStoredEimg(${q.id},${ii})" aria-label="Hapus gambar"><i class="ti ti-trash" style="font-size:12px"></i></button></div>`;}).join('')+'</div>':'';
-  const genBtn=`<div style="margin-top:8px"><button id="gen-exp-btn-${q.id}" class="btn btn-s" onclick="generateExp(${q.id})" style="font-size:12px;gap:5px" aria-label="Generate penjelasan AI untuk soal ini"><i class="ti ti-sparkles" style="color:var(--accent)"></i> Generate Penjelasan</button></div>`;
+  const genBtn=`<div class="exp-gen-wrap"><button id="gen-exp-btn-${q.id}" class="btn btn-s exp-gen" onclick="generateExp(${q.id})" aria-label="Generate penjelasan AI untuk soal ini"><i class="ti ti-sparkles" aria-hidden="true"></i> Generate Penjelasan</button></div>`;
   if(q.expHtml){
-    return`<div class="exp-block"><div class="exp-label"><i class="ti ti-bulb" style="font-size:11px;vertical-align:-1px"></i> Pembahasan</div>
+    return`<div class="exp-block"><div class="exp-label"><i class="ti ti-bulb" style="font-size:11px;vertical-align:-1px" aria-hidden="true"></i> Pembahasan</div>
     <div class="exp-content">${sanitizeHtml(q.expHtml)}</div>${eimgsHtml}
   </div>`;
   }
   if(eimgsHtml){
-    return`<div class="exp-block"><div class="exp-label"><i class="ti ti-bulb" style="font-size:11px;vertical-align:-1px"></i> Pembahasan</div>${eimgsHtml}
+    return`<div class="exp-block"><div class="exp-label"><i class="ti ti-bulb" style="font-size:11px;vertical-align:-1px" aria-hidden="true"></i> Pembahasan</div>${eimgsHtml}
   </div>${genBtn}`;
   }
   return genBtn;

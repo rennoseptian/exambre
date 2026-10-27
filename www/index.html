@@ -298,7 +298,7 @@
         <input class="search-inp" placeholder="Cari soal..." aria-label="Cari soal" oninput="fSearch(this.value)">
       </div>
       <div class="tbr">
-        <button class="btn btn-p" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>
+        <button class="btn btn-ink" onclick="togglePanel()"><i class="ti ti-plus"></i> Tambah Soal</button>
       </div>
     </div>
 
@@ -425,11 +425,14 @@
     </div>
 
     <div class="filter-row nopr">
-      <label for="filter-status">Filter:</label>
-      <select id="filter-status" aria-label="Filter status" onchange="fStatus(this.value)"><option value="all">Semua status</option><option value="wrong">Belum dikuasai</option><option value="mastered">Dikuasai</option></select>
-      <select onchange="fBab(this.value)" id="filter-bab" aria-label="Filter sub-bab"><option value="all">Semua bab</option></select>
+      <div class="filter-left" role="group" aria-label="Filter soal">
+        <span class="filter-label" aria-hidden="true">Filter</span>
+        <select id="filter-status" aria-label="Filter status" onchange="fStatus(this.value)"><option value="all">Semua status</option><option value="wrong">Belum dikuasai</option><option value="mastered">Dikuasai</option></select>
+        <select onchange="fBab(this.value)" id="filter-bab" aria-label="Filter sub-bab"><option value="all">Semua bab</option></select>
+      </div>
+      <span class="list-count" id="list-count" role="status" aria-live="polite" aria-atomic="true">0 soal</span>
     </div>
-    <div id="qlist"></div>
+    <div id="qlist" role="tabpanel" aria-label="Daftar soal"></div>
   </div>
 
   <div id="sec-review" class="sec nopr">

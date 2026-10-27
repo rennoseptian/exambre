@@ -24,14 +24,16 @@ function initCatScroll(scrollEl){
 function buildCatTabs(){
   const el=document.getElementById('cat-tabs');if(!el)return;
   el.setAttribute('role','tablist');
+  const prevScroll=el.scrollLeft;
   const allCount=qs.length;
-  el.innerHTML=`<button class="ctab${curCat==='ALL'?' on':''}" role="tab" aria-selected="${curCat==='ALL'}" onclick="fCat('ALL',this)">Semua <span style="opacity:.6;font-size:10px">${allCount}</span></button>`
+  el.innerHTML=`<button class="ctab${curCat==='ALL'?' on':''}" role="tab" aria-selected="${curCat==='ALL'}" aria-controls="qlist" onclick="fCat('ALL',this)">Semua<span class="ctab-count">${allCount}</span></button>`
     +getCatKeys().map(k=>{
       const cnt=qs.filter(q=>q.cat===k).length;
-      const bg=safeColor(cats[k].color,'#eeeeee');
-      const fg=cats[k].textColor?safeColor(cats[k].textColor):autoTextColor(bg);
-      return`<button class="ctab${k===curCat?' on':''}" role="tab" aria-selected="${k===curCat}" onclick="fCat('${escHtml(jsStr(k))}',this)" style="${curCat===k?'':'background:'+bg+';color:'+fg}">${escHtml(cats[k].name||k)} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
+      const dot=safeColor(cats[k].color,'#eeeeee');
+      const ring=safeColor(cats[k].textColor,autoTextColor(dot));
+      return`<button class="ctab${k===curCat?' on':''}" role="tab" aria-selected="${k===curCat}" aria-controls="qlist" onclick="fCat('${escHtml(jsStr(k))}',this)"><span class="ctab-dot" style="background:${dot};--dot-ring:${ring}" aria-hidden="true"></span>${escHtml(cats[k].name||k)}<span class="ctab-count">${cnt}</span></button>`;
     }).join('');
+  el.scrollLeft=prevScroll;
   initCatScroll(document.getElementById('cat-tabs'));
   initCatScroll(document.getElementById('note-cat-tabs'));
 }
