@@ -62,8 +62,15 @@ function populateAnswerSelects(wId,cId){
 }
 
 /* ── NAV ── */
+const SEC_TITLES={list:'Soal',review:'Review',catatan:'Catatan',stats:'Statistik',lainnya:'Lainnya'};
+function setShellTitle(id){
+  const el=document.getElementById('shell-title');if(!el)return;
+  const label=SEC_TITLES[id]||'Exambre';
+  const span=el.querySelector('span');if(span)span.textContent=label;
+  document.title=id==='list'?'Exambre':label+' · Exambre';
+}
 function goSec(id,btn){
-  sfx('tap',0.4);
+  sfx('tap',0.4);setShellTitle(id);
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.bnav-item').forEach(t=>{t.classList.remove('on');t.setAttribute('aria-selected','false');});
   const target=document.getElementById('sec-'+id);
