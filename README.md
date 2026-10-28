@@ -1,4 +1,4 @@
-# 📚 Exambre
+# Exambre
 
 Aplikasi latihan soal universal dengan **spaced repetition** (repetisi berjarak ala Anki/SM-2), simulasi ujian ber-timer, catatan rich-text, gamifikasi, dan bantuan AI.
 
@@ -8,7 +8,7 @@ Tersedia sebagai **aplikasi Android** (Capacitor 6) dan **web/PWA** (https://ren
 
 ---
 
-## ✨ Fitur
+##  Fitur
 
 ### 🧠 Latihan Spaced Repetition (SRS)
 - Algoritme SM-2 sederhana: soal salah → muncul lagi dalam hitungan menit; soal benar → interval memanjang (1 → 6 → hari × faktor ease)
