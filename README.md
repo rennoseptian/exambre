@@ -47,8 +47,8 @@ Tersedia sebagai **aplikasi Android** (Capacitor 6) dan **web/PWA** (https://ren
 Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa dialihkan ke provider OpenAI-compatible lain (Groq/OpenRouter/Cerebras/Ollama) via *Lainnya → Provider Kustom*.
 - **Scan soal dari foto** → otomatis mengisi form *(vision: Gemini)*
 - **Scan Halaman** — banyak soal sekaligus → preview centang → impor massal *(vision: Gemini)*
-- **✨ Sarankan Kategori** — AI mengelompokkan hasil scan ke kategori/sub-bab (boleh bikin baru), plus saran kategori di form paste
-- **Buat Soal dari Catatan** ✨ — soal ber-pembahasan dari isi catatan, langsung terjadwal SRS
+- ** Sarankan Kategori** — AI mengelompokkan hasil scan ke kategori/sub-bab (boleh bikin baru), plus saran kategori di form paste
+- **Buat Soal dari Catatan** — soal ber-pembahasan dari isi catatan, langsung terjadwal SRS
 - **Generate pembahasan** satu klik untuk soal apa pun
 - **💬 Tanya Tutor** — chat kontekstual per soal: pahami kunci, opsi, dan jawaban salah Anda
 - **🔀 Variasi Soal** — soal baru konsep sama/konteks beda, melatih pemahaman bukan hafalan
@@ -75,7 +75,7 @@ Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa
 | Chip kategori (atas) | pindah kategori soal | `07-categories` |
 | Tab Review → Latihan (SRS) | sesi review, feedback, XP/streak, badge toast | `13-review`, `02-gamify-data` |
 | Tab Review → Simulasi Ujian | timer, hasil per kategori, riwayat simulasi | `14-simulation` |
-| Tab Catatan | editor rich-text, kategori catatan, tombol ✨ buat soal | `03-notes`, `16-ai` |
+| Tab Catatan | editor rich-text, kategori catatan, tombol buat soal | `03-notes`, `16-ai` |
 | Tab Statistik | ringkasan, lencana, kelemahan, kesiapan ujian, countdown ujian | `15-stats`, `16-ai` |
 | Tab Lainnya | tema, export/import, API keys, reset data | `08-theme-io`, `16-ai` |
 | Navigasi bawah / splash / toast | kerangka & notifikasi global | `index.html`, `17-main`, CSS |
@@ -111,7 +111,7 @@ Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa
 └── .github/workflows/      # CI: build-android-apk.yml + deploy-web.yml (GitHub Pages)
 ```
 
-## 🚀 Menjalankan
+## Menjalankan
 ```bash
 npm install          # pasang dependensi
 npm run sync         # salin www/ ke project Android
@@ -121,10 +121,10 @@ Tanpa Android Studio pun bisa:
 - **Tes cepat di browser**: serve folder `www/` (mis. `python3 -m http.server 8080 --directory www`)
 - **Build APK manual**: `cd android && ./gradlew assembleDebug`
 
-## 🤖 Build APK Otomatis
+## Build APK
 Setiap push ke `main` memicu workflow **Build Android APK** (GitHub Actions).
 APK release bertanda tangan dapat diunduh di tab **Actions → build terbaru → Artifacts**.
 Signing memerlukan secrets repo: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
 
-## 📄 Lisensi
+## Lisensi
 MIT — lihat [package.json](package.json).
