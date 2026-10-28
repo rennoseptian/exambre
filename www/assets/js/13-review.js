@@ -7,23 +7,26 @@ function startReview(forceAll){
     revList=srsDueQs().sort((a,b)=>a.srs.due-b.srs.due);
   }
   if(!revList.length){
-    if(!qs.length){document.getElementById('rev-content').innerHTML='<div class="empty"><i class="ti ti-books"></i><p>Belum ada soal sama sekali.<br>Tambahkan soal dulu di tab Daftar Soal.</p></div>';return;}
+    const el=document.getElementById('rev-content');
+    if(!qs.length){
+      el.innerHTML=`<div class="empty rev-empty">
+        <i class="ti ti-books" aria-hidden="true"></i>
+        <h3>Belum ada soal</h3>
+        <p>Tambahkan soal dulu di tab Daftar Soal untuk mulai latihan.</p>
+        <div class="rev-empty-actions"><button class="btn btn-ink" onclick="goSec('list', document.querySelectorAll('.bnav-item')[0])"><i class="ti ti-plus" aria-hidden="true"></i> Tambah Soal</button></div>
+      </div>`;
+      return;
+    }
     const nextLabel=srsNextDueLabel();
-    document.getElementById('rev-content').innerHTML=`
-  <div class="empty" style="padding:60px 20px">
-    <i class="ti ti-calendar-check" style="font-size:52px;color:var(--success);opacity:.7;margin-bottom:16px;display:block"></i>
-    <h3 style="font-size:17px;font-weight:700;margin-bottom:8px">Semua soal sudah direview!</h3>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:6px">
-      Tidak ada soal yang jatuh tempo saat ini.
-    </p>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px">
-      ${nextLabel?'Sesi berikutnya: <b>'+nextLabel+'</b>':'Tambahkan lebih banyak soal untuk memulai latihan.'}
-    </p>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <button class="btn btn-s" onclick="startReview(true)"><i class="ti ti-bolt"></i> Latihan Bebas (semua soal)</button>
-      <button class="btn btn-p" onclick="goSec('list', document.querySelectorAll('.bnav-item')[0])"><i class="ti ti-plus"></i> Tambah Soal Baru</button>
-    </div>
-  </div>`;
+    el.innerHTML=`<div class="empty rev-empty rev-empty-ok">
+      <i class="ti ti-calendar-check" aria-hidden="true"></i>
+      <h3>Semua soal sudah direview</h3>
+      <p>Tidak ada soal yang jatuh tempo saat ini. ${nextLabel?`Sesi berikutnya <b>${nextLabel}</b>.`:'Tambahkan lebih banyak soal untuk memulai latihan.'}</p>
+      <div class="rev-empty-actions">
+        <button class="btn btn-ink" onclick="startReview(true)"><i class="ti ti-bolt" aria-hidden="true"></i> Latihan Bebas</button>
+        <button class="btn btn-s" onclick="goSec('list', document.querySelectorAll('.bnav-item')[0])"><i class="ti ti-plus" aria-hidden="true"></i> Tambah Soal</button>
+      </div>
+    </div>`;
     return;
   }
   renderRev();
@@ -31,15 +34,22 @@ function startReview(forceAll){
 function renderRev(){
   if(revIdx>=revList.length){renderRevSummary();return;}
   const q=revList[revIdx];revDone=false;
-  const catStyle=catBadgeStyle(q.cat);const catName=escHtml(cats[q.cat]?(cats[q.cat].name||q.cat):q.cat);
-  const pct=Math.round((revIdx/revList.length)*100);
+  const cat=cats[q.cat];
+  const catName=escHtml(cat?(cat.name||q.cat):q.cat);
+  const catDot=safeColor(cat&&cat.color,'#eeeeee');
+  const catRing=safeColor(cat&&cat.textColor,autoTextColor(catDot));
+  const pct=Math.round(((revIdx+1)/revList.length)*100);
+  const pos=String(revIdx+1).padStart(2,'0'),total=String(revList.length).padStart(2,'0');
   document.getElementById('rev-content').innerHTML=`
-    <div class="rev-prog"><div class="rev-progf" style="width:${pct}%"></div></div>
-    <div class="rnav">
-      <div style="display:flex;gap:6px;align-items:center"><span class="badge" style="${catStyle}">${catName}</span>${q.bab?`<span class="badge-bab">${escHtml(q.bab)}</span>`:''}</div>
-      <span style="font-size:13px;color:var(--text2)">${revIdx+1} / ${revList.length}</span>
+    <div class="rev-head">
+      <div class="rev-head-left">
+        <span class="rev-cat"><span class="rev-dot" style="background:${catDot};--dot-ring:${catRing}" aria-hidden="true"></span><span class="rev-cat-name">${catName}</span></span>
+        ${q.bab?`<span class="rev-sep" aria-hidden="true">·</span><span class="rev-bab">${escHtml(q.bab)}</span>`:''}
+      </div>
+      <span class="rev-count">${pos} / ${total}</span>
     </div>
-    <div class="rcard">
+    <div class="rev-prog" role="progressbar" aria-label="Progres latihan" aria-valuemin="0" aria-valuemax="${revList.length}" aria-valuenow="${revIdx+1}"><div class="rev-progf" style="width:${pct}%"></div></div>
+    <div class="rcard rev-card">
       <p class="rq">${sanitizeHtml(q.q)}</p>
       ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${escHtml(ei.src)}" alt="Gambar soal" decoding="async" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${escHtml(jsStr(ei.src))}','Gambar soal')">`;}).join('')+'</div>':''}
       <div class="ropts">${(q.opts||[]).map((o,i)=>{
@@ -50,8 +60,8 @@ function renderRev(){
         const displayHtml=safeO.replace(/<img([^>]*)style="[^"]*"([^>]*)>/gi,'<img$1style="max-height:100px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px"$2>');
         return`<button class="ropt" data-l="${l}" onclick="ansRev(${q.id},'${l}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
       }).join('')}</div>
-      <div id="rfb"></div>
-      <div style="display:flex;justify-content:flex-end"><button class="btn btn-p" id="rnext" style="display:none" onclick="nextRev()">Soal Berikutnya <i class="ti ti-arrow-right"></i></button></div>
+      <div id="rfb" aria-live="polite"></div>
+      <div class="rev-actions"><button class="btn btn-ink rev-next" id="rnext" style="display:none" onclick="nextRev()">Soal Berikutnya <i class="ti ti-arrow-right" aria-hidden="true"></i></button></div>
     </div>`;
 }
 function renderRevSummary(){
@@ -59,24 +69,18 @@ function renderRevSummary(){
   const total=revList.length;
   const sessionXP=revSessionXP||0;
   document.getElementById('rev-content').innerHTML=`
-    <div class="rcard" style="text-align:center;padding:32px 20px">
-      <div style="font-size:48px;margin-bottom:12px">🎉</div>
-      <h2 style="font-size:20px;font-weight:800;margin-bottom:6px">Sesi selesai!</h2>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:${sessionWrong?'8px':'24px'}">
-        ${window._revFree?'Latihan bebas selesai — kamu sudah mengerjakan seluruh soal.':'Kamu sudah mereview semua soal yang jatuh tempo hari ini.'}
-      </p>
-      ${sessionWrong?'<p style="font-size:11.5px;color:var(--text3);margin-bottom:20px">Soal yang salah otomatis disisipkan ulang dalam sesi ini untuk langsung dilatih ulang — karena itu angka "Direview" bisa lebih besar dari jumlah soal unik.</p>':''}
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+    <div class="rcard rev-summary">
+      <i class="ti ti-circle-check rev-done-ic" aria-hidden="true"></i>
+      <h2>Sesi selesai</h2>
+      <p class="rev-summary-lead">${window._revFree?'Latihan bebas selesai — kamu sudah mengerjakan seluruh soal.':'Kamu sudah mereview semua soal yang jatuh tempo hari ini.'}</p>
+      ${sessionWrong?'<p class="rev-summary-note">Soal yang salah otomatis disisipkan ulang dalam sesi ini untuk langsung dilatih ulang — karena itu angka &ldquo;Direview&rdquo; bisa lebih besar dari jumlah soal unik.</p>':''}
+      <div class="rev-stats">
         <div class="scard"><div class="snum">${total}</div><div class="slbl">Direview</div></div>
         <div class="scard"><div class="snum" style="color:var(--success)">${sessionCorrect}</div><div class="slbl">Benar</div></div>
         <div class="scard"><div class="snum" style="color:var(--accent)">+${sessionXP}</div><div class="slbl">XP</div></div>
       </div>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:20px">
-        Sesi berikutnya: <b>${srsNextDueLabel()||'Belum ada soal terjadwal'}</b>
-      </p>
-      <button class="btn btn-p" onclick="goSec('list', document.querySelector('.bnav-item'))">
-        <i class="ti ti-books"></i> Kembali ke Daftar Soal
-      </button>
+      <p class="rev-next-due">Sesi berikutnya: <b>${srsNextDueLabel()||'Belum ada soal terjadwal'}</b></p>
+      <button class="btn btn-ink" onclick="goSec('list', document.querySelector('.bnav-item'))"><i class="ti ti-books" aria-hidden="true"></i> Kembali ke Daftar Soal</button>
     </div>`;
   countUpNumbers('#rev-content');
 }
@@ -103,9 +107,9 @@ function ansRev(qid,chosen,btn){
   checkBadges();
   renderGami();
   const srsMsg=ok?`Direview lagi dalam <b>${q.srs.interval} hari</b>.`:`Kartu ini akan muncul lagi sebentar lagi untuk dilatih ulang.`;
-  const xpPill=`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-weight:600;border-radius:var(--radius-pill);padding:2px 9px;font-size:11px;margin-left:8px;vertical-align:middle"><i class="ti ti-bolt" style="font-size:11px"></i>+${xpGain} XP</span>`;
-  const aiExpBtn=!q.expHtml?`<button id="gen-exp-btn-rev-${q.id}" class="btn btn-s" onclick="generateExp(${q.id})" style="font-size:12px;margin-top:8px" aria-label="Generate penjelasan AI"><i class="ti ti-sparkles" style="color:var(--accent)"></i> Generate Penjelasan</button>`:'';
-  document.getElementById('rfb').innerHTML='<div class="rfb '+(ok?'right':'wrong')+'"><b>'+(ok?'Benar.':'Kurang tepat. Jawaban benar: '+q.correct+'.')+'</b>'+xpPill+(justMastered?'<div style="margin-top:6px;font-size:12px">Soal ini sekarang <b>Dikuasai</b>.</div>':'')+(q.expHtml?'<div class="exp-content" style="margin-top:6px">'+sanitizeHtml(q.expHtml)+'</div>':'')+eimgHtml+aiExpBtn+'<div style="margin-top:8px;font-size:11px;opacity:.75">'+srsMsg+'</div></div>';
+  const xpPill=`<span class="rev-xp"><i class="ti ti-bolt" aria-hidden="true"></i>+${xpGain} XP</span>`;
+  const aiExpBtn=!q.expHtml?`<button id="gen-exp-btn-rev-${q.id}" class="btn btn-s rev-ai" onclick="generateExp(${q.id})" aria-label="Generate penjelasan AI"><i class="ti ti-sparkles" aria-hidden="true"></i> Generate Penjelasan</button>`:'';
+  document.getElementById('rfb').innerHTML='<div class="rfb '+(ok?'right':'wrong')+'"><div class="rfb-head"><b>'+(ok?'Benar.':'Kurang tepat. Jawaban benar: '+q.correct+'.')+'</b>'+xpPill+'</div>'+(justMastered?'<div class="rev-mastered">Soal ini sekarang <b>Dikuasai</b>.</div>':'')+(q.expHtml?'<div class="exp-content">'+sanitizeHtml(q.expHtml)+'</div>':'')+eimgHtml+aiExpBtn+'<div class="rev-srs">'+srsMsg+'</div></div>';
   if(ok){q.mastered=q.srs.reps>=3;}
   document.getElementById('rnext').style.display='flex';
   updateDueBadge();

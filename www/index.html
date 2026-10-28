@@ -436,11 +436,13 @@
   </div>
 
   <div id="sec-review" class="sec nopr">
-    <div class="theme-toggle" id="rev-mode-switch" style="max-width:320px;margin-bottom:14px">
-      <button id="rmode-srs-btn" class="on" onclick="switchRevMode('srs')"><i class="ti ti-repeat"></i> Latihan (SRS)</button>
-      <button id="rmode-sim-btn" onclick="switchRevMode('sim')"><i class="ti ti-clock-hour-4"></i> Simulasi Ujian</button>
+    <div class="rev-wrap">
+      <div class="theme-toggle" id="rev-mode-switch" role="group" aria-label="Mode latihan">
+        <button id="rmode-srs-btn" class="on" aria-pressed="true" onclick="switchRevMode('srs')"><i class="ti ti-repeat" aria-hidden="true"></i> Latihan (SRS)</button>
+        <button id="rmode-sim-btn" aria-pressed="false" onclick="switchRevMode('sim')"><i class="ti ti-clock-hour-4" aria-hidden="true"></i> Simulasi Ujian</button>
+      </div>
+      <div id="rev-content"></div>
     </div>
-    <div id="rev-content"></div>
     <div id="sim-nav-container"></div>
   </div>
 

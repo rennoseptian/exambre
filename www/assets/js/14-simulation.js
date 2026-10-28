@@ -20,6 +20,10 @@ function renderRevModeTabs(){
   if(!s||!m)return;
   s.classList.toggle('on',revMode==='srs');
   m.classList.toggle('on',revMode==='sim');
+  s.setAttribute('aria-pressed',String(revMode==='srs'));
+  m.setAttribute('aria-pressed',String(revMode==='sim'));
+  const sec=document.getElementById('sec-review');
+  if(sec)sec.classList.toggle('srs-mode',revMode==='srs');
 }
 function openReviewTab(){
   renderRevModeTabs();
