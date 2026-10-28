@@ -5,13 +5,26 @@ function initCatScroll(scrollEl){
   if(!scrollEl)return;
   const wrap=scrollEl.closest('.cats-wrap');
   if(!wrap)return;
+  if(!wrap._catNav){
+    const mk=(dir,label)=>{
+      const b=document.createElement('button');
+      b.type='button';b.className='cats-nav '+(dir<0?'prev':'next');
+      b.setAttribute('aria-label',label);
+      b.innerHTML=`<i class="ti ti-chevron-${dir<0?'left':'right'}" aria-hidden="true"></i>`;
+      b.addEventListener('click',()=>scrollEl.scrollBy({left:dir*Math.max(160,Math.round(scrollEl.clientWidth*.7)),behavior:'smooth'}));
+      wrap.appendChild(b);return b;
+    };
+    wrap._catNav={prev:mk(-1,'Geser kategori ke kiri'),next:mk(1,'Geser kategori ke kanan')};
+  }
+  const nav=wrap._catNav;
   function update(){
     const overflow=scrollEl.scrollWidth>scrollEl.clientWidth+2;
+    const atStart=scrollEl.scrollLeft<=2;
+    const atEnd=!overflow||scrollEl.scrollLeft+scrollEl.clientWidth>=scrollEl.scrollWidth-4;
     wrap.classList.toggle('no-overflow',!overflow);
-    if(overflow){
-      const atEnd=scrollEl.scrollLeft+scrollEl.clientWidth>=scrollEl.scrollWidth-4;
-      wrap.classList.toggle('at-end',atEnd);
-    }
+    wrap.classList.toggle('at-start',atStart);
+    wrap.classList.toggle('at-end',atEnd);
+    nav.prev.disabled=atStart;nav.next.disabled=atEnd;
   }
   scrollEl.removeEventListener('scroll',update);
   scrollEl.addEventListener('scroll',update,{passive:true});

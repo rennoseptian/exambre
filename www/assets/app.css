@@ -490,8 +490,24 @@ body.dialog-open{overflow:hidden}
 .btn-ink{background:var(--text);color:var(--bg);position:relative;box-shadow:none}
 .btn-ink:hover{opacity:.88}
 #sec-list .cats-wrap{margin:0 0 12px}
-#sec-list .cats{display:flex;flex-wrap:nowrap;gap:0;margin:0;padding:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid var(--border)}
-#sec-list .cats::-webkit-scrollbar{display:none}
+#sec-list .cats{display:flex;flex-wrap:nowrap;gap:0;margin:0;padding:0 0 4px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;border-bottom:1px solid var(--border)}
+#sec-list .cats::-webkit-scrollbar{height:4px}
+#sec-list .cats::-webkit-scrollbar-track{background:transparent}
+#sec-list .cats::-webkit-scrollbar-thumb{background:var(--border2);border-radius:999px}
+#sec-list .cats::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+.cats-nav{position:absolute;top:50%;z-index:2;display:none;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:1px solid var(--border2);border-radius:50%;background:var(--bg);color:var(--text2);font-size:14px;cursor:pointer;transform:translateY(-50%);box-shadow:0 0 0 4px var(--bg),var(--shadow-raise);transition:opacity var(--dur-1) var(--ease),background-color var(--dur-1) var(--ease),color var(--dur-1) var(--ease)}
+.cats-nav.prev{left:-4px}
+.cats-nav.next{right:-4px}
+.cats-nav:hover{background:var(--bg2);color:var(--text)}
+.cats-nav:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cats-nav:disabled{opacity:0;pointer-events:none}
+@media(hover:hover) and (pointer:fine){
+  .cats-wrap:not(.no-overflow) .cats-nav{display:flex}
+}
+@media(max-width:1023px){
+  #sec-list .cats{padding-bottom:0;scrollbar-width:none}
+  #sec-list .cats::-webkit-scrollbar{display:none}
+}
 #sec-list .ctab{position:relative;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;min-height:38px;margin:0 22px 0 0;padding:0 0 11px;border:none;border-radius:0;background:transparent;color:var(--text2);box-shadow:none;font-family:inherit;font-size:13px;font-weight:500;line-height:1.2;cursor:pointer;transition:color var(--dur-1) var(--ease)}
 #sec-list .ctab:last-child{margin-right:0}
 #sec-list .ctab.on{background:transparent;color:var(--text);font-weight:600;box-shadow:none}
