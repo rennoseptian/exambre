@@ -253,7 +253,7 @@ function renderSimQuestion(){
         const safeO=sanitizeHtml(o);const imgSrc=q.optImgs&&q.optImgs[l]?q.optImgs[l]:'';
         const extraImg=imgSrc&&!safeO.includes('<img')?`<img src="${escHtml(imgSrc)}" alt="Gambar pilihan ${l}" style="max-height:100px;max-width:100%;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px">`:'';
         const displayHtml=safeO.replace(/<img([^>]*)style="[^"]*"([^>]*)>/gi,'<img$1style="max-height:100px;max-width:100%;width:auto;object-fit:contain;border-radius:4px;border:0.5px solid var(--border);display:block;margin-top:4px"$2>');
-        return`<button class="ropt${selectedAns===l?' sel':''}" onclick="selectSimAnswer(${q.id},'${l}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
+        return`<button class="ropt${selectedAns===l?' sel':''}" onclick="selectSimAnswer(${q.id},'${escHtml(jsStr(l))}',this)"><span class="ltr">${l}</span><div class="opt-html-content">${displayHtml}${extraImg}</div></button>`;
       }).join('')}</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:12px">

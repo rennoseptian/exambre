@@ -65,7 +65,7 @@ function openNoteEditor(id){
     titleInp.value='';area.innerHTML='';catSel.value='';dateEl.textContent='';delBtn.style.display='none';
   }else{
     const n=notes.find(x=>x.id===id);if(!n)return;
-    titleInp.value=n.title||'';area.innerHTML=n.body||'';catSel.value=n.catId||'';
+    titleInp.value=n.title||'';area.innerHTML=sanitizeHtml(n.body||'');catSel.value=n.catId||'';
     dateEl.textContent=n.updatedAt?'Diubah '+new Date(n.updatedAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
     delBtn.style.display='flex';
   }

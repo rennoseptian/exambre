@@ -16,6 +16,24 @@ function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/<
    tunggal), baru escHtml (kutip ganda attribute delimiter). Urutan dibalik
    justru merusak. */
 function jsStr(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function normalizeItemIds(list,start){
+  if(!Array.isArray(list))return Math.max(1,Number(start)||1);
+  for(let i=list.length-1;i>=0;i--){if(!list[i]||typeof list[i]!=='object')list.splice(i,1);}
+  let max=0;
+  list.forEach(item=>{const n=Number(item.id);if(Number.isSafeInteger(n)&&n>max)max=n;});
+  const requested=Number(start);
+  let next=Number.isSafeInteger(requested)&&requested>max&&requested<Number.MAX_SAFE_INTEGER-1000?requested:max+1;
+  if(next<1)next=1;
+  const used=new Set();
+  list.forEach(item=>{
+    const raw=Number(item.id);
+    const id=Number.isSafeInteger(raw)&&raw>0?raw:0;
+    if(id&&!used.has(id)){item.id=id;used.add(id);return;}
+    while(used.has(next))next++;
+    item.id=next;used.add(next);next++;
+  });
+  return Math.max(next,max+1);
+}
 /* safeColor: hanya izinkan #RGB / #RRGGBB (3-digit dinormalkan ke 6-digit supaya
    aman kalau caller menempelkan alpha seperti +"22"). Warna kategori bisa datang
    dari file import (JSON bebas) lalu masuk ke style="..." — string sembarang di
@@ -26,7 +44,7 @@ function safeColor(v,fallback){
   if(/^#[0-9a-f]{3}$/i.test(h))return '#'+h.slice(1).split('').map(c=>c+c).join('');
   return fallback||'#eeeeee';
 }
-const ALLOWED_TAGS=/^(b|i|u|strong|em|br|ul|ol|li|p|code|img|span|div)$/i;
+const ALLOWED_TAGS=/^(b|i|u|strong|em|br|ul|ol|li|p|code|img|span|div|table|thead|tbody|tr|th|td)$/i;
 const SAFE_URL=/^(https?:|data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,)/i;
 const URL_ATTRS=new Set(['src','href','action','formaction','xlink:href']);
 function sanitizeHtml(html){

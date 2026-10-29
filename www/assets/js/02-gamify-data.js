@@ -79,7 +79,8 @@ function loadData(){
     const raw=localStorage.getItem(SK);
     if(raw){
       const d=JSON.parse(raw);
-      qs=d.qs||[];nid=d.nid||10;
+      qs=Array.isArray(d.qs)?d.qs:[];
+      nid=normalizeItemIds(qs,Number(d.nid)||10);
       cats=d.cats||JSON.parse(JSON.stringify(INIT_CATS));
       gami=d.gami||{streak:0,lastActive:null,xp:0,badges:[]};
       if(!qs.length)qs=defaultQ();
@@ -89,7 +90,7 @@ function loadData(){
   }catch(e){qs=defaultQ();nid=10;cats=JSON.parse(JSON.stringify(INIT_CATS));gami={streak:0,lastActive:null,xp:0,badges:[]};}
   try{
     const nr=localStorage.getItem(NK);
-    if(nr){const nd=JSON.parse(nr);notes=nd.notes||[];noteCats=nd.cats||[];noteNid=nd.nid||1;}
+    if(nr){const nd=JSON.parse(nr);notes=Array.isArray(nd.notes)?nd.notes:[];noteCats=Array.isArray(nd.cats)?nd.cats:[];noteNid=normalizeItemIds(notes,Number(nd.nid)||1);}
     else{notes=[];noteCats=[];noteNid=1;}
   }catch(e){notes=[];noteCats=[];noteNid=1;}
   ensureGami();migrateCatColors();

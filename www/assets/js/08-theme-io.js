@@ -160,13 +160,13 @@ function processImportJson(raw){
   try{data=JSON.parse(raw);}catch(e){showToast('Format JSON tidak valid. Pastikan salin seluruh isi file.','warn');return;}
   if(!data||!Array.isArray(data.qs)){showToast('File tidak dikenali sebagai backup Exambre','warn');return;}
   showConfirm({icon:'📥',title:'Import data?',body:`Import ${data.qs.length} soal? Ini akan MENGGANTI semua data yang ada sekarang di app ini.`,actionLabel:'Import',onConfirm:()=>{
-    qs=data.qs;
-    nid=data.nid||(qs.reduce((m,q)=>Math.max(m,q.id||0),0)+1);
+    qs=Array.isArray(data.qs)?data.qs:[];
+    nid=normalizeItemIds(qs,Number(data.nid)||10);
     cats=data.cats||{};
     gami=data.gami||gami;
     qs.forEach(q=>ensureSrs(q));
     ensureGami();migrateCatColors();
-    if(Array.isArray(data.notes)){notes=data.notes;noteCats=data.noteCats||[];noteNid=data.noteNid||(notes.reduce((m,n)=>Math.max(m,n.id||0),0)+1);persistNotes();}
+    if(Array.isArray(data.notes)){notes=data.notes;noteCats=Array.isArray(data.noteCats)?data.noteCats:[];noteNid=normalizeItemIds(notes,Number(data.noteNid)||1);persistNotes();}
     persist();
     buildCatTabs();populateCatSelects();updateBabFilter();render();renderGami();
     showToast('Import berhasil! '+data.qs.length+' soal dimuat.','ok');
