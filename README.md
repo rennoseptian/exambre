@@ -1,130 +1,227 @@
 # Exambre
 
-Aplikasi latihan soal universal dengan **spaced repetition** (repetisi berjarak ala Anki/SM-2), simulasi ujian ber-timer, catatan rich-text, gamifikasi, dan bantuan AI.
+Aplikasi latihan soal universal untuk web dan Android. Exambre menggabungkan latihan spaced repetition, simulasi ujian ber-timer, catatan rich-text, statistik belajar, dan fitur AI opsional dalam satu aplikasi local-first.
 
-Cocok untuk materi apa pun — ujian masuk, sertifikasi, bahasa asing, kedokteran, hukum, atau kumpulan rumus pribadi Anda.
+Aplikasi web: [rennoseptian.github.io/exambre](https://rennoseptian.github.io/exambre)
 
-Tersedia sebagai **aplikasi Android** (Capacitor 6) dan **web/PWA** (https://rennoseptian.github.io/exambre) — tanpa framework frontend, murni HTML/CSS/JavaScript modular, 100% lokal.
+[Ringkasan](#ringkasan) | [Fitur](#fitur) | [Peta fitur](#peta-fitur-dan-berkas) | [Arsitektur](#arsitektur) | [Menjalankan](#menjalankan) | [Build APK](#build-apk) | [Privasi](#privasi-dan-keamanan) | [Lisensi](#lisensi)
 
----
+## Ringkasan
 
-##  Fitur
+| Aspek | Keterangan |
+|---|---|
+| Platform | Android melalui Capacitor 6 dan web/PWA |
+| Basis aplikasi | HTML, CSS, dan JavaScript tanpa framework frontend |
+| Penyimpanan | Local-first dengan export dan import backup JSON |
+| AI | Opsional; Gemini atau provider OpenAI-compatible pilihan pengguna |
+| Lisensi | MIT |
 
-### 🧠 Latihan Spaced Repetition (SRS)
-- Algoritme SM-2 sederhana: soal salah → muncul lagi dalam hitungan menit; soal benar → interval memanjang (1 → 6 → hari × faktor ease)
-- Status **Dikuasai** dicapai setelah 3x berturut-turut benar
-- Badge "jatuh tempo" di navigasi menampilkan jumlah soal yang perlu direview
-- Opsi *Latihan Bebas* untuk melatih semua soal sekaligus
+Exambre tidak bergantung pada akun, server aplikasi, atau sinkronisasi cloud. Data belajar disimpan di perangkat. Fitur AI hanya mengirim konten ke provider yang dikonfigurasi pengguna saat fitur tersebut digunakan.
 
-### ⏱️ Simulasi Ujian
-- Timer **per soal** atau **total sesi**
-- Pilih kategori & jumlah soal secara bebas
-- Navigasi grid nomor soal + ragen (flag) ala CAT — tampil di bawah konten (mobile) / panel penuh lebar (desktop)
-- Hasil dihitung di akhir: skor akurasi, rincian per kategori, jawaban benar/salah/kosong
-- Riwayat hingga 30 sesi terakhir tersimpan lokal
-- **Tidak memengaruhi** jadwal SRS — simulasi dan latihan terpisah total
+## Fitur
 
-### 📝 Input Soal Serba Bisa
-- **Paste cepat**: tempel soal dari web/apk lain — kategori, pilihan A–E, kunci, bahkan gambar ikut terdeteksi otomatis
-- **Isi manual**: form lengkap dengan rich-text editor untuk pembahasan
-- Gambar via URL, upload file, drag-drop, atau langsung Ctrl+V
+### Latihan spaced repetition
 
-### 🗒️ Catatan Rich-Text
-- Editor lengkap: heading, list, tabel, kutipan, `kode`, gambar
-- Organisasi per kategori warna + pencarian teks
+- Algoritme SM-2 sederhana: jawaban salah muncul kembali dalam hitungan menit; jawaban benar memperpanjang interval secara bertahap.
+- Status **Dikuasai** diberikan setelah tiga jawaban benar berturut-turut.
+- Badge jatuh tempo pada navigasi menunjukkan jumlah soal yang perlu direview.
+- Mode **Latihan Bebas** tersedia untuk melatih seluruh soal tanpa menunggu jadwal SRS.
 
-### 🎮 Gamifikasi
-- Streak belajar harian 🔥, XP ⚡, dan lencana pencapaian 🏅
+### Simulasi ujian
 
-### 🌐 Versi Web & PWA
-- Live di **https://rennoseptian.github.io/exambre** — deploy otomatis tiap push ke `main`
-- Bisa **di-install ke layar utama** HP (menu browser → *Tambahkan ke layar utama*)
-- **Offline penuh** setelah kunjungan pertama (service worker cache-first)
-- Di layar ≥1024px (laptop/PC) layout berubah jadi **desktop**: sidebar navigasi kiri, konten lebar — bukan "HP besar"
-- Catatan: online ≠ sinkron; tiap perangkat tetap punya datanya sendiri (lokal)
+- Timer per soal atau timer total sesi.
+- Pemilihan kategori dan jumlah soal.
+- Grid navigasi nomor soal dengan penanda ragu-ragu.
+- Hasil akhir mencakup akurasi, rincian per kategori, serta jumlah jawaban benar, salah, dan kosong.
+- Riwayat hingga 30 sesi terakhir tersimpan lokal.
+- Simulasi terpisah dari SRS dan tidak mengubah jadwal review.
 
-### 🤖 AI (opsional) — 8 kemampuan
-Butuh API key gratis [Gemini](https://aistudio.google.com); fitur teks juga bisa dialihkan ke provider OpenAI-compatible lain (Groq/OpenRouter/Cerebras/Ollama) via *Lainnya → Provider Kustom*.
-- **Scan soal dari foto** → otomatis mengisi form *(vision: Gemini)*
-- **Scan Halaman** — banyak soal sekaligus → preview centang → impor massal *(vision: Gemini)*
-- ** Sarankan Kategori** — AI mengelompokkan hasil scan ke kategori/sub-bab (boleh bikin baru), plus saran kategori di form paste
-- **Buat Soal dari Catatan** — soal ber-pembahasan dari isi catatan, langsung terjadwal SRS
-- **Generate pembahasan** satu klik untuk soal apa pun
-- **💬 Tanya Tutor** — chat kontekstual per soal: pahami kunci, opsi, dan jawaban salah Anda
-- **🔀 Variasi Soal** — soal baru konsep sama/konteks beda, melatih pemahaman bukan hafalan
-- **🔍 Analisis Pola Kesalahan** — ringkasan pola + fokus per kategori + micro-lesson (tab Statistik)
+### Input soal
 
-### 📊 Statistik & Analisis
-- Akurasi, progres dikuasai, titik lemah per kategori
-- Widget **Kesiapan Ujian** berdasarkan tanggal target + pace belajar
+- **Paste cepat** untuk mengekstrak soal, kategori, pilihan A-E, kunci jawaban, dan gambar dari teks.
+- Form manual dengan editor rich-text untuk pembahasan.
+- Dukungan gambar melalui URL, upload file, drag-and-drop, atau paste langsung.
 
-### 💾 Data
-- Export/import backup `.json` lengkap (soal, catatan, progres)
-- Semua data tetap tersimpan lokal meski tanpa internet
+### Catatan rich-text
 
----
+- Format tebal, miring, garis bawah, daftar, kode, tabel, dan gambar.
+- Pengelompokan catatan per kategori warna.
+- Pencarian teks di seluruh catatan.
 
-## 🗺️ Peta Fitur → Berkas (panduan saat menemukan bug)
+### Gamifikasi
 
-| Bagian di App | Fungsinya | Berkas terkait (`www/assets/js/`) |
+- Streak belajar harian, XP, dan lencana pencapaian.
+- Efek suara dapat dimatikan dari pengaturan; animasi menghormati preferensi reduced motion sistem.
+
+### Statistik
+
+- Akurasi, progres penguasaan, dan titik lemah per kategori.
+- Widget kesiapan ujian berdasarkan tanggal target dan kecepatan belajar.
+- Analisis pola kesalahan dengan ringkasan dan micro-lesson melalui AI.
+
+### Web dan PWA
+
+- Deploy otomatis ke GitHub Pages setiap push ke `main`.
+- Dapat dipasang ke layar utama sebagai PWA.
+- Aset dan data tersedia offline setelah kunjungan pertama; fitur AI tetap memerlukan koneksi internet.
+- Layout desktop aktif pada lebar layar minimal 1024px dengan sidebar navigasi kiri.
+- Data setiap perangkat berdiri sendiri; aplikasi web tidak melakukan sinkronisasi antardevice.
+
+### AI opsional
+
+Fitur AI memerlukan API key. Gemini menjadi provider default. Fitur teks juga dapat diarahkan ke endpoint OpenAI-compatible seperti Groq, OpenRouter, Cerebras, atau Ollama melalui **Lainnya > Provider Kustom**.
+
+Pemindaian gambar menggunakan model vision yang dikonfigurasi. Jika model vision tidak diisi, permintaan diarahkan ke Gemini. Model vision dapat diatur terpisah dari model teks.
+
+- **Scan soal dari foto** untuk mengisi form secara otomatis.
+- **Scan halaman** untuk memproses banyak soal sekaligus dengan preview sebelum impor.
+- **Saran kategori** untuk mengelompokkan soal ke kategori dan sub-bab, termasuk pembuatan kategori baru.
+- **Buat soal dari catatan** dengan pembahasan dan jadwal SRS otomatis.
+- **Generate pembahasan** untuk soal yang sudah tersimpan.
+- **Tutor chat** kontekstual per soal dengan riwayat percakapan.
+- **Variasi soal** untuk membuat soal baru dengan konsep serupa dalam konteks berbeda.
+- **Analisis pola kesalahan** untuk merangkum kelemahan dan memberikan fokus belajar.
+
+## Peta fitur dan berkas
+
+Modul berikut berada di `www/assets/js/`.
+
+| Area | Fungsi utama | Modul terkait |
 |---|---|---|
-| Tab Soal — kartu soal | daftar, tag dikuasai, edit inline, hapus+undo, 💬 tutor, 🔀 variasi | `10-render-edit`, `12-card-actions`, `16-ai` |
-| Tombol "+ Tambah Soal" | panel paste/manual + preview parse | `11-panel-forms` |
-| Scan foto & Scan Halaman | ekstraksi AI dari gambar | `16-ai` |
-| Search bar & filter status/bab | penyaringan daftar soal | `08-theme-io`, CSS `.filter-row` |
-| Chip kategori (atas) | pindah kategori soal | `07-categories` |
-| Tab Review → Latihan (SRS) | sesi review, feedback, XP/streak, badge toast | `13-review`, `02-gamify-data` |
-| Tab Review → Simulasi Ujian | timer, hasil per kategori, riwayat simulasi | `14-simulation` |
-| Tab Catatan | editor rich-text, kategori catatan, tombol buat soal | `03-notes`, `16-ai` |
-| Tab Statistik | ringkasan, lencana, kelemahan, kesiapan ujian, countdown ujian | `15-stats`, `16-ai` |
-| Tab Lainnya | tema, export/import, API keys, reset data | `08-theme-io`, `16-ai` |
-| Navigasi bawah / splash / toast | kerangka & notifikasi global | `index.html`, `17-main`, CSS |
-| State semua fitur | objek pusat `Store` + accessor window | `01-state` |
+| Tab Soal | Daftar soal, edit inline, hapus dengan undo, tutor, variasi | `10-render-edit`, `12-card-actions`, `16-ai` |
+| Panel Tambah Soal | Input paste dan manual, preview hasil parsing | `11-panel-forms` |
+| Scan foto dan scan halaman | Ekstraksi soal dari gambar dengan AI | `16-ai` |
+| Pencarian dan filter | Filter kategori, status, dan sub-bab | `08-theme-io`, CSS `.filter-row` |
+| Chip kategori | Perpindahan kategori soal | `07-categories` |
+| Review SRS | Sesi review, feedback, XP, streak, badge | `13-review`, `02-gamify-data` |
+| Simulasi ujian | Timer, hasil per kategori, riwayat simulasi | `14-simulation` |
+| Catatan | Editor rich-text, kategori catatan, buat soal dari catatan | `03-notes`, `16-ai` |
+| Statistik | Ringkasan, lencana, kelemahan, kesiapan ujian | `15-stats`, `16-ai` |
+| Lainnya | Tema, export/import, API key, reset data | `08-theme-io`, `16-ai` |
+| Media | Gambar soal, opsi, dan pembahasan | `06-media`, `09-image-inputs` |
+| Shell aplikasi | Navigasi, splash, toast, dan dialog | `index.html`, `17-main`, CSS |
+| State terpusat | Store aplikasi dan accessor global | `01-state` |
 
-**Penyimpanan lokal:** `cpns-wb-v6` (soal+progress) · `exambre-notes-v1` (catatan) · `exambre_sim_history` · `exambre-theme` · `exambre_gemini_key` · `exambre_custom_ai` · `exambre_exam_date` · `exambre_sfx` (saklar efek suara)
+## Data dan penyimpanan
 
----
+Key utama di `localStorage`:
 
-## 🛠️ Teknologi
+| Key | Isi |
+|---|---|
+| `cpns-wb-v6` | Soal, kategori, progres SRS, dan gamifikasi |
+| `exambre-notes-v1` | Catatan dan kategori catatan |
+| `exambre_sim_history` | Riwayat simulasi ujian |
+| `exambre-theme` | Preferensi tema |
+| `exambre_gemini_key` | API key Gemini |
+| `exambre_custom_ai` | Konfigurasi provider AI kustom |
+| `exambre_exam_date` | Tanggal target ujian |
+| `exambre_sfx` | Preferensi efek suara |
+
+Backup dan pemulihan dilakukan melalui export/import file JSON di tab **Lainnya**.
+
+## Arsitektur
+
+Aplikasi web berada di `www/` dan dibungkus Capacitor untuk Android. Tidak ada bundler atau framework frontend. JavaScript terdiri dari 16 modul classic-script yang dimuat berurutan dan berbagi state melalui objek `Store`.
+
+Urutan pemuatan modul penting. Nomor `05` sengaja tidak digunakan karena modul cloud lama sudah dihapus.
+
+```text
+exambre/
+├── www/
+│   ├── index.html
+│   ├── manifest.json
+│   ├── sw.js
+│   └── assets/
+│       ├── app.css
+│       ├── js/
+│       │   ├── 01-state.js
+│       │   ├── ...
+│       │   └── 17-main.js
+│       ├── fonts/
+│       ├── icons/
+│       ├── icon/
+│       └── sfx/
+├── android/
+├── .github/workflows/
+├── package.json
+└── README.md
+```
+
+## Teknologi
+
 | Lapisan | Teknologi |
 |---|---|
-| Native shell | Capacitor 6 (Android) |
-| Web/PWA | Service worker cache-first + GitHub Pages (deploy otomatis) |
-| UI | Vanilla CSS custom-properties, Tabler Icons, font Inter, layout responsif desktop ≥1024px |
-| Logika | Vanilla JS — 16 modul classic-script berbagi store terpusat |
-| AI | Google Gemini REST API + provider OpenAI-compatible opsional |
-
-## 📁 Struktur
-```
-├── index.html              # markup + theme-init anti-FOUC
-├── manifest.json           # PWA manifest (Exambre, ikon transparan)
-├── sw.js                   # service worker (offline + installable; bump CACHE saat ubah file inti)
-└── assets/
-    ├── app.css             # seluruh stylesheet (+ blok desktop ≥1024px di akhir)
-    ├── js/                 # 01-state … 17-main (urutan load penting; 05 bolong sengaja,
-    │                       # tag <script>-nya sudah dibuang dari index.html — jangan pasang lagi)
-    │   └── …               # state/gamify/notes/srs/media/categories/
-    │                       # io/images/render/forms/actions/review/
-    │                       # simulation/stats/ai/main
-    ├── fonts/  icons/  icon/  sfx/
-├── android/                # project native Capacitor
-└── .github/workflows/      # CI: build-android-apk.yml + deploy-web.yml (GitHub Pages)
-```
+| Native shell | Capacitor 6 untuk Android |
+| Web/PWA | Service worker cache-first dan GitHub Pages |
+| UI | CSS custom properties, Tabler Icons, font Inter, layout responsif |
+| Logika | Vanilla JavaScript dengan 16 modul classic-script |
+| AI | Gemini REST API dan provider OpenAI-compatible opsional |
+| CI | GitHub Actions untuk APK release dan deploy web |
 
 ## Menjalankan
+
+### Prasyarat
+
+- Node.js 20
+- Java 17 dan Android SDK 34 untuk build Android
+- Android Studio opsional untuk menjalankan project native
+
+### Perintah
+
 ```bash
-npm install          # pasang dependensi
-npm run sync         # salin www/ ke project Android
-npm run open         # buka di Android Studio (opsional)
+npm install
+npm run sync
+npm run open
 ```
-Tanpa Android Studio pun bisa:
-- **Tes cepat di browser**: serve folder `www/` (mis. `python3 -m http.server 8080 --directory www`)
-- **Build APK manual**: `cd android && ./gradlew assembleDebug`
+
+`npm run sync` menyalin `www/` ke project Android. `npm run open` membuka project di Android Studio.
+
+### Tes cepat di browser
+
+```bash
+python3 -m http.server 8080 --directory www
+```
+
+Buka `http://localhost:8080`.
+
+### Build APK manual
+
+```bash
+cd android
+./gradlew assembleDebug
+```
 
 ## Build APK
-Setiap push ke `main` memicu workflow **Build Android APK** (GitHub Actions).
-APK release bertanda tangan dapat diunduh di tab **Actions → build terbaru → Artifacts**.
-Signing memerlukan secrets repo: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+
+Setiap push ke `main` menjalankan workflow **Build Android APK** di GitHub Actions. APK release bertanda tangan tersedia di tab **Actions**, pada workflow terbaru, bagian **Artifacts**.
+
+Signing release memerlukan secrets berikut:
+
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+
+Workflow terkait:
+
+- `.github/workflows/build-android-apk.yml`
+- `.github/workflows/deploy-web.yml`
+
+## Privasi dan keamanan
+
+- Exambre tidak memiliki akun pengguna, server aplikasi, atau pelacakan.
+- Data belajar disimpan di perangkat melalui `localStorage`.
+- Tidak ada sinkronisasi cloud; setiap perangkat memiliki data sendiri.
+- Export backup JSON disarankan sebelum mengganti perangkat atau menghapus data browser.
+- Fitur AI mengirim konten yang relevan ke provider pilihan pengguna. Kunci API disimpan secara lokal di perangkat.
+- Konten HTML pengguna disanitasi sebelum dirender, dan data import dinormalisasi sebelum digunakan.
 
 ## Lisensi
-MIT — lihat [package.json](package.json).
+
+MIT. Lihat [package.json](package.json).
+
+## Tautan
+
+- Aplikasi web: [rennoseptian.github.io/exambre](https://rennoseptian.github.io/exambre)
+- Repositori: [github.com/rennoseptian/exambre](https://github.com/rennoseptian/exambre)
+- Laporan bug: [github.com/rennoseptian/exambre/issues](https://github.com/rennoseptian/exambre/issues)
