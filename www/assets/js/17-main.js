@@ -17,7 +17,7 @@ window.addEventListener('unhandledrejection',e=>reportUnexpected('rejection',e.r
 /* ── TOMBOL BACK ANDROID ──
    Tanpa listener, tombol back langsung menutup app walau modal/form masih terbuka.
    Urutan: splash → konfirmasi → editor catatan → lightbox → modal teratas →
-   tab lain → form edit inline → panel tambah → konfirmasi keluar. */
+   subhalaman Pengaturan → tab lain → form edit inline → panel tambah → konfirmasi keluar. */
 function backCloseOverlay(id){const el=document.getElementById(id);if(el)closeDialogEl(el);}
 function handleHardwareBack(){
   const splash=document.getElementById('exambre-splash');
@@ -30,6 +30,7 @@ function handleHardwareBack(){
   const modals=[...document.querySelectorAll('.modal-overlay.on')];
   if(modals.length){backCloseOverlay(modals[modals.length-1].id);return;}
   const active=document.querySelector('.sec.on');
+  if(active&&active.id==='sec-lainnya'&&typeof currentSettingsPage==='function'&&currentSettingsPage()){closeSettingsPage();return;}
   if(active&&active.id!=='sec-list'){goSec('list',document.querySelector('.bnav-item'));return;}
   const ie=document.querySelector('.inline-edit.on');
   if(ie){toggleInlineEdit(Number(ie.dataset.qid));return;}

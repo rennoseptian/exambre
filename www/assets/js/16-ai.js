@@ -50,7 +50,7 @@ function saveCustomAI(){
   showToast(visionModel?'Provider AI kustom aktif ✨ — scan foto memakai provider ini':'Provider AI kustom aktif ✨ (scan tetap Gemini)','ok',3000);
 }
 function clearCustomAI(){localStorage.removeItem(CAI_KEY);loadCustomAI();showToast('Kembali memakai Gemini','ok');}
-/* Panduan langkah demi langkah untuk pemula (tombol "Panduan" di Lainnya). */
+/* Panduan langkah demi langkah untuk pemula (tombol "Panduan" di Pengaturan). */
 function openAiGuide(){const m=document.getElementById('ai-guide-modal');if(m)m.classList.add('on');}
 function closeAiGuide(){const m=document.getElementById('ai-guide-modal');if(m)m.classList.remove('on');}
 /* Base URL ditebak dari awalan API key provider yang umum — kolom inilah yang paling
@@ -71,7 +71,7 @@ function autoBaseUrlFill(key){
 }
 
 /* ── Model VISION untuk scan foto ──
-   visionModel diisi user di Lainnya dan disimpan DI DALAM config provider yang sama,
+   visionModel diisi user di Pengaturan dan disimpan DI DALAM config provider yang sama,
    bukan key terpisah, jadi tetap satu blok "Simpan Provider" yang perlu diklik.
    PENTING: visionModel kosong = scan tetap pakai Gemini. Jangan default-kan diam-diam
    ke provider kustom — foto soal user tidak boleh terkirim ke provider lain tanpa diminta.
@@ -634,8 +634,8 @@ function aiAltReadyModality(p,mod){
    lewat provider kustom, jadi user tanpa Gemini key bukan berarti tidak bisa scan. */
 function visionReadyHint(){
   return getCustomAI()
-    ? 'Isi "Model Vision" di Lainnya untuk scan lewat '+aiProviderLabel('groq')+', atau masukkan Gemini API key.'
-    : 'Masukkan Gemini API key di Lainnya, atau aktifkan provider kustom + Model Vision.';
+    ? 'Isi "Model Vision" di Pengaturan untuk scan lewat '+aiProviderLabel('groq')+', atau masukkan Gemini API key.'
+    : 'Masukkan Gemini API key di Pengaturan, atau aktifkan provider kustom + Model Vision.';
 }
 /* modality: 'text' (default) | 'vision'. null/undefined = text, jadi call site lama aman. */
 function aiOfferFallback(e,fn,modality){
@@ -676,7 +676,7 @@ function aiErrLabel(msg,e){
     if(srv>0)return ' Batas kuota di server perkiraan '+aiCooldownLabel(srv)+' lagi.';
     return ' Batas kuota biasanya pulih dalam hitungan menit, tapi server tidak memberi tahu sisa waktunya. Coba lagi sebentar.';
   };
-  if(m==='NO_KEY')return 'Masukkan Gemini API key dulu di menu Lainnya';
+  if(m==='NO_KEY')return 'Masukkan Gemini API key dulu di menu Pengaturan';
   if(m==='RATE_LIMIT'){
     /* Kuota harian perlu perlakuan terpisah: "habis sebentar" + "coba lagi" menyesatkan,
        padahal yang dibutuhkan user adalah menunggu sampai jam reset yang pasti. */
@@ -690,9 +690,9 @@ function aiErrLabel(msg,e){
   if(m==='OVERLOADED')return 'Server AI sedang sibuk. Sudah dicoba ulang otomatis, masih belum tersedia.';
   if(m==='TIMEOUT')return 'Server AI tidak merespons dalam 45 detik. Coba lagi.';
   if(m==='NETWORK')return 'Tidak ada koneksi ke server AI. Periksa internet lalu coba lagi.';
-  if(m==='BAD_KEY')return 'API key tidak valid. Periksa di menu Lainnya.';
-  if(m==='BAD_REQUEST')return 'Permintaan ditolak server (model/parameter tidak cocok). Periksa pengaturan AI di Lainnya.';
-  if(m==='NOT_FOUND')return 'Model tidak ditemukan di provider ini. Periksa nama model di Lainnya.';
+  if(m==='BAD_KEY')return 'API key tidak valid. Periksa di menu Pengaturan.';
+  if(m==='BAD_REQUEST')return 'Permintaan ditolak server (model/parameter tidak cocok). Periksa pengaturan AI di Pengaturan.';
+  if(m==='NOT_FOUND')return 'Model tidak ditemukan di provider ini. Periksa nama model di Pengaturan.';
   if(m==='COOLDOWN')return 'AI masih cooldown '+aiCooldownLabel(cdG||cdR)+'. Sabar sebentar ya.';
   if(m==='FORMAT_ERROR')return 'Format balasan AI tidak terbaca. Foto lebih jelas & coba lagi.';
   if(m==='EMPTY_RESPONSE')return 'Balasan AI kosong. Coba lagi.';
@@ -985,7 +985,7 @@ function fillQuestionFormFromScan(parsed) {
 async function generateExp(qId){
   const q=qs.find(x=>x.id===qId);if(!q)return;
   const hasAI=!!(getCustomAI()||localStorage.getItem('exambre_gemini_key'));
-  if(!hasAI){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
+  if(!hasAI){showToast('Atur AI dulu di menu Pengaturan (Gemini key atau provider kustom)','warn',5000);return;}
 
   // Show loading state on all matching buttons (card + review)
   ['gen-exp-btn-'+qId,'gen-exp-btn-rev-'+qId].forEach(id=>{
@@ -1025,7 +1025,7 @@ Jangan gunakan tag lain. Jawab langsung tanpa preamble.`;
       const btn=document.getElementById(id);
       if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Generate Penjelasan';}
     });
-    if(e.message==='NO_KEY'){showToast('Masukkan Gemini API key dulu di menu Lainnya','warn',5000);}
+    if(e.message==='NO_KEY'){showToast('Masukkan Gemini API key dulu di menu Pengaturan','warn',5000);}
     else if(aiOfferFallback(e,()=>generateExp(qId)))return;
     else aiErrToast(e.message,'Gagal generate',e);
   }
@@ -1097,6 +1097,27 @@ function renderWeaknessSection(){
 }
 
 /* Feature 3.2 — Exam Date Functions */
+function renderExamDatePanel(){
+  return`<div class="panel" style="margin-bottom:16px">
+    <h4 style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px">
+      <i class="ti ti-target" style="color:var(--accent)"></i> Tanggal Ujian Target
+    </h4>
+    <p class="set-desc" style="margin-bottom:10px">Isi tanggal ujian agar kesiapan dan pace belajarmu bisa dihitung.</p>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input
+        id="exam-date-inp"
+        type="date"
+        aria-label="Tanggal ujian target"
+        style="flex:1;font-size:13px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit"
+        onchange="saveExamDate(this.value)"
+      >
+      <button class="btn btn-s" onclick="clearExamDate()" aria-label="Hapus tanggal ujian">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <p id="exam-date-status" role="status" aria-live="polite" style="font-size:12px;color:var(--text3);margin-top:6px"></p>
+  </div>`;
+}
 function loadExamDate(){
   const saved=localStorage.getItem('exambre_exam_date');
   const inp=document.getElementById('exam-date-inp');
@@ -1107,12 +1128,14 @@ function saveExamDate(val){
   if(!val)return;
   const d=new Date(val);
   if(d<=new Date()){showToast('Tanggal ujian harus di masa depan','warn');return;}
-  localStorage.setItem('exambre_exam_date',val);updateExamDateStatus(val);showToast('Tanggal ujian disimpan','ok');
+  localStorage.setItem('exambre_exam_date',val);
+  if(typeof renderStatsPage==='function')renderStatsPage();
+  showToast('Tanggal ujian disimpan','ok');
 }
 function clearExamDate(){
   localStorage.removeItem('exambre_exam_date');
   const inp=document.getElementById('exam-date-inp');if(inp)inp.value='';
-  updateExamDateStatus(null);
+  if(typeof renderStatsPage==='function')renderStatsPage();
 }
 function updateExamDateStatus(val){
   const status=document.getElementById('exam-date-status');if(!status)return;
@@ -1184,7 +1207,7 @@ function renderReadinessWidget(){
 /* Feature 4.1 — Generate Soal dari Catatan */
 function openNoteToQ(noteId){
   const n=notes.find(x=>x.id===noteId);if(!n)return;
-  if(!getCatKeys().length){showToast('Buat kategori dulu di tab Lainnya → Kelola Kategori','warn',4000);return;}
+  if(!getCatKeys().length){showToast('Buat kategori dulu di tab Pengaturan → Kategori & Bab','warn',4000);return;}
   const src=(n.bodyText&&n.bodyText.trim())||(n.body||'').replace(/<[^>]+>/g,' ');
   if(!src.trim()){showToast('Catatan masih kosong','warn');return;}
   window._n2qId=noteId;
@@ -1199,7 +1222,7 @@ async function runNoteToQ(){
   const cat=(document.getElementById('note2q-cat')||{}).value||'';
   if(!cat){showToast('Pilih kategori tujuan dulu','warn');return;}
   const cnt=parseInt((document.getElementById('note2q-count')||{}).value,10)||5;
-  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Pengaturan (Gemini key atau provider kustom)','warn',5000);return;}
   const src=((n.bodyText&&n.bodyText.trim())?(n.bodyText.trim()):(n.body||'').replace(/<[^>]+>/g,' ')).slice(0,8000);
   const btn=document.getElementById('note2q-go');if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Membuat...';}
   const prompt=`Kamu adalah pembuat soal latihan ahli. Buat ${cnt} soal pilihan ganda BERDASARKAN materi berikut. Variasikan tingkat kesulitan dan utamakan pemahaman, bukan hafalan kata per kata.\n\nMATERI:\n${src}\n\nATURAN WAJIB:\n- Jawab HANYA dengan JSON valid. Tidak ada teks lain, tidak ada markdown, tidak ada backtick.\n- Format: {"questions":[{"soal":"...","A":"...","B":"...","C":"...","D":"...","E":"...","jawaban":"SATU HURUF KAPITAL","pembahasan":"<p>penjelasan singkat</p>"}]}\n- Opsi boleh hanya 4; isi E dengan string kosong "".\n- "jawaban" HANYA satu huruf kapital tanpa titik atau tanda kurung.\n- "pembahasan" memakai HTML sederhana (<p>, <b>, <ol>, <li>) dan menjelaskan MENGAPA kunci benar.`;
@@ -1366,7 +1389,7 @@ function runBatchImport(){
 /* Feature 4.4 — Tanya Tutor per Soal */
 function openTutor(qid){
   const q=qs.find(x=>x.id===qid);if(!q)return;
-  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Pengaturan (Gemini key atau provider kustom)','warn',5000);return;}
   window._tutor={qid,hist:[],view:[]};
   const sub=document.getElementById('tutor-sub');
   if(sub)sub.textContent='Tanya bebas tentang soal ini — sentuh salah satu contoh di bawah, atau ketik pertanyaanmu sendiri.';
@@ -1439,7 +1462,7 @@ async function sendTutor(){
 /* Feature 4.5 — Variasi Soal */
 async function buatVariasi(qid,btn){
   const q=qs.find(x=>x.id===qid);if(!q)return;
-  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya (Gemini key atau provider kustom)','warn',5000);return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Pengaturan (Gemini key atau provider kustom)','warn',5000);return;}
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>';}
   const prompt=[
     'Kamu adalah pembuat soal latihan ahli. Buat SATU soal pilihan ganda BARU yang menguji konsep dan keterampilan yang SAMA dengan soal contoh berikut, tetapi dengan skenario/angka/konteks yang berbeda sehingga menjawabnya menuntut pemahaman — bukan ingatan pada soal asli.',
@@ -1511,7 +1534,7 @@ function _ensureCat(name,bab){
 async function saranKategoriBatch(btn){
   const all=window._batchItems||[];
   if(!all.some(x=>x.ok)){showToast('Tidak ada soal untuk dianalisis','warn');return;}
-  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya','warn',5000);return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Pengaturan','warn',5000);return;}
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Menganalisis...';}
   const daftar=all.map((it,i)=>it.ok?((i+1)+'. '+it.soal.replace(/\s+/g,' ').slice(0,140)):'').filter(Boolean).join('\n');
   const prompt=[
@@ -1549,7 +1572,7 @@ async function saranKategoriTunggal(){
   const pa=document.getElementById('paste-ta');
   const txt=((pa&&(pa.innerText||pa.textContent))||'').trim().slice(0,600);
   if(!txt){showToast('Tempel soalnya dulu','warn');return;}
-  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya','warn',5000);return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Pengaturan','warn',5000);return;}
   try{
     const prompt=[
       'Tentukan kategori pelajaran & sub-bab untuk soal berikut.',
@@ -1583,7 +1606,7 @@ function renderPolaPanel(){
 }
 async function analisisPola(btn){
   if(!qs.length){showToast('Belum ada soal','warn');return;}
-  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Lainnya','warn',5000);return;}
+  if(!(getCustomAI()||localStorage.getItem('exambre_gemini_key'))){showToast('Atur AI dulu di menu Pengaturan','warn',5000);return;}
   const catStats=getCatKeys().map(k=>{
     const cqs=qs.filter(q=>q.cat===k);
     const att=cqs.reduce((a,q)=>a+ensureSrs(q).totalAttempts,0);

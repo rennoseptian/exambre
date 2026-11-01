@@ -171,6 +171,7 @@ function closeSettings(){
   getCatKeys().forEach(k=>{const inp=document.getElementById('cat-name-'+k);if(inp)cats[k].name=inp.value.trim()||k;const ci=document.getElementById('cat-color-'+k);if(ci&&ci.value){cats[k].color=ci.value;cats[k].textColor=autoTextColor(ci.value);}});
   document.getElementById('settings-modal').classList.remove('on');
   persist();buildCatTabs();populateCatSelects();updateBabFilter();render();
+  if(typeof renderSettingsSummaries==='function')renderSettingsSummaries();
 }
 function renderSettingsContent(){
   let html='';

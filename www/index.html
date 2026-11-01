@@ -33,7 +33,11 @@
 <div class="badge-toast" id="badge-toast" role="status" aria-live="polite"></div>
 
 <header class="shell-topbar">
-  <h1 class="shell-title" id="shell-title"><i class="ti ti-book-2 shell-mark" aria-hidden="true"></i><span>Soal</span></h1>
+  <h1 class="shell-title">
+    <span class="shell-brand">Exambre</span>
+    <span class="shell-sep" aria-hidden="true">/</span>
+    <span class="shell-sec" id="shell-title">Soal</span>
+  </h1>
   <div class="gami-row" id="gami-row"></div>
 </header>
 
@@ -463,163 +467,246 @@
 
   <div id="sec-stats" class="sec nopr"><div id="stats-content"></div></div>
 
-  <div id="sec-lainnya" class="sec nopr">
-    <div class="panel set-panel">
-      <h4><i class="ti ti-category" style="color:var(--accent)"></i> Kategori & Bab</h4>
-      <p class="set-desc">Kelola kategori, nama, warna, dan sub-bab soal kamu.</p>
-      <button class="btn btn-s" onclick="openSettings()"><i class="ti ti-settings"></i> Kelola Kategori</button>
-    </div>
-    <div class="panel set-panel">
-      <h4><i class="ti ti-database-export" style="color:var(--accent)"></i> Data</h4>
-      <p class="set-desc">Backup semua soal & progress ke file, atau pulihkan dari file backup.</p>
-      <div class="data-actions">
-        <button class="btn btn-s" onclick="exportData()"><i class="ti ti-download"></i> Export Data</button>
-        <button class="btn btn-s" onclick="openImportModal()"><i class="ti ti-upload"></i> Import Data</button>
-      </div>
-    </div>
-    <div class="panel set-panel">
-      <h4><i class="ti ti-shield-lock" style="color:var(--accent)"></i> Data & Privasi</h4>
-      <p class="set-desc">
-        Semua soal, catatan, riwayat, dan progres tersimpan <b>hanya di perangkat ini</b>.
-        Exambre tidak memiliki akun, server, atau sinkronisasi otomatis, dan tidak memasang
-        pelacakan atau iklan.
-      </p>
-      <p class="set-desc">
-        Fitur AI bersifat opsional: teks atau foto yang kamu pilih akan dikirim ke
-        <b>provider AI yang kamu atur sendiri</b> (Gemini atau provider kustom). Kunci API
-        disimpan lokal di perangkat dan tidak pernah dikirim ke pembuat Exambre.
-      </p>
-      <p class="set-desc" style="margin-bottom:0">
-        Menghapus app atau membersihkan data browser ikut menghapus datamu.
-        Lakukan <b>Export Data</b> secara berkala untuk menjaga backup.
-      </p>
-      <div id="storage-status" style="margin-top:12px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius)">
-        <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600">
-          <span id="storage-label">Penyimpanan…</span><span id="storage-pct" style="color:var(--text2)"></span>
-        </div>
-        <div style="height:6px;border-radius:99px;background:var(--border);overflow:hidden;margin-top:6px">
-          <div id="storage-bar" style="height:100%;width:0;background:var(--accent);transition:width .3s"></div>
-        </div>
-        <p id="backup-status" style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-top:8px"></p>
-      </div>
-    </div>
-    <div class="panel set-panel">
-      <h4><i class="ti ti-info-circle" style="color:var(--accent)"></i> Tentang Exambre</h4>
-      <p class="set-desc" style="margin-bottom:6px">
-        Versi <b id="app-ver-label">1.0.0</b> · aplikasi latihan soal universal, 100% lokal.
-      </p>
-      <details style="font-size:12px;color:var(--text2);line-height:1.6">
-        <summary style="cursor:pointer;font-weight:600">Catatan rilis</summary>
-        <ul style="margin:8px 0 0;padding-left:18px">
-          <li><b>1.0.0</b> — rilis publik pertama: SRS, simulasi ujian, catatan, statistik,
-              AI opsional, backup/import, onboarding, dan paket contoh soal.</li>
-        </ul>
-      </details>
-    </div>
-    <div class="panel set-panel">
-      <h4><i class="ti ti-sun-moon" style="color:var(--accent)"></i> Tema</h4>
-      <p class="set-desc">Pilih tampilan terang, gelap, atau ikuti pengaturan HP.</p>
-      <div class="theme-toggle" id="theme-toggle">
-        <button data-th="auto" onclick="applyTheme('auto')"><i class="ti ti-device-mobile"></i> Otomatis</button>
-        <button data-th="light" onclick="applyTheme('light')"><i class="ti ti-sun"></i> Terang</button>
-        <button data-th="dark" onclick="applyTheme('dark')"><i class="ti ti-moon"></i> Gelap</button>
-      </div>
-    </div>
-    <div class="panel set-panel">
-      <h4><i class="ti ti-sparkles" style="color:var(--accent)"></i> AI Penjelasan</h4>
-      <p class="set-desc">
-        <b>Mulai cepat (Gemini, gratis):</b> 1) Buka
-        <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a>
-        → klik "Create API key". 2) Salin key-nya. 3) Tempel di bawah lalu Simpan.
-        Tanpa key, fitur AI (scan soal, tutor, variasi, analisis) tidak aktif —
-        SRS & latihan tetap jalan normal.
-      </p>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input
-          id="gemini-key-inp"
-          type="password"
-          aria-label="API key Gemini"
-          placeholder="Paste API key di sini..."
-          style="flex:1;font-size:13px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit"
-          oninput="previewGeminiKey(this.value)"
-        >
-        <button class="btn btn-p" onclick="saveGeminiKey()" style="white-space:nowrap">
-          <i class="ti ti-check"></i> Simpan
-        </button>
-        <button class="btn btn-s" id="gemini-test-btn" onclick="testGeminiKey()" style="white-space:nowrap">
-          <i class="ti ti-wifi"></i> Test
-        </button>
-      </div>
-      <p id="gemini-key-status" role="status" aria-live="polite" style="font-size:12px;margin-top:8px;color:var(--text3)"></p>
-      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
-          <label style="font-size:12px;color:var(--text2);font-weight:700">🔌 Provider Kustom (opsional — format OpenAI)</label>
-          <button class="btn btn-s btn-sm" onclick="openAiGuide()" style="padding:3px 10px;font-size:11px"><i class="ti ti-help-circle"></i> Panduan</button>
-        </div>
-        <p style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:10px">
-          Pakai Groq, OpenRouter, Cerebras, atau Ollama lokal. Kosongkan = kembali ke Gemini.
-        </p>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <input id="cai-url" aria-label="Base URL provider kustom" placeholder="Base URL (cth: https://api.groq.com/openai/v1)"
-            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit"
-            oninput="this.dataset.auto=''">
-          <input id="cai-model" aria-label="Model teks provider kustom" placeholder="Model teks (klik Cek Daftar Model di bawah)"
-            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
-          <button class="btn btn-s btn-sm" onclick="cekModelProvider(this)" style="align-self:flex-start"><i class="ti ti-list-check"></i> Cek Daftar Model</button>
-          <div id="cai-model-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-          <input id="cai-vmodel" aria-label="Model Vision provider kustom" placeholder="Model Vision untuk scan foto (kosong = Gemini)"
-            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
-          <p style="font-size:11px;color:var(--text3);line-height:1.5;margin:-2px 0 0">
-            Model terpisah untuk scan foto — model teks umumnya tidak bisa membaca gambar.
-            <b>Biarkan kosong</b> kalau tidak mau foto soal dikirim ke provider ini.
-          </p>
-          <input id="cai-key" type="password" aria-label="API key provider kustom" placeholder="API key provider"
-            style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit"
-            oninput="autoBaseUrlFill(this.value)">
-        </div>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn btn-p btn-sm" onclick="saveCustomAI()"><i class="ti ti-check"></i> Simpan Provider</button>
-          <button class="btn btn-s btn-sm" onclick="clearCustomAI()">Hapus</button>
-        </div>
-        <p id="custom-ai-status" role="status" aria-live="polite" style="font-size:11.5px;margin-top:8px;color:var(--text3)"></p>
-      </div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:700">
-          🧠 Tingkat Reasoning
-        </label>
-        <div id="reason-box"></div>
-      </div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <label for="exam-date-inp" style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600">
-          🎯 Tanggal Ujian Target
-        </label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input
-            id="exam-date-inp"
-            type="date"
-            style="flex:1;font-size:13px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit"
-            onchange="saveExamDate(this.value)"
-          >
-          <button class="btn btn-s" onclick="clearExamDate()" aria-label="Hapus tanggal ujian">
-            <i class="ti ti-x"></i>
+  <div id="sec-lainnya" class="sec nopr" aria-label="Pengaturan">
+    <div class="settings-hub" id="settings-hub">
+      <p class="settings-lead">Kelola aplikasi, data, dan preferensi AI.</p>
+
+      <section class="settings-group" aria-labelledby="settings-group-content">
+        <h2 class="settings-group-label" id="settings-group-content">Konten</h2>
+        <div class="settings-list">
+          <button type="button" class="settings-row" onclick="openSettings()">
+            <span class="settings-row-icon"><i class="ti ti-category" aria-hidden="true"></i></span>
+            <span class="settings-row-main">
+              <span class="settings-row-title">Kategori & Bab</span>
+              <span class="settings-row-sub" id="settings-summary-cat">Atur kategori, warna, dan sub-bab</span>
+            </span>
+            <i class="ti ti-chevron-right settings-row-chev" aria-hidden="true"></i>
           </button>
         </div>
-        <p id="exam-date-status" role="status" aria-live="polite" style="font-size:12px;color:var(--text3);margin-top:6px"></p>
+      </section>
+
+      <section class="settings-group" aria-labelledby="settings-group-app">
+        <h2 class="settings-group-label" id="settings-group-app">Aplikasi</h2>
+        <div class="settings-list">
+          <button type="button" class="settings-row" data-settings-page="display" onclick="openSettingsPage('display')">
+            <span class="settings-row-icon"><i class="ti ti-sun-moon" aria-hidden="true"></i></span>
+            <span class="settings-row-main">
+              <span class="settings-row-title">Tampilan & Suara</span>
+              <span class="settings-row-sub" id="settings-summary-display">Tema dan efek suara</span>
+            </span>
+            <i class="ti ti-chevron-right settings-row-chev" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="settings-row" data-settings-page="ai" onclick="openSettingsPage('ai')">
+            <span class="settings-row-icon"><i class="ti ti-sparkles" aria-hidden="true"></i></span>
+            <span class="settings-row-main">
+              <span class="settings-row-title">AI</span>
+              <span class="settings-row-sub" id="settings-summary-ai">API key dan provider AI</span>
+            </span>
+            <i class="ti ti-chevron-right settings-row-chev" aria-hidden="true"></i>
+          </button>
+        </div>
+      </section>
+
+      <section class="settings-group" aria-labelledby="settings-group-data">
+        <h2 class="settings-group-label" id="settings-group-data">Data & Informasi</h2>
+        <div class="settings-list">
+          <button type="button" class="settings-row" data-settings-page="data" onclick="openSettingsPage('data')">
+            <span class="settings-row-icon"><i class="ti ti-database-export" aria-hidden="true"></i></span>
+            <span class="settings-row-main">
+              <span class="settings-row-title">Data & Backup</span>
+              <span class="settings-row-sub" id="settings-summary-data">Backup, import, dan penyimpanan</span>
+            </span>
+            <i class="ti ti-chevron-right settings-row-chev" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="settings-row" data-settings-page="about" onclick="openSettingsPage('about')">
+            <span class="settings-row-icon"><i class="ti ti-shield-lock" aria-hidden="true"></i></span>
+            <span class="settings-row-main">
+              <span class="settings-row-title">Privasi & Tentang</span>
+              <span class="settings-row-sub" id="settings-summary-about">Privasi dan informasi aplikasi</span>
+            </span>
+            <i class="ti ti-chevron-right settings-row-chev" aria-hidden="true"></i>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <section id="settings-page-display" class="settings-page" data-settings-page="display" aria-labelledby="settings-display-title">
+      <div class="settings-page-head">
+        <button type="button" class="ibtn settings-back" onclick="closeSettingsPage()" aria-label="Kembali ke Pengaturan"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="settings-page-heading">
+          <h2 class="settings-page-title" id="settings-display-title" tabindex="-1">Tampilan & Suara</h2>
+          <p class="settings-page-sub">Atur tema dan bunyi aplikasi.</p>
+        </div>
       </div>
-    </div>
-    <div class="panel set-panel">
-      <h4><i class="ti ti-volume-2" style="color:var(--accent)"></i> Efek Suara</h4>
-      <p class="set-desc">Bunyi saat menjawab, naik Dikuasai, lencana baru, dan sesi selesai.</p>
-      <div class="theme-toggle" id="sfx-toggle" style="max-width:220px">
-        <button data-sfx="on" onclick="setSfx(true)"><i class="ti ti-volume-2"></i> Aktif</button>
-        <button data-sfx="off" onclick="setSfx(false)"><i class="ti ti-volume-3"></i> Nonaktif</button>
+      <div class="panel set-panel">
+        <h4><i class="ti ti-sun-moon" style="color:var(--accent)"></i> Tema</h4>
+        <p class="set-desc">Pilih tampilan terang, gelap, atau ikuti pengaturan HP.</p>
+        <div class="theme-toggle" id="theme-toggle">
+          <button data-th="auto" onclick="applyTheme('auto')"><i class="ti ti-device-mobile"></i> Otomatis</button>
+          <button data-th="light" onclick="applyTheme('light')"><i class="ti ti-sun"></i> Terang</button>
+          <button data-th="dark" onclick="applyTheme('dark')"><i class="ti ti-moon"></i> Gelap</button>
+        </div>
       </div>
-    </div>
-    <div class="panel set-panel">
-      <h4><i class="ti ti-alert-triangle" style="color:var(--danger)"></i> Reset Total Data</h4>
-      <p class="set-desc">Hapus SEMUA soal, kategori, catatan, dan progress dari perangkat ini. Tidak bisa dibatalkan — export dulu kalau perlu backup.</p>
-      <button class="btn btn-warn" onclick="clearAllData()"><i class="ti ti-trash"></i> Hapus Semua Data</button>
-    </div>
+      <div class="panel set-panel">
+        <h4><i class="ti ti-volume-2" style="color:var(--accent)"></i> Efek Suara</h4>
+        <p class="set-desc">Bunyi saat menjawab, naik Dikuasai, lencana baru, dan sesi selesai.</p>
+        <div class="theme-toggle" id="sfx-toggle" style="max-width:220px">
+          <button data-sfx="on" onclick="setSfx(true)"><i class="ti ti-volume-2"></i> Aktif</button>
+          <button data-sfx="off" onclick="setSfx(false)"><i class="ti ti-volume-3"></i> Nonaktif</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="settings-page-ai" class="settings-page" data-settings-page="ai" aria-labelledby="settings-ai-title">
+      <div class="settings-page-head">
+        <button type="button" class="ibtn settings-back" onclick="closeSettingsPage()" aria-label="Kembali ke Pengaturan"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="settings-page-heading">
+          <h2 class="settings-page-title" id="settings-ai-title" tabindex="-1">AI</h2>
+          <p class="settings-page-sub">Atur akses AI untuk scan, tutor, variasi, dan analisis.</p>
+        </div>
+      </div>
+      <div class="panel set-panel">
+        <h4><i class="ti ti-sparkles" style="color:var(--accent)"></i> AI Penjelasan</h4>
+        <p class="set-desc">
+          <b>Mulai cepat (Gemini, gratis):</b> 1) Buka
+          <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a>
+          → klik "Create API key". 2) Salin key-nya. 3) Tempel di bawah lalu Simpan.
+          Tanpa key, fitur AI (scan soal, tutor, variasi, analisis) tidak aktif —
+          SRS & latihan tetap jalan normal.
+        </p>
+        <div class="settings-inline-actions">
+          <button type="button" class="btn btn-s btn-sm" onclick="openAiGuide()"><i class="ti ti-help-circle"></i> Panduan</button>
+        </div>
+        <div class="settings-key-row">
+          <input
+            id="gemini-key-inp"
+            type="password"
+            aria-label="API key Gemini"
+            placeholder="Paste API key di sini..."
+            style="min-width:0;font-size:13px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit"
+            oninput="previewGeminiKey(this.value)"
+          >
+          <button class="btn btn-p" onclick="saveGeminiKey()" style="white-space:nowrap">
+            <i class="ti ti-check"></i> Simpan
+          </button>
+          <button class="btn btn-s" id="gemini-test-btn" onclick="testGeminiKey()" style="white-space:nowrap">
+            <i class="ti ti-wifi"></i> Test
+          </button>
+        </div>
+        <p id="gemini-key-status" role="status" aria-live="polite" style="font-size:12px;margin-top:8px;color:var(--text3)"></p>
+
+        <details id="ai-advanced" class="settings-advanced">
+          <summary>
+            <span>Pengaturan lanjutan</span>
+            <span class="settings-advanced-hint">Provider kustom & reasoning</span>
+          </summary>
+          <div class="settings-advanced-body">
+            <div class="settings-subsection">
+              <div class="settings-subtitle">Provider Kustom (opsional — format OpenAI)</div>
+              <p class="set-desc">
+                Pakai Groq, OpenRouter, Cerebras, atau Ollama lokal. Kosongkan = kembali ke Gemini.
+              </p>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <input id="cai-url" aria-label="Base URL provider kustom" placeholder="Base URL (cth: https://api.groq.com/openai/v1)"
+                  style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit"
+                  oninput="this.dataset.auto=''">
+                <input id="cai-model" aria-label="Model teks provider kustom" placeholder="Model teks (klik Cek Daftar Model di bawah)"
+                  style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
+                <button class="btn btn-s btn-sm" onclick="cekModelProvider(this)" style="align-self:flex-start"><i class="ti ti-list-check"></i> Cek Daftar Model</button>
+                <div id="cai-model-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+                <input id="cai-vmodel" aria-label="Model Vision provider kustom" placeholder="Model Vision untuk scan foto (kosong = Gemini)"
+                  style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit">
+                <p style="font-size:11px;color:var(--text3);line-height:1.5;margin:-2px 0 0">
+                  Model terpisah untuk scan foto — model teks umumnya tidak bisa membaca gambar.
+                  <b>Biarkan kosong</b> kalau tidak mau foto soal dikirim ke provider ini.
+                </p>
+                <input id="cai-key" type="password" aria-label="API key provider kustom" placeholder="API key provider"
+                  style="font-size:12.5px;padding:9px 12px;border:none;border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit"
+                  oninput="autoBaseUrlFill(this.value)">
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn btn-p btn-sm" onclick="saveCustomAI()"><i class="ti ti-check"></i> Simpan Provider</button>
+                <button class="btn btn-s btn-sm" onclick="clearCustomAI()">Hapus</button>
+              </div>
+              <p id="custom-ai-status" role="status" aria-live="polite" style="font-size:11.5px;margin-top:8px;color:var(--text3)"></p>
+            </div>
+            <div class="settings-subsection">
+              <div class="settings-subtitle">Tingkat Reasoning</div>
+              <div id="reason-box"></div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="settings-page-data" class="settings-page" data-settings-page="data" aria-labelledby="settings-data-title">
+      <div class="settings-page-head">
+        <button type="button" class="ibtn settings-back" onclick="closeSettingsPage()" aria-label="Kembali ke Pengaturan"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="settings-page-heading">
+          <h2 class="settings-page-title" id="settings-data-title" tabindex="-1">Data & Backup</h2>
+          <p class="settings-page-sub">Backup, import, dan pantau penyimpanan lokal.</p>
+        </div>
+      </div>
+      <div class="panel set-panel">
+        <h4><i class="ti ti-database-export" style="color:var(--accent)"></i> Data</h4>
+        <p class="set-desc">Backup semua soal & progress ke file, atau pulihkan dari file backup.</p>
+        <div class="data-actions">
+          <button class="btn btn-s" onclick="exportData()"><i class="ti ti-download"></i> Export Data</button>
+          <button class="btn btn-s" onclick="openImportModal()"><i class="ti ti-upload"></i> Import Data</button>
+        </div>
+      </div>
+      <div class="panel set-panel">
+        <h4><i class="ti ti-database" style="color:var(--accent)"></i> Penyimpanan & Backup</h4>
+        <div id="storage-status" style="padding:10px 12px;background:var(--bg2);border-radius:var(--radius)">
+          <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600">
+            <span id="storage-label">Penyimpanan…</span><span id="storage-pct" style="color:var(--text2)"></span>
+          </div>
+          <div style="height:6px;border-radius:99px;background:var(--border);overflow:hidden;margin-top:6px">
+            <div id="storage-bar" style="height:100%;width:0;background:var(--accent);transition:width .3s"></div>
+          </div>
+          <p id="backup-status" style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-top:8px"></p>
+        </div>
+      </div>
+      <div class="panel set-panel settings-danger">
+        <h4><i class="ti ti-alert-triangle" style="color:var(--danger)"></i> Reset Total Data</h4>
+        <p class="set-desc">Hapus SEMUA soal, kategori, catatan, dan progress dari perangkat ini. Tidak bisa dibatalkan — export dulu kalau perlu backup.</p>
+        <button class="btn btn-warn" onclick="clearAllData()"><i class="ti ti-trash"></i> Hapus Semua Data</button>
+      </div>
+    </section>
+
+    <section id="settings-page-about" class="settings-page" data-settings-page="about" aria-labelledby="settings-about-title">
+      <div class="settings-page-head">
+        <button type="button" class="ibtn settings-back" onclick="closeSettingsPage()" aria-label="Kembali ke Pengaturan"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <div class="settings-page-heading">
+          <h2 class="settings-page-title" id="settings-about-title" tabindex="-1">Privasi & Tentang</h2>
+          <p class="settings-page-sub">Cara Exambre menyimpan data dan menjaga privasi.</p>
+        </div>
+      </div>
+      <div class="panel set-panel">
+        <h4><i class="ti ti-shield-lock" style="color:var(--accent)"></i> Data & Privasi</h4>
+        <p class="set-desc">
+          Semua soal, catatan, riwayat, dan progres tersimpan <b>hanya di perangkat ini</b>.
+          Exambre tidak memiliki akun, server, atau sinkronisasi otomatis, dan tidak memasang
+          pelacakan atau iklan.
+        </p>
+        <p class="set-desc">
+          Fitur AI bersifat opsional: teks atau foto yang kamu pilih akan dikirim ke
+          <b>provider AI yang kamu atur sendiri</b> (Gemini atau provider kustom). Kunci API
+          disimpan lokal di perangkat dan tidak pernah dikirim ke pembuat Exambre.
+        </p>
+        <p class="set-desc" style="margin-bottom:0">
+          Menghapus app atau membersihkan data browser ikut menghapus datamu.
+          Lakukan <b>Export Data</b> secara berkala untuk menjaga backup.
+        </p>
+      </div>
+      <div class="panel set-panel">
+        <h4><i class="ti ti-info-circle" style="color:var(--accent)"></i> Tentang Exambre</h4>
+        <p class="set-desc" style="margin-bottom:0">
+          Aplikasi latihan soal universal, 100% lokal. Dibuat untuk membantu belajar mandiri
+          lintas mata pelajaran tanpa akun dan tanpa server.
+        </p>
+      </div>
+    </section>
   </div>
   </div>
 </main>
@@ -637,8 +724,8 @@
   <button class="bnav-item" role="tab" aria-selected="false" onclick="goSec('stats',this)">
     <i class="ti ti-chart-bar"></i><span>Statistik</span>
   </button>
-  <button class="bnav-item" role="tab" aria-selected="false" onclick="goSec('lainnya',this)" aria-label="Lainnya">
-    <i class="ti ti-menu-2"></i><span>Lainnya</span>
+  <button class="bnav-item" role="tab" aria-selected="false" onclick="goSec('lainnya',this)" aria-label="Pengaturan">
+    <i class="ti ti-settings"></i><span>Pengaturan</span>
   </button>
 </nav>
 

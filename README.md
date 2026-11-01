@@ -69,7 +69,7 @@ Exambre tidak bergantung pada akun, server aplikasi, atau sinkronisasi cloud. Da
 
 ### AI opsional
 
-Fitur AI memerlukan API key. Gemini menjadi provider default. Fitur teks juga dapat diarahkan ke endpoint OpenAI-compatible seperti Groq, OpenRouter, Cerebras, atau Ollama melalui **Lainnya > Provider Kustom**.
+Fitur AI memerlukan API key. Gemini menjadi provider default. Fitur teks juga dapat diarahkan ke endpoint OpenAI-compatible seperti Groq, OpenRouter, Cerebras, atau Ollama melalui **Pengaturan > AI > Pengaturan lanjutan > Provider Kustom**.
 
 Pemindaian gambar menggunakan model vision yang dikonfigurasi. Jika model vision tidak diisi, permintaan diarahkan ke Gemini. Model vision dapat diatur terpisah dari model teks.
 
@@ -96,8 +96,8 @@ Modul berikut berada di `www/assets/js/`.
 | Review SRS | Sesi review, feedback, XP, streak, badge | `13-review`, `02-gamify-data` |
 | Simulasi ujian | Timer, hasil per kategori, riwayat simulasi | `14-simulation` |
 | Catatan | Editor rich-text, kategori catatan, buat soal dari catatan | `03-notes`, `16-ai` |
-| Statistik | Ringkasan, lencana, kelemahan, kesiapan ujian | `15-stats`, `16-ai` |
-| Lainnya | Tema, export/import, API key, reset data | `08-theme-io`, `16-ai` |
+| Statistik | Ringkasan, lencana, kelemahan, kesiapan ujian, tanggal ujian | `15-stats`, `16-ai` |
+| Pengaturan | Hub, tema/suara, AI, backup, privasi/tentang, kategori | `08-theme-io`, `12-card-actions`, `07-categories`, `16-ai` |
 | Media | Gambar soal, opsi, dan pembahasan | `06-media`, `09-image-inputs` |
 | Shell aplikasi | Navigasi, splash, toast, dan dialog | `index.html`, `17-main`, CSS |
 | State terpusat | Store aplikasi dan accessor global | `01-state` |
@@ -117,7 +117,7 @@ Key utama di `localStorage`:
 | `exambre_exam_date` | Tanggal target ujian |
 | `exambre_sfx` | Preferensi efek suara |
 
-Backup dan pemulihan dilakukan melalui export/import file JSON di tab **Lainnya**.
+Backup dan pemulihan dilakukan melalui export/import file JSON di **Pengaturan > Data & Backup**.
 
 ## Arsitektur
 

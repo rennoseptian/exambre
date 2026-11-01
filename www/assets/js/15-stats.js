@@ -1,7 +1,12 @@
 /* ── STATISTIK PER KATEGORI ── */
 function renderStatsPage(){
   const el=document.getElementById('stats-content');if(!el)return;
-  if(!qs.length){el.innerHTML='<div class="empty"><i class="ti ti-chart-bar"></i><p>Belum ada soal untuk dianalisis.<br>Tambahkan soal dulu di tab Daftar Soal.</p></div>';return;}
+  const examHtml=typeof renderExamDatePanel==='function'?renderExamDatePanel():'';
+  if(!qs.length){
+    el.innerHTML=examHtml+'<div class="empty"><i class="ti ti-chart-bar"></i><p>Belum ada soal untuk dianalisis.<br>Tambahkan soal dulu di tab Daftar Soal.</p></div>';
+    if(typeof loadExamDate==='function')loadExamDate();
+    return;
+  }
 
   const totalAll=qs.length;
   const masteredAll=qs.filter(q=>q.mastered).length;
@@ -10,7 +15,7 @@ function renderStatsPage(){
   const corAll=qs.reduce((s,q)=>s+ensureSrs(q).totalCorrect,0);
   const accAll=attAll?Math.round(corAll/attAll*100):null;
 
-  let html=renderReadinessWidget();
+  let html=examHtml+renderReadinessWidget();
   html+=renderPolaPanel();
   html+=`<div class="stats" style="margin-bottom:16px">
     <div class="scard"><div class="snum">${totalAll}</div><div class="slbl">Total Soal</div></div>
@@ -74,6 +79,7 @@ function renderStatsPage(){
 
   html+=renderWeaknessSection();
   el.innerHTML=html;
+  if(typeof loadExamDate==='function')loadExamDate();
   countUpNumbers('#stats-content');
 }
 

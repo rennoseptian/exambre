@@ -106,7 +106,7 @@ function persistNotes(){
 const SFX_KEY='exambre_sfx';
 let _sfxCache={};
 function sfxEnabled(){try{return localStorage.getItem(SFX_KEY)!=='off';}catch(e){return true;}}
-function setSfx(on){try{localStorage.setItem(SFX_KEY,on?'on':'off');}catch(e){}loadSfxToggle();}
+function setSfx(on){try{localStorage.setItem(SFX_KEY,on?'on':'off');}catch(e){}loadSfxToggle();if(typeof renderSettingsSummaries==='function')renderSettingsSummaries();}
 function loadSfxToggle(){
   const on=sfxEnabled();
   document.querySelectorAll('#sfx-toggle button').forEach(b=>b.classList.toggle('on',(b.dataset.sfx==='on')===on));

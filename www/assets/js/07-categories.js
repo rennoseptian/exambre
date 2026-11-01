@@ -44,7 +44,7 @@ function buildCatTabs(){
       const cnt=qs.filter(q=>q.cat===k).length;
       const dot=safeColor(cats[k].color,'#eeeeee');
       const ring=safeColor(cats[k].textColor,autoTextColor(dot));
-      return`<button class="ctab${k===curCat?' on':''}" role="tab" aria-selected="${k===curCat}" aria-controls="qlist" onclick="fCat('${escHtml(jsStr(k))}',this)"><span class="ctab-dot" style="background:${dot};--dot-ring:${ring}" aria-hidden="true"></span>${escHtml(cats[k].name||k)}<span class="ctab-count">${cnt}</span></button>`;
+      return`<button class="ctab${k===curCat?' on':''}" role="tab" aria-selected="${k===curCat}" aria-controls="qlist" onclick="fCat('${escHtml(jsStr(k))}',this)" style="--cat:${dot}"><span class="ctab-dot" style="background:${dot};--dot-ring:${ring}" aria-hidden="true"></span>${escHtml(cats[k].name||k)}<span class="ctab-count">${cnt}</span></button>`;
     }).join('');
   el.scrollLeft=prevScroll;
   initCatScroll(document.getElementById('cat-tabs'));
@@ -77,11 +77,11 @@ function populateAnswerSelects(wId,cId){
 }
 
 /* ── NAV ── */
-const SEC_TITLES={list:'Soal',review:'Review',catatan:'Catatan',stats:'Statistik',lainnya:'Lainnya'};
+const SEC_TITLES={list:'Soal',review:'Review',catatan:'Catatan',stats:'Statistik',lainnya:'Pengaturan'};
 function setShellTitle(id){
   const el=document.getElementById('shell-title');if(!el)return;
   const label=SEC_TITLES[id]||'Exambre';
-  const span=el.querySelector('span');if(span)span.textContent=label;
+  el.textContent=label;
   document.title=id==='list'?'Exambre':label+' · Exambre';
 }
 function goSec(id,btn){
@@ -92,6 +92,6 @@ function goSec(id,btn){
   target.classList.add('on');if(btn){btn.classList.add('on');btn.setAttribute('aria-selected','true');}
   target.style.animation='none';requestAnimationFrame(()=>{target.style.animation='secIn var(--dur-2) var(--ease)';});
   if(id!=='review'){clearInterval(simTimerHandle);if(typeof simState!=='undefined'&&simState&&!simState.finished)window.simPausedAt=Date.now();}
-  if(id==='review')openReviewTab();else if(id==='stats')renderStatsPage();else if(id==='lainnya')renderLainnya();else if(id==='catatan')renderNotes();else render();
+  if(id==='review')openReviewTab();else if(id==='stats')renderStatsPage();else if(id==='lainnya'){renderLainnya();if(typeof showSettingsHub==='function')showSettingsHub();}else if(id==='catatan')renderNotes();else render();
 }
 

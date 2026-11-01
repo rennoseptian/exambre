@@ -54,7 +54,7 @@ localStorage keys (JANGAN rename `cpns-*` demi kompatibilitas data pengguna lama
 Dispatcher: `callAI(prompt, json?)` → provider kustom jika tersedia, else Gemini.
 Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOfferFallback()`.
 `callAIChat(systemText, hist)` untuk chat multi-turn sungguhan (tutor).
-- Provider kustom: format OpenAI-compatible `/chat/completions`; config di Lainnya
+- Provider kustom: format OpenAI-compatible `/chat/completions`; config di Pengaturan → AI
   (baseUrl+model+key+**visionModel**, disimpan `exambre_custom_ai`). Model vision TERPISAH
   karena model teks (cth `openai/gpt-oss-120b`) tidak bisa membaca gambar — lihat "Scan foto".
 - Mode JSON: kirim `json=true` → Gemini dapat `response_mime_type:'application/json'`,
@@ -204,11 +204,11 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
     Splash z-index 99999 > modal 8888, jadi modal aman menunggu di belakang splash.
     Uji: `/tmp/opencode/test-onboard.js` (11 assertions).
 26. Tombol back Android (`@capacitor/app`, `17-main.js`) — urutan wajib: splash →
-    konfirmasi → editor catatan → lightbox → modal teratas → tab lain → form edit inline →
-    panel tambah → konfirmasi keluar. JANGAN biarkan back menutup app saat modal/draft
-    terbuka. Panel tambah ditutup `togglePanel()` (draft aman), BUKAN `resetAddForm()`.
-    Uji: `/tmp/opencode/test-back.js` (13 assertions).
-27. Panel "Data & Privasi" di Lainnya harus tetap menyatakan: data hanya di perangkat,
+    konfirmasi → editor catatan → lightbox → modal teratas → subhalaman Pengaturan →
+    tab lain → form edit inline → panel tambah → konfirmasi keluar. JANGAN biarkan back
+    menutup app saat modal/draft terbuka. Panel tambah ditutup `togglePanel()` (draft aman),
+    BUKAN `resetAddForm()`. Uji: `/tmp/opencode/test-back.js` (13 assertions).
+27. Halaman "Privasi & Tentang" (Pengaturan) harus tetap menyatakan: data hanya di perangkat,
     tidak ada akun/server/pelacakan, dan fitur AI mengirim konten ke provider pilihan user.
     Uji: `/tmp/opencode/test-privacy.js` (6 assertions).
 28. Hapus kategori (`removeCategory`, `12-card-actions.js`) WAJIB dua pilihan eksplisit:
@@ -220,8 +220,9 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
     Nama kategori di toast wajib `escHtml()` (toast memakai innerHTML).
     Uji: `/tmp/opencode/test-cat-delete.js` (16 assertions).
 29. Versi & pengaman rilis:
-    (a) `APP_VERSION` (`01-state.js`) adalah SATU-SATUNYA sumber label versi di Lainnya
-        dan `appVersion` di payload export — jangan hardcode angka versi di file lain;
+    (a) `APP_VERSION` (`01-state.js`) adalah satu-satunya sumber `appVersion` di payload
+        export — jangan hardcode angka versi di file lain. Label versi TIDAK ditampilkan
+        di UI selama aplikasi belum rilis publik;
     (b) `storageBytes()` menghitung seluruh localStorage (≈2 byte/char UTF-16) dan
         `renderStorageStatus()` menampilkan pemakaian + status backup. `markBackup()`
         HANYA setelah export benar-benar berhasil (web: download terpicu; native: Share
@@ -255,6 +256,22 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
     `test-regression-smoke.js` (12), `test-back-smoke.js` (7),
     `test-note-quick.js` (4), `test-stage1-smoke.js` (7). `/tmp` bisa ter-wipe;
     bangun ulang dari perilaku di atas bila hilang.
+31. Struktur tab `Pengaturan` (dulu `Lainnya`) — jangan digabung kembali jadi satu halaman
+    panjang:
+    (a) hub `#settings-hub` + subhalaman `#settings-page-{display,ai,data,about}`; kategori
+        tetap memakai modal `openSettings()`/`closeSettings()` (nama itu JANGAN dipakai
+        untuk subhalaman — pakai `openSettingsPage(id)`/`closeSettingsPage()`);
+    (b) `goSec('lainnya')` selalu `showSettingsHub()`; `renderLainnya()` hanya mengisi
+        data dan TIDAK mengubah subhalaman. `applyTheme()` hanya sync tombol + ringkasan,
+        jangan memanggil `renderLainnya()` (bisa mereset state halaman);
+    (c) tanggal ujian (`renderExamDatePanel()` di `16-ai.js`) tampil di Statistik, termasuk
+        saat `qs` kosong; `saveExamDate()`/`clearExamDate()` memicu `renderStatsPage()`;
+    (d) ringkasan hub (`settings-summary-*`) diisi `renderSettingsSummaries()`; label
+        versi tidak ditampilkan di UI sampai aplikasi rilis publik;
+    (e) provider kustom & reasoning ada di `<details id="ai-advanced">`, auto-open hanya
+        jika `getCustomAI()` aktif; input API key + tombol tidak boleh overflow di 320px.
+    Uji: `/tmp/opencode/test-settings.cjs` (46 assertions, mobile/desktop/empty/custom AI)
+    dan `test-settings-a11y.cjs` untuk label + back.
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh
@@ -330,7 +347,7 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
 - **Nama model TIDAK boleh muncul di teks penjelasan UI** (hint, placeholder, status
   provider, kontrol reasoning, tooltip, toast). Nama model hanya wajar tampil di hasil
   "Cek Daftar Model", nilai input config, dan log console.
-- Tombol **"Panduan"** (Lainnya → Provider Kustom) membuka `#ai-guide-modal` — langkah
+- Tombol **"Panduan"** (Pengaturan → AI → Pengaturan lanjutan → Provider Kustom) membuka `#ai-guide-modal` — langkah
   untuk pemula (bebas nama model juga). `autoBaseUrlFill()` mengisi Base URL dari awalan
   API key (`gsk_`/`sk-or-`/`csk-`/`sk-`); WAJIB hanya mengisi kolom kosong atau hasil
   isian otomatis (penanda `dataset.auto`) — JANGAN menimpa tulisan manual user.
@@ -381,7 +398,7 @@ Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tida
   sehingga deskripsi & prompt tidak boleh spesifik CPNS.
 - Google Login & Cloud Sync Firebase DIHAPUS atas keputusan user (b95cb9e) setelah
   setup rules terasa merepotkan — app kini 100% lokal. Jangan bangun ulang tanpa diminta.
-- SFX & FX playful ada (assets/sfx/*.wav custom + confetti + count-up); saklar di Lainnya,
+- SFX & FX playful ada (assets/sfx/*.wav custom + confetti + count-up); saklar di Pengaturan → Tampilan & Suara,
   preferensi disimpan di key `exambre_sfx` ('off' = mati, default aktif).
 - Versi web online: GitHub Pages + service worker PWA offline/installable (779f50b);
   manifest diperbaiki (branding Exambre, path ikon benar, start_url relatif) + ikon

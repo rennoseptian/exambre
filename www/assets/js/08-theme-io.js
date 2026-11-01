@@ -1,4 +1,4 @@
-/* ── TAB LAINNYA: tema, export/import ── */
+/* ── TAB PENGATURAN: tema, export/import, navigasi subhalaman ── */
 const BACKUP_KEY='exambre_last_backup';
 const BACKUP_REMINDER_KEY='exambre_backup_reminder_at';
 function fmtBytes(n){
@@ -46,20 +46,71 @@ function maybeBackupReminder(){
     if(Date.now()-shown<7*86400000)return;
     if(document.querySelector('.modal-overlay.on'))return;
     localStorage.setItem(BACKUP_REMINDER_KEY,String(Date.now()));
-    showToast(last?'📦 Sudah 14 hari tanpa backup. Ekspor data di tab Lainnya ya.':'📦 Belum pernah backup. Ekspor data di tab Lainnya ya.','warn',6000);
+    showToast(last?'📦 Sudah 14 hari tanpa backup. Ekspor data di Pengaturan → Data & Backup ya.':'📦 Belum pernah backup. Ekspor data di Pengaturan → Data & Backup ya.','warn',6000);
   }catch(e){}
 }
-function renderLainnya(){
+function syncThemeButtons(){
   const cur=localStorage.getItem('exambre-theme')||'auto';
   document.querySelectorAll('#theme-toggle button').forEach(b=>{
     b.classList.toggle('on', b.dataset.th===cur);
   });
-  const ver=document.getElementById('app-ver-label');if(ver)ver.textContent=APP_VERSION;
+}
+function renderSettingsSummaries(){
+  const set=(id,text)=>{const el=document.getElementById(id);if(el)el.textContent=text;};
+  const catN=Object.keys(cats||{}).length;
+  set('settings-summary-cat',catN?`${catN} kategori · ${qs.length} soal`:'Belum ada kategori');
+  const theme=localStorage.getItem('exambre-theme')||'auto';
+  const themeLabel=theme==='light'?'Terang':theme==='dark'?'Gelap':'Otomatis';
+  set('settings-summary-display',`${themeLabel} · Suara ${sfxEnabled()?'aktif':'nonaktif'}`);
+  const custom=typeof getCustomAI==='function'?getCustomAI():null;
+  const gem=localStorage.getItem('exambre_gemini_key')||'';
+  set('settings-summary-ai',custom?'Provider kustom aktif':gem?'Gemini siap dipakai':'Belum ada API key');
+  const days=backupDaysAgo();
+  const backup=!qs.length?'Belum ada data':days===null?'Belum pernah backup':days===0?'Backup hari ini':`Backup ${days} hari lalu`;
+  set('settings-summary-data',`${qs.length} soal · ${backup}`);
+  set('settings-summary-about','Data lokal');
+}
+function renderLainnya(){
+  syncThemeButtons();
   renderStorageStatus();
   loadGeminiKey();
   loadCustomAI();
   loadSfxToggle();
-  loadExamDate();
+  renderSettingsSummaries();
+}
+function currentSettingsPage(){
+  const open=document.querySelector('#sec-lainnya .settings-page.on');
+  return open?open.dataset.settingsPage:null;
+}
+function showSettingsHub(){
+  const hub=document.getElementById('settings-hub');if(hub)hub.classList.remove('is-hidden');
+  document.querySelectorAll('#sec-lainnya .settings-page').forEach(p=>p.classList.remove('on'));
+}
+function openSettingsPage(id){
+  const page=document.querySelector('#sec-lainnya .settings-page[data-settings-page="'+id+'"]');
+  if(!page)return;
+  const hub=document.getElementById('settings-hub');if(hub)hub.classList.add('is-hidden');
+  document.querySelectorAll('#sec-lainnya .settings-page').forEach(p=>p.classList.toggle('on',p===page));
+  if(id==='display'){syncThemeButtons();loadSfxToggle();}
+  else if(id==='ai'){
+    loadGeminiKey();loadCustomAI();
+    const adv=document.getElementById('ai-advanced');
+    if(adv&&typeof getCustomAI==='function'&&getCustomAI())adv.open=true;
+  }
+  else if(id==='data')renderStorageStatus();
+  else if(id==='about')renderSettingsSummaries();
+  page.scrollIntoView({block:'start'});
+  const title=page.querySelector('.settings-page-title');
+  if(title)title.focus({preventScroll:true});
+}
+function closeSettingsPage(){
+  const id=currentSettingsPage();
+  showSettingsHub();
+  renderSettingsSummaries();
+  if(id){
+    const row=document.querySelector('#settings-hub .settings-row[data-settings-page="'+id+'"]');
+    if(row)row.focus();
+  }
 }
 function applyTheme(theme){
   if(theme==='light'||theme==='dark'){
@@ -69,7 +120,8 @@ function applyTheme(theme){
     document.documentElement.removeAttribute('data-theme');
     localStorage.setItem('exambre-theme','auto');
   }
-  renderLainnya();
+  syncThemeButtons();
+  renderSettingsSummaries();
 }
 async function exportData(){
   const payload={app:'Exambre',version:1,appVersion:APP_VERSION,exportedAt:new Date().toISOString(),qs,nid,cats,gami,notes,noteCats,noteNid};
