@@ -1,6 +1,6 @@
 /* Exambre Service Worker — cache-first shell, runtime untuk sisanya.
    Naikkan versi CACHE saat mengubah file inti agar client lama ter-refresh. */
-const CACHE='exambre-v56';
+const CACHE='exambre-v58';
 const CORE=[
   './index.html','./manifest.json','./assets/app.css',
   './assets/js/01-state.js','./assets/js/02-gamify-data.js','./assets/js/03-notes.js',
@@ -13,7 +13,7 @@ const CORE=[
   './assets/fonts/ibmplexsans-400.woff2','./assets/fonts/ibmplexsans-500.woff2','./assets/fonts/ibmplexsans-600.woff2',
   './assets/fonts/ibmplexmono-400.woff2','./assets/fonts/ibmplexmono-500.woff2',
   './assets/icons/tabler-icons.min.css',
-  './assets/saber.webp','./assets/icon/icon-32.png','./assets/icon/icon-192.png','./assets/icon/icon-512.png',
+  './assets/exambre-logo.webp','./assets/icon/icon-32.png','./assets/icon/icon-192.png','./assets/icon/icon-512.png',
   './assets/sfx/correct.wav','./assets/sfx/wrong.wav','./assets/sfx/mastered.wav',
   './assets/sfx/badge.wav','./assets/sfx/session.wav','./assets/sfx/tap.wav'
 ];

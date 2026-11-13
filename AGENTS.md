@@ -234,9 +234,10 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
         detail hanya ke console — jangan tampilkan pesan mentah ke user.
     Uji: `/tmp/opencode/test-release.js` (12 assertions).
 30. Aksesibilitas P0 (jangan regresi saat menambah modal/form):
-    (a) Font Inter dimuat dari `./fonts/` (bukan path absolut) dan splash memakai
-        `width="412" height="486"`; alt gambar wajib ada, dengan fallback `Gambar` dari
-        `sanitizeHtml()`, dan `openLB(src,alt)` selalu diberi alt.
+    (a) Font Inter dimuat dari `./fonts/` (bukan path absolut) dan splash memakai logo
+        Exambre `./assets/exambre-logo.webp` (persegi, `width`/`height` eksplisit); alt
+        gambar wajib ada, dengan fallback `Gambar` dari `sanitizeHtml()`, dan
+        `openLB(src,alt)` selalu diberi alt.
     (b) Toast sukses = `role="status"`, peringatan/error = `role="alert"`, `aria-atomic`;
         tombol "Buka" adalah `<button class="toast-link">` (bukan link palsu).
     (c) SEMUA overlay (`DIALOG_SELECTOR` di `12-card-actions.js`) wajib punya
@@ -272,6 +273,12 @@ Fallback lintas-provider TIDAK pernah diam-diam — selalu lewat penawaran `aiOf
         jika `getCustomAI()` aktif; input API key + tombol tidak boleh overflow di 320px.
     Uji: `/tmp/opencode/test-settings.cjs` (46 assertions, mobile/desktop/empty/custom AI)
     dan `test-settings-a11y.cjs` untuk label + back.
+
+32. Modal onboarding mobile BUKAN bottom-sheet. Aturan `.modal` global di
+    `@media(max-width:640px)` membuatnya selebar layar dengan `border-radius` atas saja.
+    `#onboard-modal` wajib override: overlay `padding:20px;align-items:center`, modal
+    `width:100%;max-width:380px;border-radius:24px;max-height:calc(100dvh - 40px)` dan
+    animasi `dialogIn` — jangan hapus override ini.
 
 ## Lapisan Request AI (`16-ai.js`)
 Semua request AI WAJIB lewat `aiFetch(url, opts, providerId, maxTries)` — tidak boleh
