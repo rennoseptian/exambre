@@ -8,12 +8,12 @@ function renderNoteCatTabs(){
   const el=document.getElementById('note-cat-tabs');if(!el)return;
   el.setAttribute('role','tablist');
   const allCount=notes.length;
-  el.innerHTML=`<button class="ctab${curNoteCat==='ALL'?' on':''}" role="tab" aria-selected="${curNoteCat==='ALL'}" onclick="fNoteCat('ALL',this)">Semua <span style="opacity:.6;font-size:10px">${allCount}</span></button>`
+  el.innerHTML=`<button class="ctab${curNoteCat==='ALL'?' on':''}" role="tab" aria-selected="${curNoteCat==='ALL'}" onclick="fNoteCat('ALL',this)">Semua <span style="font-size:10px;margin-left:4px">${allCount}</span></button>`
     +noteCats.map(c=>{
       const cnt=notes.filter(n=>n.catId===c.id).length;
       const bg=safeColor(c.color,'#7C3AED');
       const fg=c.textColor?safeColor(c.textColor):autoTextColor(bg);
-      return`<button class="ctab${curNoteCat===c.id?' on':''}" role="tab" aria-selected="${curNoteCat===c.id}" onclick="fNoteCat('${escHtml(jsStr(c.id))}',this)" style="${curNoteCat===c.id?'':'background:'+bg+';color:'+fg}">${escHtml(c.name)} <span style="opacity:.6;font-size:10px">${cnt}</span></button>`;
+      return`<button class="ctab${curNoteCat===c.id?' on':''}" role="tab" aria-selected="${curNoteCat===c.id}" onclick="fNoteCat('${escHtml(jsStr(c.id))}',this)" style="${curNoteCat===c.id?'':'background:'+bg+';color:'+fg}">${escHtml(c.name)} <span style="font-size:10px;margin-left:4px">${cnt}</span></button>`;
     }).join('');
 }
 function fNoteCat(id,btn){curNoteCat=id;renderNoteCatTabs();renderNotes();}
