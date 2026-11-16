@@ -17,6 +17,7 @@ function renderStatsPage(){
 
   let html=examHtml+renderReadinessWidget();
   html+=renderPolaPanel();
+  html+=renderStatsHero(totalAll,masteredAll,dueAll,accAll);
   html+=`<div class="stats" style="margin-bottom:16px">
     <div class="scard"><div class="snum">${totalAll}</div><div class="slbl">Total Soal</div></div>
     <div class="scard"><div class="snum" style="color:var(--success)">${masteredAll}</div><div class="slbl">Dikuasai</div></div>
@@ -59,6 +60,8 @@ function renderStatsPage(){
     </div>`;
   }
 
+  html+=renderAccChart(rows);
+
   html+=rows.map(r=>{
     const c=cats[r.k];
     const accLabel=r.acc===null?'Belum direview':r.acc+'%';
@@ -81,6 +84,7 @@ function renderStatsPage(){
   el.innerHTML=html;
   if(typeof loadExamDate==='function')loadExamDate();
   countUpNumbers('#stats-content');
+  animateStatsVisuals(el);
 }
 
 function bindPasteArea(){
@@ -104,3 +108,37 @@ function dismissSplash() {
   if (!window._obChecked) { window._obChecked = true; setTimeout(maybeShowOnboard, 350); }
 }
 
+
+
+/* ── Visual statistik: cincin progres, grafik akurasi, animasi masuk ── */
+function statsRing(pct,color,label,sub){
+  const C=2*Math.PI*34,to=C*(1-Math.max(0,Math.min(100,pct))/100);
+  return`<div class="ring-card"><div class="ring-wrap"><svg class="ring" viewBox="0 0 80 80" aria-hidden="true"><circle class="ring-bg" cx="40" cy="40" r="34"/><circle class="ring-fg" cx="40" cy="40" r="34" style="stroke:${color};--c:${C.toFixed(1)};--to:${to.toFixed(1)}"/></svg><div class="ring-val"><b data-count="${pct}" data-suffix="%">${pct}%</b></div></div><div class="ring-lbl">${label}</div><div class="ring-sub">${sub}</div></div>`;
+}
+function renderStatsHero(total,mastered,due,acc){
+  const mp=total?Math.round(mastered/total*100):0;
+  const ap=acc===null?0:acc;
+  const ac=acc===null?'var(--text3)':acc>=80?'var(--success)':acc>=50?'var(--streak)':'var(--danger)';
+  return`<div class="panel hero-rings" role="group" aria-label="Ringkasan belajar">
+    ${statsRing(mp,'var(--accent)','Penguasaan',mastered+' dari '+total+' soal')}
+    ${statsRing(ap,ac,'Akurasi',acc===null?'Belum direview':due+' soal jatuh tempo')}
+  </div>`;
+}
+function renderAccChart(rows){
+  const withAcc=rows.filter(r=>r.acc!==null).sort((a,b)=>b.acc-a.acc);
+  if(!withAcc.length)return`<div class="panel"><div class="chart-title"><i class="ti ti-chart-bar"></i> Akurasi per Kategori</div><p class="chart-empty">Grafik muncul setelah kamu mereview beberapa soal.</p></div>`;
+  return`<div class="panel"><div class="chart-title"><i class="ti ti-chart-bar"></i> Akurasi per Kategori</div>`+withAcc.map((r,i)=>{
+    const c=cats[r.k]||{};
+    const col=r.acc>=80?'var(--success)':r.acc>=50?'var(--streak)':'var(--danger)';
+    return`<div class="hbar-row"><span class="hbar-name">${escHtml(c.name||r.k)}</span><div class="hbar" role="img" aria-label="${r.acc} persen"><div class="hbar-fill" style="width:${r.acc}%;background:${col};--i:${i}"></div></div><span class="hbar-val">${r.acc}%</span></div>`;
+  }).join('')+`</div>`;
+}
+function animateStatsVisuals(root){
+  [...root.children].forEach((c,i)=>c.style.setProperty('--i',Math.min(i,8)));
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  root.querySelectorAll('[data-count]').forEach(el=>{
+    const target=parseInt(el.dataset.count,10)||0,suf=el.dataset.suffix||'';if(!target)return;
+    const t0=performance.now(),dur=900;
+    (function step(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(target*e)+suf;if(k<1)requestAnimationFrame(step);})(t0);
+  });
+}
