@@ -799,3 +799,28 @@ body.dialog-open{overflow:hidden}
   .rev-progf{animation:progIn 520ms var(--ease-out)}
   .gpill.pulse{animation:pulse 450ms var(--ease-spring)}
 }
+
+/* ── Tahap 4: heatmap 12 minggu & tren 14 hari ── */
+.hm-months{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;max-width:460px;font-size:10px;color:var(--text3);margin-bottom:4px;height:12px}
+.hm-grid{display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(7,auto);grid-auto-flow:column;gap:4px;max-width:460px}
+.hm-c{display:block;position:relative;aspect-ratio:1;border-radius:4px;background:var(--bg2)}
+.hm-c.l1::before,.hm-c.l2::before,.hm-c.l3::before,.hm-c.l4::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--accent)}
+.hm-c.l1::before{opacity:.28}.hm-c.l2::before{opacity:.5}.hm-c.l3::before{opacity:.75}
+.hm-c.lf{background:transparent}
+.hm-c.today{outline:2px solid var(--text2);outline-offset:1px}
+.hm-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;font-size:11.5px;color:var(--text2);flex-wrap:wrap}
+.hm-legend{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;color:var(--text3)}
+.hm-legend .hm-c{width:11px;height:11px;border-radius:3px;aspect-ratio:auto}
+.tr-wrap{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;align-items:end;height:130px}
+.tr-col{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.tr-track{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(var(--bg2),var(--bg2)) center bottom/2px 100% no-repeat}
+.tr-bar{width:70%;max-width:18px;border-radius:5px 5px 2px 2px;min-height:0}
+.tr-lbl{font-size:10px;color:var(--text3);font-variant-numeric:tabular-nums}
+.tr-col.today .tr-lbl{color:var(--accent);font-weight:700}
+.tr-avg{font-size:11.5px;font-weight:600;color:var(--text2)}
+@keyframes cellIn{from{opacity:0;transform:scale(.6)}}
+@keyframes growY{from{transform:scaleY(0)}}
+@media (prefers-reduced-motion:no-preference){
+  .hm-c:not(.lf){animation:cellIn 380ms var(--ease-out) backwards;animation-delay:calc(var(--c,0)*28ms + 300ms)}
+  .tr-bar{transform-origin:bottom;animation:growY 650ms var(--ease-out) backwards;animation-delay:calc(var(--i,0)*35ms + 300ms)}
+}

@@ -97,7 +97,7 @@ function ansRev(qid,chosen,btn){
     revList.splice(reinsertAt,0,q);
   }
   const justMastered=!wasMastered&&q.mastered;
-  ensureGami();trackDailyActivity();
+  ensureGami();trackDailyActivity();logDaily(ok);
   sfx(ok?'correct':'wrong');
   if(justMastered){sfx('mastered');confettiBurst();}
   const xpGain=(ok?10:2)+(justMastered?20:0);

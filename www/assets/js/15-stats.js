@@ -18,6 +18,7 @@ function renderStatsPage(){
   let html=examHtml+renderReadinessWidget();
   html+=renderPolaPanel();
   html+=renderStatsHero(totalAll,masteredAll,dueAll,accAll);
+  html+=renderActivityPanels();
   html+=`<div class="stats" style="margin-bottom:16px">
     <div class="scard"><div class="snum">${totalAll}</div><div class="slbl">Total Soal</div></div>
     <div class="scard"><div class="snum" style="color:var(--success)">${masteredAll}</div><div class="slbl">Dikuasai</div></div>
@@ -141,4 +142,51 @@ function animateStatsVisuals(root){
     const t0=performance.now(),dur=900;
     (function step(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(target*e)+suf;if(k<1)requestAnimationFrame(step);})(t0);
   });
+}
+
+/* ── Aktivitas harian: heatmap 12 minggu + tren 14 hari ── */
+const BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function heatLevel(n){return n<=0?0:n<5?1:n<10?2:n<20?3:4;}
+function renderActivityPanels(){
+  ensureGami();
+  const daily=gami.daily||{};
+  const today=new Date();today.setHours(0,0,0,0);
+  const dow=(today.getDay()+6)%7;                       /* Senin = 0 */
+  const start=new Date(today.getFullYear(),today.getMonth(),today.getDate()-dow-77);
+  let cells='',months='',lastM=-1,active=0,run=0,best=0,total=0;
+  for(let i=0;i<84;i++){
+    const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
+    const col=Math.floor(i/7),future=d>today;
+    const e=daily[dayKey(d)]||[0,0],n=e[0];
+    if(!future){if(n>0){active++;total+=n;run++;if(run>best)best=run;}else run=0;}
+    if(i%7===0){const m=d.getMonth();months+=`<span style="grid-column:${col+1}">${m!==lastM?BLN[m]:''}</span>`;lastM=m;}
+    const acc=n?Math.round(e[1]/n*100):null;
+    const tip=future?'':`${d.getDate()} ${BLN[d.getMonth()]}: ${n?n+' soal, akurasi '+acc+'%':'tidak ada aktivitas'}`;
+    cells+=`<i class="hm-c l${future?'f':heatLevel(n)}${d.getTime()===today.getTime()?' today':''}" style="--c:${col}" ${tip?`title="${tip}"`:''}></i>`;
+  }
+  const heat=`<div class="panel act-panel"><div class="chart-title"><i class="ti ti-calendar-stats"></i> Aktivitas 12 Minggu</div>
+    <div class="hm-months" aria-hidden="true">${months}</div>
+    <div class="hm-grid" role="img" aria-label="Peta aktivitas belajar 12 minggu terakhir: ${active} hari aktif">${cells}</div>
+    <div class="hm-foot"><span>${active} hari aktif${best>1?' · terpanjang '+best+' hari':''}</span>
+      <span class="hm-legend" aria-hidden="true">Sedikit <i class="hm-c l1"></i><i class="hm-c l2"></i><i class="hm-c l3"></i><i class="hm-c l4"></i> Banyak</span></div>
+    ${active===0?'<p class="chart-empty" style="margin-top:8px">Peta ini mulai terisi dari hari kamu mereview soal.</p>':''}</div>`;
+
+  let max=0,att=0,cor=0;const days=[];
+  for(let k=13;k>=0;k--){
+    const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()-k);
+    const e=daily[dayKey(d)]||[0,0];
+    days.push({d,n:e[0],c:e[1]});if(e[0]>max)max=e[0];att+=e[0];cor+=e[1];
+  }
+  const avg=att?Math.round(cor/att*100):null;
+  const bars=days.map((x,i)=>{
+    const acc=x.n?Math.round(x.c/x.n*100):null;
+    const col=acc===null?'transparent':acc>=80?'var(--success)':acc>=50?'var(--streak)':'var(--danger)';
+    const h=x.n?Math.max(8,Math.round(x.n/max*100)):0;
+    const tip=`${x.d.getDate()} ${BLN[x.d.getMonth()]}: ${x.n?x.n+' soal, akurasi '+acc+'%':'tidak ada aktivitas'}`;
+    return`<div class="tr-col${i===13?' today':''}" title="${tip}"><div class="tr-track"><div class="tr-bar" style="height:${h}%;background:${col};--i:${i}"></div></div><span class="tr-lbl">${x.d.getDate()}</span></div>`;
+  }).join('');
+  const trend=`<div class="panel act-panel"><div class="chart-title" style="justify-content:space-between"><span><i class="ti ti-chart-bar"></i> Tren 14 Hari</span>${avg!==null?`<span class="tr-avg">Rata-rata ${avg}%</span>`:''}</div>
+    <div class="tr-wrap" role="img" aria-label="Soal dikerjakan per hari selama 14 hari terakhir: ${att} soal">${bars}</div>
+    <p class="chart-empty" style="margin-top:8px">${att?'Tinggi batang = jumlah soal; warna = akurasi hari itu.':'Grafik ini mulai terisi dari hari kamu mereview soal.'}</p></div>`;
+  return heat+trend;
 }

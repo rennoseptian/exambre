@@ -5,6 +5,16 @@ function ensureGami(){
   if(gami.xp===undefined)gami.xp=0;
   if(!gami.badges)gami.badges=[];
   if(gami.lastActive===undefined)gami.lastActive=null;
+  if(!gami.daily||typeof gami.daily!=='object'||Array.isArray(gami.daily))gami.daily={};
+}
+/* Log harian: gami.daily['YYYY-MM-DD']=[dikerjakan,benar] (waktu lokal, ikut persist/export/import lewat gami) */
+function dayKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function logDaily(ok){
+  ensureGami();
+  const k=dayKey(),e=gami.daily[k]||(gami.daily[k]=[0,0]);
+  e[0]++;if(ok)e[1]++;
+  const keys=Object.keys(gami.daily);
+  if(keys.length>400){keys.sort();keys.slice(0,keys.length-400).forEach(x=>{delete gami.daily[x];});}
 }
 function trackDailyActivity(){
   ensureGami();
