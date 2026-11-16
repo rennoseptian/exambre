@@ -745,6 +745,6 @@
 <script src="./assets/js/15-stats.js"></script>
 <script src="./assets/js/16-ai.js"></script>
 <script src="./assets/js/17-main.js"></script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(function(reg){document.addEventListener('visibilitychange',function(){if(!document.hidden)reg.update().catch(function(){});});}).catch(function(){});});}</script>
 </body>
 </html>

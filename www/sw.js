@@ -1,6 +1,8 @@
-/* Exambre Service Worker — cache-first shell, runtime untuk sisanya.
-   Naikkan versi CACHE saat mengubah file inti agar client lama ter-refresh. */
-const CACHE='exambre-v62';
+/* Exambre Service Worker.
+   File inti (HTML/CSS/JS/JSON): network-first, jadi versi terbaru selalu tampil saat online;
+   cache hanya cadangan saat offline/lambat. Aset berat (font, ikon, suara): cache-first.
+   Naikkan versi CACHE saat mengubah file inti agar cache lama dibuang. */
+const CACHE='exambre-v63';
 const CORE=[
   './index.html','./manifest.json','./assets/app.css',
   './assets/js/01-state.js','./assets/js/02-gamify-data.js','./assets/js/03-notes.js',
@@ -25,16 +27,35 @@ self.addEventListener('install',e=>{
 self.addEventListener('activate',e=>{
   e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
+const FRESH=/\.(?:html|css|js|json)$/i;
+function isFresh(req,url){return req.mode==='navigate'||url.pathname.endsWith('/')||FRESH.test(url.pathname);}
+async function networkFirst(req){
+  const c=await caches.open(CACHE);
+  try{
+    /* cache:'no-cache' = selalu validasi ke server, abaikan cache HTTP (mis. max-age GitHub Pages) */
+    const res=await Promise.race([
+      fetch(req,{cache:'no-cache'}),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),4000))
+    ]);
+    if(res&&res.status===200)c.put(req,res.clone());
+    return res;
+  }catch(_){
+    const hit=await c.match(req,{ignoreSearch:true});
+    if(hit)return hit;
+    if(req.mode==='navigate'){const idx=await c.match('./index.html');if(idx)return idx;}
+    return Response.error();
+  }
+}
+async function cacheFirst(req){
+  const c=await caches.open(CACHE);
+  const hit=await c.match(req);
+  if(hit)return hit;
+  const res=await fetch(req);
+  if(res&&res.status===200)c.put(req,res.clone());
+  return res;
+}
 self.addEventListener('fetch',e=>{
   const url=new URL(e.request.url);
   if(e.request.method!=='GET'||url.origin!==location.origin)return; /* API AI & CDN lewat jaringan */
-  e.respondWith(
-    caches.match(e.request).then(hit=>{
-      const net=fetch(e.request).then(res=>{
-        if(res&&res.status===200){const cp=res.clone();caches.open(CACHE).then(c=>c.put(e.request,cp));}
-        return res;
-      }).catch(()=>hit);
-      return hit||net;
-    })
-  );
+  e.respondWith(isFresh(e.request,url)?networkFirst(e.request):cacheFirst(e.request));
 });
