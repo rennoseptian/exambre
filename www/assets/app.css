@@ -824,3 +824,21 @@ body.dialog-open{overflow:hidden}
   .hm-c:not(.lf){animation:cellIn 380ms var(--ease-out) backwards;animation-delay:calc(var(--c,0)*28ms + 300ms)}
   .tr-bar{transform-origin:bottom;animation:growY 650ms var(--ease-out) backwards;animation-delay:calc(var(--i,0)*35ms + 300ms)}
 }
+
+/* ── Tahap 5: navigasi — indikator meluncur & transisi halaman ── */
+.bnav-ind{display:none}
+.bottom-nav.nav-sliding .bnav-ind{display:block;position:absolute;left:0;top:0;width:var(--iw,0);height:var(--ih,0);transform:translate(var(--ix,0),var(--iy,0));background:var(--blue50);border-radius:var(--ir,12px);pointer-events:none;z-index:0}
+.bottom-nav.nav-sliding .bnav-item.on{background:transparent}
+.bottom-nav.nav-sliding .bnav-item.on::before,.bottom-nav.nav-sliding .bnav-item.on::after{display:none}
+@media(min-width:1024px){.bottom-nav.nav-sliding .bnav-ind::after{content:'';position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--accent)}}
+.app{overflow-x:clip}
+@keyframes secSlide{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0))}}
+@keyframes navIcon{0%{transform:translateY(0) scale(1)}40%{transform:translateY(-3px) scale(1.12)}100%{transform:translateY(0) scale(1)}}
+@media (prefers-reduced-motion:no-preference){
+  .bottom-nav.nav-ready .bnav-ind{transition:transform 380ms cubic-bezier(.34,1.25,.64,1),width 300ms var(--ease-out),height 300ms var(--ease-out)}
+  .bnav-item.on i{animation:navIcon 420ms var(--ease-spring)}
+}
+
+/* item nav tidak ikut terangkat saat hover/tekan (pil indikator ada di belakangnya) */
+.bottom-nav.nav-sliding .bnav-item:hover,.bottom-nav.nav-sliding .bnav-item:active{animation:none;translate:none}
+.bottom-nav.nav-sliding .bnav-item:active i{transform:scale(.9)}

@@ -84,14 +84,43 @@ function setShellTitle(id){
   el.textContent=label;
   document.title=id==='list'?'Exambre':label+' · Exambre';
 }
+const SEC_ORDER=['list','review','catatan','stats','lainnya'];
+let _lastSec='list';
+/* Indikator tab aktif yang meluncur (bar bawah di HP, sidebar di desktop) */
+function moveNavInd(instant){
+  const nav=document.querySelector('.bottom-nav'),on=nav&&nav.querySelector('.bnav-item.on');
+  if(!nav||!on||!on.offsetWidth)return;
+  const nr=nav.getBoundingClientRect(),or=on.getBoundingClientRect();
+  nav.style.setProperty('--ix',(or.left-nr.left-nav.clientLeft)+'px');nav.style.setProperty('--iy',(or.top-nr.top-nav.clientTop)+'px');
+  nav.style.setProperty('--iw',or.width+'px');nav.style.setProperty('--ih',or.height+'px');
+  nav.style.setProperty('--ir',getComputedStyle(on).borderRadius||'12px');
+  const first=!nav.classList.contains('nav-sliding');
+  nav.classList.add('nav-sliding');
+  if(instant||first){nav.classList.remove('nav-ready');void nav.offsetWidth;requestAnimationFrame(()=>requestAnimationFrame(()=>nav.classList.add('nav-ready')));}
+}
 function goSec(id,btn){
   sfx('tap',0.4);setShellTitle(id);
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.bnav-item').forEach(t=>{t.classList.remove('on');t.setAttribute('aria-selected','false');});
   const target=document.getElementById('sec-'+id);
   target.classList.add('on');if(btn){btn.classList.add('on');btn.setAttribute('aria-selected','true');}
-  target.style.animation='none';requestAnimationFrame(()=>{target.style.animation='secIn var(--dur-2) var(--ease)';});
+  const prevI=SEC_ORDER.indexOf(_lastSec),nextI=SEC_ORDER.indexOf(id);_lastSec=id;
+  moveNavInd();
+  if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
+    const desk=matchMedia('(min-width:1024px)').matches,dir=nextI>=prevI?1:-1;
+    target.style.setProperty('--dx',desk?'0px':(dir*14)+'px');target.style.setProperty('--dy',desk?'8px':'0px');
+    target.style.animation='none';requestAnimationFrame(()=>{target.style.animation='secSlide var(--dur-3) var(--ease-out)';});
+  }
   if(id!=='review'){clearInterval(simTimerHandle);if(typeof simState!=='undefined'&&simState&&!simState.finished)window.simPausedAt=Date.now();}
   if(id==='review')openReviewTab();else if(id==='stats')renderStatsPage();else if(id==='lainnya'){renderLainnya();if(typeof showSettingsHub==='function')showSettingsHub();}else if(id==='catatan')renderNotes();else render();
 }
 
+
+(function(){
+  const nav=document.querySelector('.bottom-nav');if(!nav)return;
+  const init=()=>moveNavInd(true);
+  if(window.ResizeObserver)new ResizeObserver(init).observe(nav);
+  window.addEventListener('resize',init);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(init);
+  requestAnimationFrame(init);
+})();
