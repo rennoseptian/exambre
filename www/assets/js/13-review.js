@@ -31,6 +31,7 @@ function startReview(forceAll){
   }
   renderRev();
 }
+function pulseEl(sel){const e=document.querySelector(sel);if(!e)return;e.classList.remove('pulse');void e.offsetWidth;e.classList.add('pulse');}
 function renderRev(){
   if(revIdx>=revList.length){renderRevSummary();return;}
   const q=revList[revIdx];revDone=false;
@@ -48,7 +49,7 @@ function renderRev(){
       </div>
       <span class="rev-count">${pos} / ${total}</span>
     </div>
-    <div class="rev-prog" role="progressbar" aria-label="Progres latihan" aria-valuemin="0" aria-valuemax="${revList.length}" aria-valuenow="${revIdx+1}"><div class="rev-progf" style="width:${pct}%"></div></div>
+    <div class="rev-prog" role="progressbar" aria-label="Progres latihan" aria-valuemin="0" aria-valuemax="${revList.length}" aria-valuenow="${revIdx+1}"><div class="rev-progf" style="width:${pct}%;--from:${Math.round(revIdx/revList.length*100)}%"></div></div>
     <div class="rcard rev-card">
       <p class="rq">${sanitizeHtml(q.q)}</p>
       ${q.qimgs&&q.qimgs.length?'<div style="margin-bottom:12px">'+q.qimgs.map(img=>{const ei=typeof img==='string'?{src:img,width:80}:img;return`<img src="${escHtml(ei.src)}" alt="Gambar soal" decoding="async" style="max-height:160px;border-radius:4px;border:0.5px solid var(--border);object-fit:contain;cursor:pointer;display:block;margin-bottom:6px" onclick="openLB('${escHtml(jsStr(ei.src))}','Gambar soal')">`;}).join('')+'</div>':''}
@@ -105,7 +106,7 @@ function ansRev(qid,chosen,btn){
   if(ok)sessionCorrect++;else sessionWrong++;
   persist();
   checkBadges();
-  renderGami();
+  renderGami();pulseEl('.gpill.xp');
   const srsMsg=ok?`Direview lagi dalam <b>${q.srs.interval} hari</b>.`:`Kartu ini akan muncul lagi sebentar lagi untuk dilatih ulang.`;
   const xpPill=`<span class="rev-xp"><i class="ti ti-bolt" aria-hidden="true"></i>+${xpGain} XP</span>`;
   const aiExpBtn=!q.expHtml?`<button id="gen-exp-btn-rev-${q.id}" class="btn btn-s rev-ai" onclick="generateExp(${q.id})" aria-label="Generate penjelasan AI"><i class="ti ti-sparkles" aria-hidden="true"></i> Generate Penjelasan</button>`:'';

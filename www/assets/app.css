@@ -777,3 +777,25 @@ body.dialog-open{overflow:hidden}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
   #stats-content .panel:hover,#stats-content .scard:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
 }
+
+/* ── Tahap 3: gerak Review & Simulasi ── */
+@keyframes optPop{0%{transform:scale(1)}40%{transform:scale(1.025)}100%{transform:scale(1)}}
+@keyframes optNudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(3px)}}
+@keyframes chipPop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes progIn{from{width:var(--from,0%)}}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+#sec-review .rev-mastered{display:inline-block;padding:6px 10px;border-radius:var(--radius);background:var(--streak-soft)}
+@media (prefers-reduced-motion:no-preference){
+  .ropt{transition:background-color var(--dur-1) var(--ease),border-color var(--dur-1) var(--ease),transform var(--dur-1) var(--ease-out)}
+  .ropt:active:not(:disabled),#sec-review .rev-card .ropt:active:not(:disabled){transform:scale(.985)}
+  #sec-review .rev-card{animation:rise var(--dur-3) var(--ease-out)}
+  #rev-content .ropt{animation:rise var(--dur-3) var(--ease-out) backwards;animation-delay:calc(var(--n,0)*50ms + 90ms)}
+  #rev-content .ropt:nth-child(2){--n:1}#rev-content .ropt:nth-child(3){--n:2}#rev-content .ropt:nth-child(4){--n:3}#rev-content .ropt:nth-child(5){--n:4}
+  #rev-content .ropt.rc{animation:optPop 380ms var(--ease-spring)}
+  #rev-content .ropt.rw{animation:optNudge 320ms var(--ease-out)}
+  .rfb{animation:rise var(--dur-3) var(--ease-out)}
+  #sec-review .rev-xp{animation:chipPop 420ms var(--ease-spring) 120ms backwards}
+  #sec-review .rev-mastered{animation:rise var(--dur-4) var(--ease-out) 250ms backwards}
+  .rev-progf{animation:progIn 520ms var(--ease-out)}
+  .gpill.pulse{animation:pulse 450ms var(--ease-spring)}
+}
