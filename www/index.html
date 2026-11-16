@@ -445,6 +445,7 @@
         <button id="rmode-srs-btn" class="on" aria-pressed="true" onclick="switchRevMode('srs')"><i class="ti ti-repeat" aria-hidden="true"></i> Latihan (SRS)</button>
         <button id="rmode-sim-btn" aria-pressed="false" onclick="switchRevMode('sim')"><i class="ti ti-clock-hour-4" aria-hidden="true"></i> Simulasi Ujian</button>
       </div>
+      <div class="rev-tools"><button id="focus-btn" class="btn btn-s btn-sm" aria-pressed="false" onclick="toggleFocus()"><i class="ti ti-focus-2" aria-hidden="true"></i> Mode Fokus</button></div>
       <div id="rev-content"></div>
     </div>
     <div id="sim-nav-container"></div>
@@ -729,6 +730,11 @@
     <i class="ti ti-settings"></i><span>Pengaturan</span>
   </button>
 </nav>
+
+<div id="focus-bar" class="focus-bar nopr" role="toolbar" aria-label="Mode Fokus">
+  <span class="focus-time" id="focus-time">00:00</span><span class="focus-count" id="focus-count"></span>
+  <button id="focus-exit" class="focus-exit" onclick="exitFocus()" aria-label="Keluar dari Mode Fokus (Esc)"><i class="ti ti-x" aria-hidden="true"></i> Keluar</button>
+</div>
 
 <script src="./assets/js/01-state.js"></script>
 <script src="./assets/js/02-gamify-data.js"></script>

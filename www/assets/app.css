@@ -842,3 +842,23 @@ body.dialog-open{overflow:hidden}
 /* item nav tidak ikut terangkat saat hover/tekan (pil indikator ada di belakangnya) */
 .bottom-nav.nav-sliding .bnav-item:hover,.bottom-nav.nav-sliding .bnav-item:active{animation:none;translate:none}
 .bottom-nav.nav-sliding .bnav-item:active i{transform:scale(.9)}
+
+/* ── Tahap 6: Mode Fokus ── */
+.rev-tools{display:flex;justify-content:flex-end;margin:-2px 0 10px}
+.focus-bar{display:none}
+body.focus-mode .shell-topbar,body.focus-mode .bottom-nav,body.focus-mode #rev-mode-switch,body.focus-mode .rev-tools,body.focus-mode #due-badge{display:none!important}
+body.focus-mode .focus-bar{display:flex;position:fixed;top:0;left:0;right:0;z-index:520;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 14px;background:linear-gradient(var(--bg3) 65%,transparent);pointer-events:none}
+body.focus-mode .focus-bar>*{pointer-events:auto}
+.focus-time{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)}
+.focus-count{font-size:12px;color:var(--text2)}
+.focus-exit{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);background:var(--bg);color:var(--text2);border-radius:999px;padding:7px 13px;font:600 12.5px inherit;font-family:inherit;cursor:pointer;box-shadow:var(--shadow-sm)}
+.focus-exit:hover{color:var(--text)}
+body.focus-mode .app{margin:0 auto;max-width:720px;border:0;border-radius:0;min-height:100vh;background:transparent}
+body.focus-mode .app-inner{max-width:720px;padding:64px 16px calc(40px + env(safe-area-inset-bottom,0px))}
+body.focus-mode .app{padding-left:0}
+@media (prefers-reduced-motion:no-preference){
+  body.focus-mode .focus-bar{animation:focusDown var(--dur-3) var(--ease-out) backwards}
+  body.focus-mode #sec-review .rev-wrap{animation:rise var(--dur-4) var(--ease-out) backwards}
+}
+@keyframes focusDown{from{opacity:0;transform:translateY(-12px)}}
+@media(min-width:1024px){body.focus-mode{padding-left:0}body.focus-mode .app{margin:0 auto}}

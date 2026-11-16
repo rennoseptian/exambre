@@ -117,3 +117,43 @@ function ansRev(qid,chosen,btn){
 }
 function nextRev(){revIdx++;renderRev();}
 
+
+/* ── MODE FOKUS: sembunyikan shell, timer sesi, pintasan keyboard, layar tetap menyala ── */
+let _focusTimer=null,_focusT0=0,_wakeLock=null;
+function isFocus(){return document.body.classList.contains('focus-mode');}
+async function acquireWake(){
+  try{if('wakeLock' in navigator&&!_wakeLock){_wakeLock=await navigator.wakeLock.request('screen');_wakeLock.addEventListener('release',()=>{_wakeLock=null;});}}catch(e){_wakeLock=null;}
+}
+function releaseWake(){try{if(_wakeLock)_wakeLock.release();}catch(e){}_wakeLock=null;}
+function updateFocusBar(){
+  const t=document.getElementById('focus-time'),c=document.getElementById('focus-count');if(!t)return;
+  const sec=Math.floor((Date.now()-_focusT0)/1000),pad=n=>String(n).padStart(2,'0');
+  t.textContent=sec>=3600?Math.floor(sec/3600)+':'+pad(Math.floor(sec%3600/60))+':'+pad(sec%60):pad(Math.floor(sec/60))+':'+pad(sec%60);
+  const srs=document.getElementById('rmode-srs-btn');
+  const n=(typeof sessionCorrect==='number'?sessionCorrect:0)+(typeof sessionWrong==='number'?sessionWrong:0);
+  c.textContent=(srs&&srs.classList.contains('on')&&n)?n+' dijawab':'';
+}
+function enterFocus(){
+  if(isFocus())return;
+  document.body.classList.add('focus-mode');
+  const b=document.getElementById('focus-btn');if(b)b.setAttribute('aria-pressed','true');
+  _focusT0=Date.now();updateFocusBar();clearInterval(_focusTimer);_focusTimer=setInterval(updateFocusBar,1000);
+  acquireWake();window.scrollTo(0,0);
+  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur(); /* jangan biarkan Enter/Spasi jatuh ke tombol Keluar */
+}
+function exitFocus(){
+  if(!isFocus())return;
+  document.body.classList.remove('focus-mode');clearInterval(_focusTimer);releaseWake();
+  const b=document.getElementById('focus-btn');if(b){b.setAttribute('aria-pressed','false');b.focus({preventScroll:true});}
+}
+function toggleFocus(){isFocus()?exitFocus():enterFocus();}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isFocus())acquireWake();});
+document.addEventListener('keydown',e=>{
+  if(!isFocus()||e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey)return;
+  if(typeof _dialogTop==='function'&&_dialogTop())return;
+  const tg=e.target&&e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT'||(e.target&&e.target.isContentEditable))return;
+  if(e.key==='Escape'){exitFocus();return;}
+  const k=e.key.toUpperCase(),idx='12345'.indexOf(k),l=idx>=0?'ABCDE'[idx]:('ABCDE'.indexOf(k)>=0?k:null);
+  if(l){const o=document.querySelector('#rev-content .ropt[data-l="'+l+'"]:not(:disabled)');if(o){e.preventDefault();o.click();}return;}
+  if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight'){const n=document.getElementById('rnext');if(n&&tg!=='BUTTON'){e.preventDefault();n.click();}}
+});
