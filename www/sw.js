@@ -2,7 +2,7 @@
    File inti (HTML/CSS/JS/JSON): network-first, jadi versi terbaru selalu tampil saat online;
    cache hanya cadangan saat offline/lambat. Aset berat (font, ikon, suara): cache-first.
    Naikkan versi CACHE saat mengubah file inti agar cache lama dibuang. */
-const CACHE='exambre-v69';
+const CACHE='exambre-v70';
 const CORE=[
   './index.html','./manifest.json','./assets/app.css',
   './assets/js/01-state.js','./assets/js/02-gamify-data.js','./assets/js/03-notes.js',
