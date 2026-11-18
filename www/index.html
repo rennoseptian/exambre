@@ -18,10 +18,12 @@
 </head>
 <body>
 <div class="exambre-splash" id="exambre-splash" onclick="dismissSplash()">
-  <div class="splash-mascot-wrap">
-    <span class="splash-ring" aria-hidden="true"></span><span class="splash-ring r2" aria-hidden="true"></span>
-    <img class="splash-mascot" src="assets/exambre-logo.webp" alt="Logo Exambre" width="320" height="320" decoding="async">
-  </div>
+  <canvas class="splash-fx" id="splash-fx" aria-hidden="true"></canvas>
+  <svg class="splash-mark" id="splash-mark" viewBox="0 0 320 320" aria-hidden="true" focusable="false">
+    <defs><linearGradient id="spg" gradientUnits="userSpaceOnUse" x1="151.6" y1="248.2" x2="274.3" y2="149.1"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#f4f8ff"/><stop offset="1" stop-color="#86b0ff"/></linearGradient></defs>
+    <path id="spm-main" pathLength="1" d="M146.5 179.6 L149.3 177.5 L152.0 175.4 L154.7 173.4 L157.5 171.3 L160.2 169.3 L163.0 167.2 L165.7 165.1 L168.4 163.1 L171.2 161.0 L173.9 158.9 L176.6 156.9 L179.4 154.8 L182.1 152.8 L184.9 150.7 L187.6 148.6 L190.3 146.6 L193.1 144.5 L195.8 142.5 L198.5 140.4 L201.3 138.3 L204.0 136.3 L206.2 133.7 L208.0 130.7 L209.5 127.7 L210.6 124.4 L211.4 121.1 L211.8 117.7 L211.7 114.3 L211.2 110.9 L210.2 107.6 L208.7 104.5 L206.8 101.7 L204.6 99.1 L202.1 96.7 L199.3 94.7 L196.5 92.8 L193.5 91.1 L190.4 89.6 L187.3 88.3 L184.0 87.1 L180.8 86.0 L177.5 85.1 L174.1 84.3 L170.8 83.7 L167.4 83.2 L164.0 82.8 L160.6 82.6 L157.1 82.5 L153.7 82.5 L150.3 82.7 L146.9 83.0 L143.5 83.5 L140.1 84.1 L136.8 84.9 L133.5 85.8 L130.2 86.9 L127.0 88.1 L123.8 89.4 L120.7 90.9 L117.7 92.5 L114.7 94.2 L111.8 96.0 L109.0 98.0 L106.3 100.1 L103.7 102.3 L101.1 104.6 L98.7 107.0 L96.3 109.5 L94.1 112.0 L91.9 114.7 L89.9 117.5 L88.0 120.3 L86.2 123.2 L84.5 126.2 L82.9 129.2 L81.5 132.4 L80.2 135.5 L79.0 138.8 L78.0 142.0 L77.1 145.3 L76.4 148.7 L75.9 152.1 L75.5 155.5 L75.3 158.9 L75.2 162.3 L75.2 165.8 L75.5 169.2 L75.8 172.6 L76.3 176.0 L77.0 179.3 L77.7 182.7 L78.6 186.0 L79.6 189.3 L80.8 192.5 L82.0 195.7 L83.4 198.8 L84.8 201.9 L86.4 205.0 L88.1 208.0 L89.9 210.9 L91.8 213.8 L93.7 216.6 L95.8 219.3 L98.0 221.9 L100.3 224.5 L102.7 226.9 L105.2 229.3 L107.7 231.6 L110.4 233.8 L113.1 235.8 L116.0 237.7 L118.9 239.5 L121.9 241.2 L125.0 242.7 L128.1 244.0 L131.3 245.2 L134.6 246.2 L138.0 247.0 L141.3 247.6 L144.7 248.0 L148.2 248.2 L151.6 248.2"/>
+    <path id="spm-tail" pathLength="1" d="M151.6 248.2 L155.0 248.0 L158.4 247.6 L161.8 247.0 L165.1 246.2 L168.4 245.2 L171.6 244.1 L174.8 242.8 L177.9 241.3 L180.9 239.6 L183.8 237.8 L186.6 235.8 L189.3 233.7 L191.9 231.4 L194.4 229.1 L196.8 226.7 L199.2 224.2 L201.5 221.7 L203.8 219.2 L206.1 216.6 L208.4 214.0 L210.6 211.5 L212.9 208.9 L215.2 206.4 L217.6 203.9 L220.0 201.4 L222.4 199.0 L224.8 196.6 L227.3 194.2 L229.8 191.8 L232.3 189.5 L234.8 187.1 L237.3 184.8 L239.8 182.5 L242.3 180.2 L244.9 177.9 L247.4 175.5 L249.9 173.2 L252.4 170.9 L254.9 168.6 L257.4 166.2 L259.9 163.8 L262.4 161.4 L264.8 159.0 L267.2 156.6 L269.6 154.1 L272.0 151.7 L274.3 149.1" style="stroke:url(#spg)"/>
+  </svg>
   <div class="splash-wordmark" aria-label="Exambre"><span style="--i:0" aria-hidden="true">E</span><span style="--i:1" aria-hidden="true">x</span><span style="--i:2" aria-hidden="true">a</span><span style="--i:3" aria-hidden="true">m</span><span style="--i:4" aria-hidden="true">b</span><span style="--i:5" aria-hidden="true">r</span><span style="--i:6" aria-hidden="true">e</span></div>
   <div class="splash-bar" aria-hidden="true"><span></span></div>
   <div class="splash-skip">Ketuk untuk lanjut</div>
@@ -756,6 +758,7 @@
 <script src="./assets/js/16-ai.js"></script>
 <script src="./assets/js/17-main.js"></script>
 <script src="./assets/js/18-update.js"></script>
+<script src="./assets/js/19-splash-fx.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(function(reg){document.addEventListener('visibilitychange',function(){if(!document.hidden)reg.update().catch(function(){});});}).catch(function(){});});}</script>
 </body>
 </html>

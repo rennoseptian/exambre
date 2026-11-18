@@ -99,7 +99,9 @@ function bindPasteArea(){
 function initExambreSplash() {
   const overlay = document.getElementById('exambre-splash');
   if (!overlay) return;
-  setTimeout(dismissSplash, 2200);
+  const rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (window.startSplashFx) startSplashFx();
+  setTimeout(dismissSplash, rm ? 1500 : 3000);
 }
 function dismissSplash() {
   const overlay = document.getElementById('exambre-splash');
