@@ -706,6 +706,8 @@
           Aplikasi latihan soal universal, 100% lokal. Dibuat untuk membantu belajar mandiri
           lintas mata pelajaran tanpa akun dan tanpa server.
         </p>
+        <p class="set-desc" id="about-version" style="margin:10px 0 0;font-weight:600"></p>
+        <div id="upd-actions" style="display:none;margin-top:10px"><button class="btn btn-s btn-sm" onclick="checkForUpdate(true)"><i class="ti ti-refresh" aria-hidden="true"></i> Cek pembaruan</button></div>
       </div>
     </section>
   </div>
@@ -752,6 +754,7 @@
 <script src="./assets/js/15-stats.js"></script>
 <script src="./assets/js/16-ai.js"></script>
 <script src="./assets/js/17-main.js"></script>
+<script src="./assets/js/18-update.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(function(reg){document.addEventListener('visibilitychange',function(){if(!document.hidden)reg.update().catch(function(){});});}).catch(function(){});});}</script>
 </body>
 </html>

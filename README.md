@@ -225,3 +225,12 @@ MIT. Lihat [package.json](package.json).
 - Aplikasi web: [rennoseptian.github.io/exambre](https://rennoseptian.github.io/exambre)
 - Repositori: [github.com/rennoseptian/exambre](https://github.com/rennoseptian/exambre)
 - Laporan bug: [github.com/rennoseptian/exambre/issues](https://github.com/rennoseptian/exambre/issues)
+
+## Distribusi APK & pembaruan
+
+- Setiap push ke `main` membangun APK bertanda tangan dan memperbarui satu GitHub Release bergulir bernama **`apk-latest`**.
+- Link unduhan tetap (selalu versi terbaru): `https://github.com/rennoseptian/exambre/releases/latest/download/exambre.apk`
+- Halaman unduhan untuk pengguna: `<alamat-pages>/download/` (berisi versi terbaru, tombol unduh, dan cara memasang).
+- Nomor versi otomatis: `versionCode` = jumlah commit (`git rev-list --count HEAD`), `versionName` = `1.0.<jumlah commit>`.
+- Aplikasi Android memeriksa rilis terbaru saat online (paling sering sekali per 6 jam). Kalau nomor build lebih baru, muncul kartu "Versi baru tersedia" yang mengarah ke halaman unduhan.
+- **Jangan pernah mengganti keystore rilis** (`ANDROID_KEYSTORE_BASE64`): pengguna tidak bisa memperbarui APK yang tanda tangannya berbeda tanpa uninstall (data hilang). Simpan cadangannya.

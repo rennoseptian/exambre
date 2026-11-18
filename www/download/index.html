@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f6f3">
+<title>Unduh Exambre untuk Android</title>
+<link rel="icon" href="../assets/exambre-logo.webp">
+<style>
+:root{--bg3:#f7f6f3;--card:#fff;--text:#16181d;--text2:#5e5b57;--text3:#6b6862;--border:#e7e4de;--accent:#4f62e0;--accent-ink:#fff;--soft:rgba(79,98,224,.10);--ok:#1f8059;--shadow:0 1px 2px rgba(22,24,29,.04),0 8px 24px rgba(22,24,29,.07);color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg3:#121418;--card:#1a1d24;--text:#eceef2;--text2:#b3b8c4;--text3:#9399a6;--border:#2b2f3a;--accent:#8793f2;--accent-ink:#0f1220;--soft:rgba(135,147,242,.14);--ok:#4fc08b;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px rgba(0,0,0,.3)}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg3);color:var(--text);font:15px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:max(20px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
+main{max-width:520px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:22px}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.brand img{width:44px;height:44px;border-radius:12px}
+.brand b{font-size:19px;letter-spacing:-.02em}
+h1{font-size:22px;line-height:1.25;margin:0 0 6px;letter-spacing:-.02em}
+.sub{margin:0 0 18px;color:var(--text2);font-size:14px}
+.ver{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{background:var(--soft);color:var(--text);border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600}
+.dl{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-weight:700;font-size:16px;padding:14px 18px;border-radius:14px;transition:transform .15s ease,filter .15s ease}
+.dl:hover{filter:brightness(1.06)}.dl:active{transform:scale(.985)}
+.dl:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.note{margin:10px 0 0;font-size:12.5px;color:var(--text3);text-align:center}
+h2{font-size:15px;margin:26px 0 10px}
+ol{margin:0;padding-left:20px;color:var(--text2);font-size:14px}ol li{margin:7px 0}
+ol b{color:var(--text)}
+.changes{white-space:pre-line;color:var(--text2);font-size:13.5px;background:var(--soft);border-radius:12px;padding:10px 12px;margin:0}
+.warn{display:none;background:var(--soft);border-radius:12px;padding:10px 12px;margin:0 0 16px;font-size:13px;color:var(--text2)}
+footer{max-width:520px;margin:18px auto 0;text-align:center;font-size:13px}
+footer a{color:var(--accent);text-decoration:none;font-weight:600}
+@media(prefers-reduced-motion:no-preference){.card{animation:in .45s cubic-bezier(.22,1,.36,1) backwards}@keyframes in{from{opacity:0;transform:translateY(10px)}}}
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <div class="brand"><img src="../assets/exambre-logo.webp" alt="" width="44" height="44"><b>Exambre</b></div>
+    <h1>Unduh untuk Android</h1>
+    <p class="sub">Aplikasi latihan soal yang bisa dipakai offline. Selalu pasang versi terbaru dari halaman ini.</p>
+    <p class="warn" id="notAndroid">Kamu membuka halaman ini bukan dari HP Android. Buka alamat ini di HP-mu agar APK bisa dipasang.</p>
+    <div class="ver" id="ver" aria-live="polite"><span class="chip" id="vChip">Memeriksa versi terbaru…</span></div>
+    <a class="dl" id="dl" href="https://github.com/rennoseptian/exambre/releases/latest/download/exambre.apk" download>Unduh APK</a>
+    <p class="note">Berkas ±<span id="size">—</span> · gratis · tanpa akun</p>
+
+    <h2>Cara memasang</h2>
+    <ol>
+      <li>Ketuk <b>Unduh APK</b>, lalu tunggu unduhan selesai.</li>
+      <li>Buka berkasnya. Jika Android bertanya, izinkan <b>Instal dari sumber ini</b> untuk browser yang kamu pakai.</li>
+      <li>Ketuk <b>Instal</b>. Kalau sudah ada Exambre di HP-mu, ini akan <b>memperbarui</b> dan <b>datamu tetap aman</b>.</li>
+      <li>Jika muncul peringatan Play Protect, pilih <b>Tetap instal</b>. Itu normal untuk aplikasi di luar Play Store.</li>
+    </ol>
+
+    <div id="chgWrap" hidden>
+      <h2>Yang baru</h2>
+      <p class="changes" id="chg"></p>
+    </div>
+  </div>
+  <footer><a href="../">Buka versi web</a></footer>
+</main>
+<script>
+(function(){
+  var API='https://api.github.com/repos/rennoseptian/exambre/releases/latest';
+  if(!/Android/i.test(navigator.userAgent))document.getElementById('notAndroid').style.display='block';
+  var ctl=new AbortController(),t=setTimeout(function(){ctl.abort()},8000);
+  fetch(API,{headers:{Accept:'application/vnd.github+json'},signal:ctl.signal}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(rel){
+    var body=String(rel.body||''),m=body.match(/^version:\s*(\S+)/m),v=m?m[1]:'',chip=document.getElementById('vChip');
+    chip.textContent=v?('Versi terbaru: v'+v):'Versi terbaru';
+    if(rel.published_at){var c=document.createElement('span');c.className='chip';c.textContent=new Date(rel.published_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});document.getElementById('ver').appendChild(c)}
+    var a=(rel.assets||[]).filter(function(x){return x.name==='exambre.apk'})[0];
+    if(a&&a.size)document.getElementById('size').textContent=(a.size/1048576).toFixed(1)+' MB';
+    var notes=body.replace(/^(build|version|page|commit):.*$/mg,'').trim();
+    if(notes){document.getElementById('chg').textContent=notes;document.getElementById('chgWrap').hidden=false}
+  }).catch(function(){document.getElementById('vChip').textContent='Versi terbaru'}).finally(function(){clearTimeout(t)});
+})();
+</script>
+</body>
+</html>
