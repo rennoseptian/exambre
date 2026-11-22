@@ -312,11 +312,7 @@
     <!-- ADD PANEL -->
     <div class="panel nopr" id="add-panel" style="display:none">
       <!-- Scan from image section -->
-      <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-        <p style="font-size:12px;color:var(--text2);margin-bottom:8px">
-          <i class="ti ti-sparkles" style="color:var(--accent)"></i>
-          Punya foto/screenshot soal? Biarkan AI yang isi otomatis.
-        </p>
+      <details id="scan-block" class="scan-block ai-only" style="display:none"><summary>Dari foto atau screenshot</summary>
         <input
           type="file"
           id="scan-img-input"
@@ -351,7 +347,7 @@
         >
           <i class="ti ti-file-text"></i> Scan Halaman — Banyak Soal Sekaligus
         </button>
-      </div>
+      </details>
 
       <!-- Scan Preview: gambar asli referensi setelah scan -->
       <div id="scan-preview-wrap" style="display:none;margin-bottom:12px;border-radius:var(--radius);overflow:hidden;border:1.5px solid var(--border2)">
@@ -364,32 +360,30 @@
           style="width:100%;max-height:220px;object-fit:contain;background:var(--bg3);cursor:zoom-in;display:block">
       </div>
 
-      <div class="tabs2">
+      <div class="tabs2" style="display:none" aria-hidden="true">
         <button class="t2 on" role="tab" aria-selected="true" onclick="switchMode('paste',this)"><i class="ti ti-clipboard-text" style="vertical-align:-1px;margin-right:4px"></i>Paste Cepat</button>
         <button class="t2" role="tab" aria-selected="false" onclick="switchMode('manual',this)"><i class="ti ti-forms" style="vertical-align:-1px;margin-right:4px"></i>Isi Manual</button>
       </div>
       <div id="mode-paste">
         <div class="field">
-          <label>Tempel soal di sini <span style="font-weight:400;color:var(--text3)">— Ctrl+V dari halaman tryout</span></label>
+          <label>Tempel soal</label>
           <div style="border:1.5px dashed var(--border2);border-radius:var(--radius);padding:2px;transition:border-color .2s" id="paste-zone-add">
             <div id="paste-ta" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Tempel soal" spellcheck="false"
               style="min-height:120px;padding:12px 14px;font-size:13px;line-height:1.65;color:var(--text);font-family:inherit;outline:none"
-              data-ph="Ctrl+V untuk paste soal dari Ruangguru atau website lain.&#10;&#10;Teks, gambar soal, dan gambar opsi semua akan terdeteksi otomatis."></div>
+              data-ph="Tempel soal di sini. Boleh beberapa soal sekaligus."></div>
           </div>
           <style>#paste-ta:empty::before{content:attr(data-ph);color:var(--text3);white-space:pre-line;pointer-events:none}#paste-zone-add:focus-within{border-color:var(--accent)}#paste-ta img{max-height:120px;max-width:100%;border-radius:4px;border:0.5px solid var(--border);margin:3px 2px;vertical-align:middle;cursor:pointer}</style>
           <div id="parsed-out" style="display:none;margin-top:8px"></div>
-          <div style="margin-top:6px;display:flex;gap:8px">
-            <button class="btn btn-s" style="font-size:12px" onclick="runParseFromRich()"><i class="ti ti-wand"></i> Deteksi Otomatis</button>
-            <button class="btn btn-s" style="font-size:12px" onclick="clearPasteArea()"><i class="ti ti-eraser"></i> Bersihkan</button>
-          </div>
+          <div class="paste-tools"><button type="button" class="link-btn" onclick="openManualMode()">Tulis manual</button><button type="button" class="link-btn" onclick="clearPasteArea()">Hapus</button></div>
         </div>
         <div class="g2">
-          <div class="field"><label for="p-cat">Kategori <button type="button" title="Sarankan kategori dengan AI" aria-label="Sarankan kategori dengan AI" onclick="saranKategoriTunggal()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;padding:0 2px;vertical-align:middle">✨</button></label><select id="p-cat" aria-label="Kategori soal" onchange="updateBabSelect('p-bab','p-cat')"></select></div>
+          <div class="field"><label for="p-cat">Kategori <button type="button" class="ai-only" title="Sarankan kategori dengan AI" aria-label="Sarankan kategori dengan AI" onclick="saranKategoriTunggal()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;padding:0 2px;vertical-align:middle">✨</button></label><select id="p-cat" aria-label="Kategori soal" onchange="updateBabSelect('p-bab','p-cat')"></select></div>
           <div class="field"><label for="p-bab">Sub-Bab</label><select id="p-bab"></select></div>
         </div>
-        <div class="g2">
-          <div class="field"><label for="p-wrong">Jawaban saya (salah)</label><select id="p-wrong"></select></div>
-          <div class="field"><label for="p-correct">Jawaban benar</label><select id="p-correct"></select></div>
+        <details class="more only-single"><summary>Tambahan: pembahasan dan gambar</summary>
+        <div>
+          <div class="field"><label for="p-wrong">Jawaban saya yang salah <span style="font-weight:400;color:var(--text3)">(opsional)</span></label><select id="p-wrong"></select></div>
+          <div class="field" style="display:none"><label for="p-correct">Jawaban benar</label><select id="p-correct"></select></div>
         </div>
         <div class="field"><label>Gambar soal (opsional)</label><div id="img-area-p-qimgs"></div></div>
         <div class="field">
@@ -398,12 +392,11 @@
           <div class="rte-area" id="rte-p" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Pembahasan soal" spellcheck="false"></div>
         </div>
         <div class="field"><label>Gambar pembahasan (opsional)</label><div id="img-area-p-eimgs"></div></div>
-        <div class="btn-row">
-          <button class="btn btn-s" onclick="cancelAddPanel()">Batal</button>
-          <button class="btn btn-p" onclick="saveFromPaste()"><i class="ti ti-device-floppy"></i> Simpan Soal</button>
-        </div>
+        </details>
+        <div class="add-footer"><span class="hint" id="add-hint" role="status" aria-live="polite"></span><button class="btn btn-s" onclick="cancelAddPanel()">Batal</button><button class="btn btn-p" id="add-save-btn" onclick="saveFromPaste()" disabled><i class="ti ti-device-floppy"></i> <span id="add-save-label">Simpan soal</span></button></div>
       </div>
       <div id="mode-manual" style="display:none">
+        <button type="button" class="link-btn" style="margin-bottom:6px" onclick="openPasteMode()">← Tempel soal</button>
         <div class="g2">
           <div class="field"><label for="m-cat">Kategori</label><select id="m-cat" onchange="updateBabSelect('m-bab','m-cat')"></select></div>
           <div class="field"><label for="m-bab">Sub-Bab</label><select id="m-bab"></select></div>
@@ -750,6 +743,7 @@
 <script src="./assets/js/08-theme-io.js"></script>
 <script src="./assets/js/09-image-inputs.js"></script>
 <script src="./assets/js/10-render-edit.js"></script>
+<script src="./assets/js/05-parser.js"></script>
 <script src="./assets/js/11-panel-forms.js"></script>
 <script src="./assets/js/12-card-actions.js"></script>
 <script src="./assets/js/13-review.js"></script>

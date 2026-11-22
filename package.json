@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "sync": "cap sync android",
-    "open": "cap open android"
+    "open": "cap open android",
+    "test": "node tests/parser.test.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",

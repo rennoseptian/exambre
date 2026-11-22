@@ -2,13 +2,13 @@
    File inti (HTML/CSS/JS/JSON): network-first, jadi versi terbaru selalu tampil saat online;
    cache hanya cadangan saat offline/lambat. Aset berat (font, ikon, suara): cache-first.
    Naikkan versi CACHE saat mengubah file inti agar cache lama dibuang. */
-const CACHE='exambre-v71';
+const CACHE='exambre-v73';
 const CORE=[
   './index.html','./manifest.json','./assets/app.css',
   './assets/js/01-state.js','./assets/js/02-gamify-data.js','./assets/js/03-notes.js',
   './assets/js/04-srs-toast.js','./assets/js/06-media.js','./assets/js/07-categories.js',
   './assets/js/08-theme-io.js','./assets/js/09-image-inputs.js','./assets/js/10-render-edit.js',
-  './assets/js/11-panel-forms.js','./assets/js/12-card-actions.js','./assets/js/13-review.js',
+  './assets/js/05-parser.js','./assets/js/11-panel-forms.js','./assets/js/12-card-actions.js','./assets/js/13-review.js',
   './assets/js/14-simulation.js','./assets/js/15-stats.js','./assets/js/16-ai.js','./assets/js/17-main.js','./assets/js/18-update.js','./assets/js/19-splash-fx.js',
   './assets/fonts/inter-400.woff2','./assets/fonts/inter-500.woff2','./assets/fonts/inter-500italic.woff2',
   './assets/fonts/inter-600.woff2','./assets/fonts/inter-700.woff2','./assets/fonts/inter-800.woff2',
