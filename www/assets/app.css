@@ -928,3 +928,37 @@ details.more>summary{font-size:12.5px;color:var(--text2);cursor:pointer;margin-b
 @media(min-width:1024px){.add-footer{bottom:0}}
 #add-panel.has-pv #paste-ta{min-height:0;max-height:4.6em;overflow:hidden;cursor:text}
 #add-panel.has-pv #paste-ta:focus{max-height:40vh;overflow:auto}
+
+/* ── IA baru: 4 tab; sub-navigasi di dalam Latihan dan Saya ── */
+.subnav{display:flex;gap:4px;margin:0 0 14px;padding:4px;background:var(--bg2);border-radius:var(--radius-lg)}
+.subnav button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:7px 10px;border:0;border-radius:var(--radius);background:transparent;color:var(--text2);font:600 13px/1 inherit;font-family:inherit;cursor:pointer;transition:background-color var(--dur-1) var(--ease),color var(--dur-1) var(--ease)}
+.subnav button.on{background:var(--bg);color:var(--text);box-shadow:var(--shadow-sm)}
+.subnav button:not(.on):hover{color:var(--text)}
+@media(min-width:1024px){.subnav{max-width:420px}}
+body.focus-mode [data-subnav]{display:none}
+
+/* ── Belajar ── */
+.bl-lead{margin:0 0 6px;font-size:13px;line-height:1.55;color:var(--text2)}
+.bl-sum{margin:0 0 18px;font-size:12.5px;font-weight:600;color:var(--text)}
+.bl-topic{margin:0 0 24px}
+.bl-topic-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+.bl-topic-h h3{margin:0;font-size:15px;font-weight:700}
+.bl-count{font-size:12px;color:var(--text2);white-space:nowrap}
+.bl-topic-d{margin:0 0 10px;font-size:12.5px;color:var(--text2);line-height:1.5}
+.bl-bar{height:4px;margin-bottom:12px;border-radius:99px;background:var(--bg2);overflow:hidden}
+.bl-bar i{display:block;height:100%;border-radius:inherit;background:var(--success);transition:width var(--dur-3) var(--ease-out)}
+.bl-list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.bl-item{display:flex;gap:12px;padding:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);box-shadow:var(--shadow-card)}
+.bl-n{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--bg2);color:var(--text2);font-size:12px;font-weight:700}
+.bl-item.done .bl-n{background:var(--ans-correct-bg);color:var(--success)}
+.bl-body{flex:1;min-width:0}
+.bl-title{font-size:14px;font-weight:700;line-height:1.35}
+.bl-meta{margin:2px 0 6px;font-size:12px;color:var(--text2)}
+.bl-note{margin:0 0 10px;font-size:12.5px;line-height:1.5;color:var(--text2)}
+.bl-actions{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px}
+.bl-check{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}
+.bl-state{margin-top:8px;font-size:11.5px;color:var(--text3)}
+.bl-empty{padding:32px 8px;text-align:center;color:var(--text2)}
+.bl-empty p{margin:0 0 10px}
+.bl-actions{gap:8px 14px}
+.bl-links{flex-basis:100%;display:flex;gap:16px;margin-top:-2px}

@@ -124,7 +124,7 @@ function applyTheme(theme){
   renderSettingsSummaries();
 }
 async function exportData(){
-  const payload={app:'Exambre',version:1,appVersion:APP_VERSION,exportedAt:new Date().toISOString(),qs,nid,cats,gami,notes,noteCats,noteNid};
+  const payload={app:'Exambre',version:1,appVersion:APP_VERSION,exportedAt:new Date().toISOString(),qs,nid,cats,gami,notes,noteCats,noteNid,belajar:(function(){try{return JSON.parse(localStorage.getItem('exambre_belajar_prog')||'{}');}catch(e){return {};}})()};
   const json=JSON.stringify(payload,null,2);
   const filename=`exambre-backup-${new Date().toISOString().slice(0,10)}.json`;
   const isNative=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform();
@@ -216,6 +216,7 @@ function processImportJson(raw){
     nid=normalizeItemIds(qs,Number(data.nid)||10);
     cats=data.cats||{};
     gami=data.gami||gami;
+    if(data.belajar&&typeof data.belajar==='object'&&!Array.isArray(data.belajar)){try{localStorage.setItem('exambre_belajar_prog',JSON.stringify(data.belajar));}catch(e){}}
     qs.forEach(q=>ensureSrs(q));
     ensureGami();migrateCatColors();
     if(Array.isArray(data.notes)){notes=data.notes;noteCats=Array.isArray(data.noteCats)?data.noteCats:[];noteNid=normalizeItemIds(notes,Number(data.noteNid)||1);persistNotes();}

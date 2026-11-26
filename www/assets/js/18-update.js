@@ -75,10 +75,11 @@ function snoozeUpdate(build){
   localStorage.setItem('exambre_upd_snooze',JSON.stringify({build,until:Date.now()+UPD_SNOOZE}));
   const c=document.getElementById('upd-card');if(c)c.remove();
 }
-async function openUpdatePage(url){
+async function openExternalUrl(url){
   try{const B=window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser;if(B&&B.open){await B.open({url});return;}}catch(e){}
-  window.open(url,'_blank');
+  window.open(url,'_blank','noopener');
 }
+function openUpdatePage(url){return openExternalUrl(url);}
 async function renderAboutVersion(){
   const el=document.getElementById('about-version'),act=document.getElementById('upd-actions');if(!el)return;
   if(!isNativeApp()){el.textContent='Versi web \u00b7 diperbarui otomatis saat online';return;}

@@ -22,6 +22,7 @@ function renderRevModeTabs(){
   m.classList.toggle('on',revMode==='sim');
   s.setAttribute('aria-pressed',String(revMode==='srs'));
   m.setAttribute('aria-pressed',String(revMode==='sim'));
+  if(typeof renderSubnav==='function')renderSubnav();
   const sec=document.getElementById('sec-review');
   if(sec)sec.classList.toggle('srs-mode',revMode==='srs');
 }

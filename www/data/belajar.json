@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "updated": "2026-11-22",
+  "topics": [
+    {
+      "id": "matematika-dasar",
+      "judul": "Matematika dasar",
+      "ringkas": "Dasar-dasar matematika untuk persiapan kuliah.",
+      "playlists": [
+        {
+          "id": "PLPtbHTXes2LPJDunxjBOU0knXcBhbvJ1G",
+          "judul": "Matematika fundamental",
+          "channel": "Alternatifa",
+          "level": "dasar",
+          "catatan": "",
+          "jumlah_video": null,
+          "perlu_verifikasi": true
+        }
+      ]
+    }
+  ]
+}
